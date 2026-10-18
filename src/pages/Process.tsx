@@ -1,9 +1,10 @@
 import { Link } from 'react-router-dom';
-import { Lock, Users, CheckCircle2, Clock, Flame, Heart } from 'lucide-react';
+import { Lock, Users, CheckCircle2, Clock, Video, Heart } from 'lucide-react';
+import { QuoteFeature } from '../components/Quotes';
 
 export function Process() {
   return (
-    <div className="w-full bg-[#fefefe] min-h-screen text-primary pt-24 pb-32">
+    <div className="w-full bg-[#faf8f6] min-h-screen text-primary pt-24 pb-32">
       <div className="max-w-4xl mx-auto px-6">
         <div className="text-center mb-24">
           <h1 className="font-serif text-5xl md:text-6xl mb-6 tracking-tight">The Journey of Care</h1>
@@ -77,11 +78,11 @@ export function Process() {
                 </p>
                 <div className="space-y-4">
                   <div className="flex items-start gap-4">
-                    <Flame size={20} className="text-secondary mt-0.5" />
+                    <Video size={20} className="text-secondary mt-0.5" />
                     <span className="font-sans text-sm text-primary/80">Secure video consultation rooms hosted via Google Meet.</span>
                   </div>
                   <div className="flex items-start gap-4">
-                    <Heart size={20} fill="currentColor" className="text-secondary mt-0.5" />
+                    <Heart size={20} className="text-secondary mt-0.5" />
                     <span className="font-sans text-sm text-primary/80">Compassionate pastoral follow-up and prayer support as availability permits.</span>
                   </div>
                 </div>
@@ -96,12 +97,13 @@ export function Process() {
               <path d="M12 22C12 22 17 17 17 12C17 7 12 2 12 2C12 2 7 7 7 12C7 17 12 22 12 22Z" fill="currentColor" />
             </svg>
           </div>
-          <h3 className="font-serif text-2xl text-primary mb-4">Holding Space</h3>
-          <p className="font-sans text-base text-primary/70 italic max-w-lg mx-auto mb-10">
-            "In the spaces between our speaking and our listening, grace resides. Take a breath here. You are seen, and your request is held with care."
-          </p>
-          <Link to="/auth/register" className="inline-block border border-primary/10 hover:border-primary/30 text-primary/80 hover:text-primary font-sans text-xs uppercase tracking-[0.2em] px-8 py-4 rounded transition-all duration-300">
-            Begin The Journey
+          <h3 className="font-serif text-2xl text-primary mb-2">Holding Space</h3>
+          <QuoteFeature
+            quote="In the spaces between our speaking and our listening, grace resides. Take a breath here. You are seen, and your request is held with care."
+            className="py-2 mb-8 max-w-lg"
+          />
+          <Link to="/auth/register" className="inline-flex items-center justify-center border border-primary/20 text-primary font-sans text-sm font-medium px-6 py-3 rounded-md hover:bg-surface-dim transition-colors active-sink">
+            Begin the Journey
           </Link>
         </div>
       </div>

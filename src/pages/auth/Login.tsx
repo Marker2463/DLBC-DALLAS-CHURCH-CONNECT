@@ -8,6 +8,7 @@ import { GoogleSignInButton } from '../../components/GoogleSignInButton';
 
 interface DemoAccount {
   label: string;
+  sublabel: string;
   email: string;
   name: string;
   role: 'member' | 'leader' | 'pastor' | 'admin';
@@ -17,12 +18,14 @@ interface DemoAccount {
 const DEMO_ACCOUNTS: DemoAccount[] = [
   {
     label: 'Member',
+    sublabel: 'Congregant',
     email: 'member@dlbc.org',
     name: 'Bro. Emmanuel Johnson',
     role: 'member'
   },
   {
     label: 'Youth Leader',
+    sublabel: 'Youth Ministry',
     email: 'leader@dlbc.org',
     name: 'Sister Grace Adeyemi',
     role: 'leader',
@@ -30,6 +33,7 @@ const DEMO_ACCOUNTS: DemoAccount[] = [
   },
   {
     label: 'Pastor',
+    sublabel: 'Pastoral Care',
     email: 'pastor@dlbc.org',
     name: 'Pastor Samuel Olatunji',
     role: 'pastor',
@@ -278,14 +282,14 @@ export function Login() {
                 type="button"
                 disabled={loading}
                 onClick={() => handleQuickDemoLogin(demo)}
-                className="px-2.5 py-2 rounded-lg bg-white border border-primary/15 hover:border-[#1c202e] hover:bg-primary/[0.02] transition-all text-left group shadow-sm disabled:opacity-60"
+                className="px-2.5 py-2 rounded-lg bg-white border border-primary/15 hover:border-[#1c202e] hover:bg-primary/[0.02] transition-all text-left group shadow-sm disabled:opacity-60 cursor-pointer"
               >
-                <span className="block font-sans text-xs font-semibold text-primary group-hover:text-[#b93c3c] transition-colors truncate">
+                <span className="block font-sans text-xs font-semibold text-primary group-hover:text-primary/80 transition-colors truncate">
                   {quickAction === demo.label ? <Loader2 size={12} className="animate-spin inline mr-1" /> : null}
                   {demo.label}
                 </span>
-                <span className="block font-sans text-[10px] text-primary/50 truncate capitalize">
-                  {demo.role}
+                <span className="block font-sans text-[10px] text-primary/50 truncate">
+                  {demo.sublabel}
                 </span>
               </button>
             ))}
@@ -370,7 +374,7 @@ export function Login() {
         <div className="mt-8 text-center w-full pt-4 border-t border-primary/10">
           <p className="font-sans text-xs text-primary/70">
             Seeking connection? 
-            <Link to="/auth/register" className="text-primary font-bold hover:text-[#b93c3c] transition-colors ml-1.5 uppercase tracking-wider">
+            <Link to="/auth/register" className="text-primary font-bold hover:text-primary/70 transition-colors ml-1.5 uppercase tracking-wider">
               Create an account
             </Link>
           </p>

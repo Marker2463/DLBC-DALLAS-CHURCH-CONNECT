@@ -4,6 +4,8 @@ import { ArrowRight, ArrowLeft, Lock, AlertTriangle, Clock, Check, Calendar as C
 import { useAuth } from '../../lib/AuthContext';
 import { db, Consultation } from '../../lib/firebase';
 import { collection, addDoc, doc, setDoc } from 'firebase/firestore';
+import { PageTitle } from '../../components/PageTitle';
+import { buttonSizes, buttonTokens } from '../../lib/canonical';
 
 import { StepSchedule } from '../../components/member/StepSchedule';
 
@@ -143,12 +145,13 @@ export function Request() {
 
   return (
     <div className="flex flex-col items-center min-h-[70vh] pb-32">
-      <div className={`w-full px-6 flex flex-col flex-grow transition-all duration-500 ${step === 5 ? 'max-w-4xl' : 'max-w-[600px]'}`}>
-        
-        <div className="text-center mb-16 pt-12">
-          <h1 className="font-serif text-4xl text-primary mb-4">Request Consultation</h1>
-          <p className="font-sans text-lg text-primary/70">Step forward in faith. We are here to listen.</p>
-        </div>
+      <div className="w-full px-6 flex flex-col items-center flex-grow">
+        <div className={`w-full flex flex-col flex-grow transition-all duration-500 ${step === 5 ? 'max-w-4xl' : 'max-w-[600px]'}`}>
+          
+          <div className="text-center mb-16 pt-12">
+            <PageTitle className="mb-4">Request Consultation</PageTitle>
+            <p className="font-sans text-lg text-primary/70">Step forward in faith. We are here to listen.</p>
+          </div>
 
         {/* Stepper */}
         <div className="flex justify-between items-center mb-16 relative">
@@ -347,18 +350,26 @@ export function Request() {
             />
           </div>
         )}
+        </div>
       </div>
 
       {/* Sanctuary Bar (Bottom Action Bar) */}
       <div className="fixed bottom-0 left-0 w-full bg-background/90 backdrop-blur-md border-t border-primary/5 py-4 px-6 z-40 flex justify-center">
         <div className={`w-full flex justify-between items-center transition-all duration-500 ${step === 5 ? 'max-w-4xl' : 'max-w-[600px]'}`}>
           {step > 1 ? (
-            <button onClick={handleBack} disabled={isSubmitting} className="flex items-center gap-2 font-sans text-sm text-primary/70 hover:text-primary transition-colors py-3 px-6 rounded-md hover:bg-surface-dim/50">
+            <button
+              onClick={handleBack}
+              disabled={isSubmitting}
+              className={`${buttonSizes.md} ${buttonTokens.ghost}`}
+            >
               <ArrowLeft size={16} />
               Back
             </button>
           ) : (
-            <Link to="/member/dashboard" className="font-sans text-sm text-primary/70 hover:text-primary transition-colors py-3 px-6 rounded-md hover:bg-surface-dim/50">
+            <Link
+              to="/member/dashboard"
+              className={`${buttonSizes.md} ${buttonTokens.ghost}`}
+            >
               Cancel
             </Link>
           )}
@@ -366,7 +377,7 @@ export function Request() {
           <button 
             onClick={handleNext} 
             disabled={isSubmitting}
-            className="bg-primary text-white font-sans text-sm font-medium py-3 px-8 rounded-md active-sink flex items-center gap-2 hover:bg-primary/90 transition-colors disabled:opacity-70"
+            className={`${buttonSizes.md} ${buttonTokens.primary}`}
           >
             {isSubmitting ? "Submitting..." : step === 5 ? "Continue to Summary" : `Continue to ${step === 1 ? 'Urgency' : step === 2 ? 'Reason' : step === 3 ? 'Method' : 'Schedule'}`}
             {!isSubmitting && step < 5 && <ArrowRight size={16} />}

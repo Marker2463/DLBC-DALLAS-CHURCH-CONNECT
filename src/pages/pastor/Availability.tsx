@@ -4,6 +4,7 @@ import { db, LeaderAvailability } from '../../lib/firebase';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { Loader2, Save, Clock, CalendarOff } from 'lucide-react';
 import { addMinutes, format, parse } from 'date-fns';
+import { PageTitle } from '../../components/PageTitle';
 
 const DAYS_OF_WEEK = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
@@ -16,7 +17,7 @@ function generateSlots(startTime: string, endTime: string, duration: number = 45
     let current = start;
 
     while (addMinutes(current, duration) <= end) {
-      slots.push(format(current, 'hh:mm a'));
+      slots.push(format(current, 'h:mm a'));
       current = addMinutes(current, duration);
     }
     return slots;
@@ -141,7 +142,7 @@ export function PastorAvailability() {
   return (
     <div className="max-w-4xl mx-auto px-6 w-full py-12 pb-32">
       <div className="mb-12">
-        <h1 className="font-serif text-4xl text-primary mb-4">Availability & Scheduling</h1>
+        <PageTitle className="mb-4">Availability &amp; Scheduling</PageTitle>
         <p className="font-sans text-lg text-primary/70">Manage your weekly ministry hours and blocked dates.</p>
       </div>
 
@@ -150,7 +151,7 @@ export function PastorAvailability() {
         {/* Weekly Schedule */}
         <div className="bg-surface rounded-xl p-8 border border-primary/10">
           <div className="flex items-center gap-3 mb-6 border-b border-primary/10 pb-4">
-            <Clock className="text-[#b93c3c]" size={24} />
+            <Clock className="text-primary/70" size={24} />
             <h2 className="font-serif text-2xl text-primary">Weekly Schedule</h2>
           </div>
           
@@ -160,7 +161,7 @@ export function PastorAvailability() {
               return (
                 <div key={day} className="flex flex-col md:flex-row md:items-center gap-4 p-5 rounded-xl bg-white border border-[#e2dcce] shadow-sm">
                   <div className="w-40 flex items-center gap-3 cursor-pointer" onClick={() => handleToggleDay(day)}>
-                    <div className={`w-5 h-5 rounded border flex items-center justify-center transition-colors ${config.enabled ? 'bg-[#b93c3c] border-[#b93c3c]' : 'bg-[#faf8f5] border-[#e2dcce]'}`}>
+                    <div className={`w-5 h-5 rounded border flex items-center justify-center transition-colors ${config.enabled ? 'bg-primary border-primary' : 'bg-[#faf8f5] border-[#e2dcce]'}`}>
                       {config.enabled && (
                         <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
                           <path d="M10 3L4.5 8.5L2 6" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
@@ -189,7 +190,7 @@ export function PastorAvailability() {
                           className="appearance-none bg-[#faf8f5] border border-[#e2dcce] rounded-md px-3 py-2 font-sans text-sm text-primary focus:outline-none focus:border-[#1e232a] focus:ring-1 focus:ring-[#1e232a] transition-colors"
                         />
                       </div>
-                      <span className="ml-4 font-sans text-xs font-bold text-secondary uppercase tracking-widest hidden md:inline-block">
+                      <span className="ml-4 font-sans text-xs font-bold text-primary/60 uppercase tracking-widest hidden md:inline-block">
                         45m slots
                       </span>
                     </div>
@@ -207,7 +208,7 @@ export function PastorAvailability() {
         {/* Blackout Dates */}
         <div className="bg-surface rounded-xl p-8 border border-primary/10">
           <div className="flex items-center gap-3 mb-6 border-b border-primary/10 pb-4">
-            <CalendarOff className="text-[#b93c3c]" size={24} />
+            <CalendarOff className="text-primary/70" size={24} />
             <h2 className="font-serif text-2xl text-primary">Blackout Dates</h2>
           </div>
           
@@ -220,12 +221,12 @@ export function PastorAvailability() {
               type="date" 
               value={newBlackoutDate}
               onChange={(e) => setNewBlackoutDate(e.target.value)}
-              className="bg-background border border-primary/10 rounded px-4 py-2 font-sans text-sm text-primary focus:outline-none focus:border-[#b93c3c]/50"
+              className="bg-background border border-primary/10 rounded px-4 py-2 font-sans text-sm text-primary focus:outline-none focus:border-primary/40"
             />
             <button 
               onClick={addBlackoutDate}
               disabled={!newBlackoutDate}
-              className="bg-[#1c202e] text-white px-4 py-2 rounded font-sans text-sm font-medium hover:bg-[#2c2e35] transition-colors disabled:opacity-50"
+              className="bg-primary text-white px-5 py-2.5 rounded-md font-sans text-sm font-medium hover:bg-primary/90 transition-colors disabled:opacity-50 cursor-pointer"
             >
               Add Date
             </button>
@@ -240,7 +241,7 @@ export function PastorAvailability() {
                   <span className="font-sans text-sm text-primary">{date}</span>
                   <button 
                     onClick={() => removeBlackoutDate(date)}
-                    className="text-primary/40 hover:text-[#b93c3c] transition-colors"
+                    className="text-primary/40 hover:text-red-700 transition-colors cursor-pointer"
                   >
                     &times;
                   </button>
@@ -255,9 +256,9 @@ export function PastorAvailability() {
           <button 
             onClick={handleSave}
             disabled={saving}
-            className="bg-[#1e232a] hover:bg-[#2c323b] text-white px-8 py-4 rounded font-sans text-sm font-semibold transition-colors flex items-center gap-2 shadow-sm disabled:opacity-70"
+            className="bg-primary hover:bg-primary/90 text-white font-sans text-sm font-medium px-8 py-3 rounded-md active-sink flex items-center gap-2 shadow-sm transition-colors disabled:opacity-50 cursor-pointer"
           >
-            {saving ? <Loader2 size={18} className="animate-spin" /> : <Save size={18} />}
+            {saving ? <Loader2 className="animate-spin" size={16} /> : <Save size={16} />}
             {saving ? 'Saving...' : 'Save Availability'}
           </button>
         </div>

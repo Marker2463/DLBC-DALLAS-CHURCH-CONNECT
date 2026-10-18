@@ -3,6 +3,7 @@ import { db, UserProfile, LeaderAvailability } from '../../lib/firebase';
 import { collection, getDocs, query, where } from 'firebase/firestore';
 import { Loader2, Calendar as CalendarIcon, Clock, Check, User, CheckCircle2, ChevronRight, X } from 'lucide-react';
 import { addDays, format, isSameDay } from 'date-fns';
+import { getInitials } from '../../lib/canonical';
 
 interface StepScheduleProps {
   onSlotSelected: (leaderId: string, leaderName: string, selectedDate: Date, timeSlot: string, leaderEmail?: string) => void;
@@ -13,12 +14,12 @@ interface StepScheduleProps {
 }
 
 const DEFAULT_SLOTS = [
-  "09:00 AM",
+  "9:00 AM",
   "10:30 AM",
-  "01:00 PM",
-  "02:30 PM",
-  "04:00 PM",
-  "05:30 PM"
+  "1:00 PM",
+  "2:30 PM",
+  "4:00 PM",
+  "5:30 PM"
 ];
 
 function getCategoryFilter(cat?: string): string {
@@ -135,7 +136,7 @@ export function StepSchedule({ onSlotSelected, selectedLeaderId, selectedTimeSlo
 
     // Default pastoral slots (Sundays afternoon only)
     if (format(date, 'EEEE') === 'Sunday') {
-      return ["02:00 PM", "03:30 PM", "05:00 PM"];
+      return ["2:00 PM", "3:30 PM", "5:00 PM"];
     }
     return DEFAULT_SLOTS;
   };
@@ -284,7 +285,7 @@ export function StepSchedule({ onSlotSelected, selectedLeaderId, selectedTimeSlo
                     <div className={`w-12 h-12 rounded-xl flex items-center justify-center font-serif text-lg font-bold shrink-0 transition-colors ${
                       isSelected ? 'bg-[#1c202e] text-white' : 'bg-primary/5 text-primary'
                     }`}>
-                      {leader.profile.displayName ? leader.profile.displayName.charAt(0).toUpperCase() : <User size={18} />}
+                      {leader.profile.displayName ? getInitials(leader.profile.displayName) : <User size={18} />}
                     </div>
                     <div className="min-w-0">
                       <h4 className="font-serif text-base text-primary font-semibold truncate">
@@ -342,7 +343,7 @@ export function StepSchedule({ onSlotSelected, selectedLeaderId, selectedTimeSlo
                 </p>
               </div>
               <div className="text-right">
-                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary/5 text-primary/70 text-xs font-semibold">
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary/5 text-primary/70 text-xs font-semibold whitespace-nowrap">
                   <CalendarIcon size={13} /> {format(activeDay, 'MMMM yyyy')}
                 </span>
               </div>
@@ -378,7 +379,7 @@ export function StepSchedule({ onSlotSelected, selectedLeaderId, selectedTimeSlo
                       </span>
                       <span className={`block font-sans text-[10px] font-medium ${
                         isDaySelected 
-                          ? 'text-[#ffb3ae]' 
+                          ? 'text-white/80' 
                           : slotsCount > 0 ? 'text-emerald-700' : 'text-primary/40'
                       }`}>
                         {slotsCount > 0 ? `${slotsCount} slots` : 'Off'}
@@ -403,24 +404,25 @@ export function StepSchedule({ onSlotSelected, selectedLeaderId, selectedTimeSlo
               {activeDaySlots.length > 0 ? (
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                   {activeDaySlots.map((time, idx) => {
+                    const formattedSlot = time.replace(/^0/, '');
                     const isTimeSelected = 
                       selectedLeaderId === currentLeader?.profile.uid &&
                       selectedDate && isSameDay(selectedDate, activeDay) &&
-                      selectedTimeSlot === time;
+                      (selectedTimeSlot === time || selectedTimeSlot === formattedSlot);
 
                     return (
                       <button
                         key={idx}
                         type="button"
-                        onClick={() => handleSelectTime(time)}
+                        onClick={() => handleSelectTime(formattedSlot)}
                         className={`py-3.5 px-4 rounded-xl font-sans text-sm font-semibold transition-all flex items-center justify-center gap-2 border cursor-pointer ${
                           isTimeSelected
-                            ? 'bg-[#b93c3c] text-white border-[#b93c3c] shadow-md ring-2 ring-[#b93c3c]/20'
+                            ? 'bg-primary text-white border-primary shadow-md ring-2 ring-primary/20'
                             : 'bg-[#faf8f5] hover:bg-white text-primary border-primary/15 hover:border-primary/30 shadow-sm'
                         }`}
                       >
                         <Clock size={15} className={isTimeSelected ? 'text-white' : 'text-primary/50'} />
-                        {time}
+                        {formattedSlot}
                         {isTimeSelected && <Check size={14} className="text-white ml-0.5" />}
                       </button>
                     );
@@ -440,7 +442,7 @@ export function StepSchedule({ onSlotSelected, selectedLeaderId, selectedTimeSlo
             {/* Privacy & Confidentiality Footnote */}
             <div className="pt-4 border-t border-primary/10 flex items-center justify-between text-xs text-primary/60">
               <span className="flex items-center gap-1.5 font-medium">
-                <CheckCircle2 size={13} className="text-[#b93c3c]" /> Pastoral Confidentiality Guaranteed
+                <CheckCircle2 size={13} className="text-primary/70" /> Pastoral Confidentiality Guaranteed
               </span>
               <span>All sessions 45 minutes</span>
             </div>

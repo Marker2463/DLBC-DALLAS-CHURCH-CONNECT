@@ -4,6 +4,9 @@ import { useAuth } from '../../lib/AuthContext';
 import { useState, useEffect, useMemo } from 'react';
 import { db, Consultation } from '../../lib/firebase';
 import { collection, query, where, onSnapshot } from 'firebase/firestore';
+import { PageTitle } from '../../components/PageTitle';
+import { getInitials, formatDateTime } from '../../lib/canonical';
+import { StatusBadge } from '../../components/StatusBadge';
 
 export function PastorArchives() {
   const { user } = useAuth();
@@ -21,7 +24,7 @@ export function PastorArchives() {
     const q = query(
       collection(db, 'consultations'),
       where('leaderId', '==', user.uid),
-      where('status', 'in', ['completed', 'archived'])
+      where('status', 'in', ['completed', 'archived', 'cancelled'])
     );
 
     const unsubscribe = onSnapshot(q, (snapshot) => {
@@ -61,7 +64,7 @@ export function PastorArchives() {
   return (
     <div className="max-w-7xl mx-auto px-6 w-full py-16 pb-32">
       <div className="mb-12">
-        <h1 className="font-serif text-5xl text-primary mb-4 tracking-tight">Records</h1>
+        <PageTitle className="mb-4">Records</PageTitle>
         <p className="font-sans text-lg text-primary/70">
           A historical record of completed consultations and pastoral care sessions.
         </p>
@@ -125,17 +128,15 @@ export function PastorArchives() {
           ) : (
             filteredConsultations.map((consultation) => (
               <Link key={consultation.id} to={`/pastor/request/${consultation.id}`} className="flex items-center gap-4 pb-6 border-b border-primary/5 hover:bg-primary/5 p-4 rounded-lg transition-colors group">
-                <div className="w-12 h-12 rounded-full bg-surface-dim flex items-center justify-center font-sans font-medium text-primary/50 shadow-sm shrink-0 uppercase">
-                  {consultation.memberName?.substring(0, 2) || '??'}
+                <div className="w-12 h-12 rounded-full bg-surface-dim flex items-center justify-center font-sans font-medium text-primary shadow-sm shrink-0 uppercase text-sm font-semibold border border-primary/10">
+                  {getInitials(consultation.memberName)}
                 </div>
                 <div className="flex-grow">
                   <div className="flex justify-between items-start mb-1">
                     <h3 className="font-sans text-base font-semibold text-primary group-hover:text-secondary transition-colors">{consultation.memberName}</h3>
-                    <span className="px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wider bg-gray-100 text-gray-800">
-                      {consultation.status}
-                    </span>
+                    <StatusBadge status={consultation.status} />
                   </div>
-                  <p className="font-sans text-sm text-primary/70">{consultation.category} • {consultation.selectedTime ? new Date(consultation.selectedTime).toLocaleDateString() : 'No date set'}</p>
+                  <p className="font-sans text-sm text-primary/70">{consultation.category} • {consultation.selectedTime ? formatDateTime(consultation.selectedTime, 'date') : 'No date set'}</p>
                 </div>
                 <ChevronRight size={20} className="text-primary/20 group-hover:text-secondary transition-colors shrink-0" />
               </Link>

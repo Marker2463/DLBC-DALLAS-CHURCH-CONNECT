@@ -47,44 +47,7 @@ export interface Appointment {
   updatedAt: string;
 }
 
-export interface Consultation {
-  id: string;
-  memberId: string;
-  memberName: string;
-  memberEmail?: string;
-  leaderId: string | null;
-  leaderName: string | null;
-  leaderEmail?: string | null;
-  category: string;
-  urgency: string;
-  reason: string;
-  attachments: string[];
-  selectedTime: string | null; // ISO string
-  scheduledStart?: string | null; // ISO string
-  scheduledEnd?: string | null; // ISO string
-  meetingMethod?: 'zoom' | 'google_meet' | 'in_person';
-  meetingLocation?: string | null;
-  meetingLinkStatus?: 'pending' | 'active' | 'expired';
-  meetingLink?: string | null; // Real generated Meet link
-  status: 'submitted' | 'under_review' | 'scheduled' | 'completed' | 'archived';
-  isLocked: boolean;
-  googleMeetUrl?: string | null;
-  googleEventId?: string | null;
-  meetUrl?: string | null; // Central shared Google Meet URL
-  calendarEventId?: string | null; // Shared Google Calendar Event ID
-  createdAt?: string | null;
-  updatedAt?: string | null;
-  journeyTimeline: { status: string; timestamp: string; description: string }[];
-}
-
-export interface ConsultationNote {
-  id: string;
-  consultationId: string;
-  authorId: string;
-  authorRole: string;
-  content: string;
-  createdAt: string; // ISO string
-}
+export * from '../types/consultation';
 
 export interface LeaderAvailability {
   leaderId: string;

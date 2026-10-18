@@ -69,7 +69,20 @@ export function TopNav() {
       {/* Structured Linear Workflows */}
       <nav className="hidden md:flex items-center space-x-8 h-full relative">
         {activeMenu.map((item) => {
-          const isActive = location.pathname === item.path || (item.path !== '/' && location.pathname.startsWith(item.path + '/'));
+          const isMemberDetail = location.pathname.startsWith('/member/request/');
+          const isPastorDetail = location.pathname.startsWith('/pastor/request/');
+
+          let isActive = false;
+          if (item.path === '/member/sanctuary' && isMemberDetail) {
+            isActive = true;
+          } else if (item.path === '/pastor/sanctuary' && isPastorDetail) {
+            isActive = true;
+          } else if (item.path === '/member/request' && isMemberDetail) {
+            isActive = false;
+          } else {
+            isActive = location.pathname === item.path || (item.path !== '/' && location.pathname.startsWith(item.path + '/'));
+          }
+
           return (
             <Link
               key={item.path}
@@ -91,11 +104,11 @@ export function TopNav() {
       {/* Identity State Actions Panel */}
       <div className="flex items-center space-x-4">
         {!isAuthenticated ? (
-          <Link to="/auth/login" className="bg-[#1c202e] text-white text-xs font-semibold px-5 py-2.5 rounded shadow-sm hover:bg-opacity-90 transition-all tracking-wider uppercase font-sans">
+          <Link to="/auth/login" className="bg-primary text-white text-sm font-medium px-5 py-2.5 rounded-md shadow-sm hover:bg-primary/90 transition-colors font-sans">
             Begin Consultation
           </Link>
         ) : (
-          <button onClick={handleSignOut} className="text-xs font-semibold tracking-wider text-[#b93c3c] uppercase hover:underline font-sans cursor-pointer">
+          <button onClick={handleSignOut} className="text-sm font-medium text-primary/70 hover:text-primary transition-colors font-sans cursor-pointer">
             Log Out
           </button>
         )}

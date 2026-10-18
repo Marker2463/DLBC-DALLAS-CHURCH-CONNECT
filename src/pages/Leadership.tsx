@@ -6,7 +6,7 @@ export function Leadership() {
     <div className="max-w-7xl mx-auto px-6 w-full py-16">
       
       {/* Asymmetrical Header */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-24 max-w-6xl mx-auto items-end">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-24 max-w-5xl mx-auto items-end">
         <div className="lg:col-span-5">
           <h1 className="font-serif text-5xl md:text-6xl text-primary tracking-tight">Our Leadership</h1>
         </div>
@@ -28,7 +28,7 @@ export function Leadership() {
           <p className="font-sans text-sm text-primary/70 mb-10 leading-relaxed flex-grow">
             Sarah brings over a decade of experience guiding teenagers through the complexities of modern faith. Her approach blends rigorous scriptural study with empathetic, real-world application, creating a safe space for youth to question, grow, and anchor their beliefs.
           </p>
-          <Link to="/auth/register" className="inline-flex items-center justify-center border border-primary/20 text-primary font-sans text-sm font-medium px-6 py-3 rounded-md hover:bg-surface-dim transition-colors active-sink w-full md:w-auto">
+          <Link to="/auth/login" className="inline-flex items-center justify-center border border-primary/20 text-primary font-sans text-sm font-medium px-6 py-3 rounded-md hover:bg-surface-dim transition-colors active-sink w-full md:w-auto">
             Request Consultation
           </Link>
         </div>
@@ -43,7 +43,7 @@ export function Leadership() {
           <p className="font-sans text-sm text-primary/70 mb-10 leading-relaxed flex-grow">
             David oversees our foundational ministry, ensuring that the youngest members of our community experience the warmth of spiritual belonging. His curriculum focuses on joy, moral development, and early theological understanding in an accessible, engaging format.
           </p>
-          <Link to="/auth/register" className="inline-flex items-center justify-center border border-primary/20 text-primary font-sans text-sm font-medium px-6 py-3 rounded-md hover:bg-surface-dim transition-colors active-sink w-full md:w-auto">
+          <Link to="/auth/login" className="inline-flex items-center justify-center border border-primary/20 text-primary font-sans text-sm font-medium px-6 py-3 rounded-md hover:bg-surface-dim transition-colors active-sink w-full md:w-auto">
             Request Consultation
           </Link>
         </div>

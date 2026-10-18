@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { Heart, Clock } from 'lucide-react';
+import { QuoteFeature } from '../components/Quotes';
 
 export function Landing() {
   return (
@@ -39,10 +40,8 @@ export function Landing() {
       </section>
 
       {/* Empathy Block */}
-      <section className="py-32 px-6 text-center max-w-3xl mx-auto">
-        <p className="font-serif text-3xl text-primary/80 leading-relaxed italic">
-          "We understand that some seasons of life are too heavy to carry alone. This space is intentionally designed for pause, prayer, and professional pastoral connection."
-        </p>
+      <section className="py-24 px-6 text-center w-full">
+        <QuoteFeature quote="We understand that some seasons of life are too heavy to carry alone. This space is intentionally designed for pause, prayer, and professional pastoral connection." />
       </section>
 
       {/* Leadership Bento Grid */}
@@ -60,7 +59,7 @@ export function Landing() {
               <span className="font-sans text-[10px] font-bold text-secondary uppercase tracking-[0.2em] mb-4 block">Youth Leader</span>
               <p className="font-sans text-base text-primary/70 mb-10 flex-grow">Guiding teenagers through the complexities of modern faith, blending rigorous scriptural study with empathetic application.</p>
               <Link 
-                to="/auth/register"
+                to="/auth/login"
                 className="w-full py-4 px-4 rounded-lg halo-border text-primary font-sans text-sm font-medium hover:bg-surface-dim transition-colors active-sink"
               >
                 Request Consultation
@@ -76,7 +75,7 @@ export function Landing() {
               <span className="font-sans text-[10px] font-bold text-secondary uppercase tracking-[0.2em] mb-4 block">Children Leader</span>
               <p className="font-sans text-base text-primary/70 mb-10 flex-grow">Overseeing foundational ministry to ensure the youngest members experience the warmth of spiritual belonging and moral development.</p>
               <Link 
-                to="/auth/register"
+                to="/auth/login"
                 className="w-full py-4 px-4 rounded-lg halo-border text-primary font-sans text-sm font-medium hover:bg-surface-dim transition-colors active-sink"
               >
                 Request Consultation

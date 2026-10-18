@@ -4,6 +4,9 @@ import { useAuth } from '../../lib/AuthContext';
 import { useState, useEffect } from 'react';
 import { db, Consultation } from '../../lib/firebase';
 import { collection, query, where, onSnapshot } from 'firebase/firestore';
+import { formatDateTime } from '../../lib/canonical';
+import { StatusBadge } from '../../components/StatusBadge';
+import { QuoteFeature } from '../../components/Quotes';
 
 export function Dashboard() {
   const { user } = useAuth();
@@ -37,23 +40,24 @@ export function Dashboard() {
   }, [user]);
 
   return (
-    <div className="max-w-5xl mx-auto px-6 w-full py-12">
+    <div className="max-w-7xl mx-auto px-6 w-full py-16 pb-32">
       {/* Greeting Section */}
-      <section className="text-center mb-12">
+      <div className="mb-12">
         <h1 className="font-serif text-5xl md:text-6xl text-primary mb-4 tracking-tight">
           Welcome back, {user?.displayName || 'Friend'}.
         </h1>
         <p className="font-serif text-2xl text-primary/70 italic">Peace be with you.</p>
-      </section>
+      </div>
 
       {/* Daily Reflection */}
-      <section className="max-w-2xl mx-auto text-center mb-16 relative py-10">
+      <section className="max-w-2xl mx-auto text-center mb-16 relative py-10 px-6">
         <div className="absolute inset-0 bg-surface-dim/30 rounded-xl -z-10 halo-border"></div>
-        <div className="font-serif text-4xl text-outline mb-6">"</div>
-        <p className="font-sans text-lg text-primary leading-relaxed mb-6">
-          "Be completely humble and gentle; be patient, bearing with one another in love. Make every effort to keep the unity of the Spirit through the bond of peace."
-        </p>
-        <p className="font-sans text-sm text-primary/70 uppercase tracking-widest font-medium">Ephesians 4:2-3</p>
+        <QuoteFeature
+          quote="Be completely humble and gentle; be patient, bearing with one another in love. Make every effort to keep the unity of the Spirit through the bond of peace."
+          citation="Ephesians 4:2-3"
+          showDecorativeGlyph={true}
+          className="py-2"
+        />
       </section>
 
       {/* My Journey Bento Grid */}
@@ -79,18 +83,12 @@ export function Dashboard() {
                   <Link key={consultation.id} to={`/member/request/${consultation.id}`} className="block bg-background border border-primary/10 rounded-lg p-4 hover:border-primary/30 transition-colors">
                     <div className="flex justify-between items-start mb-2">
                       <h4 className="font-sans text-base font-medium text-primary">{consultation.category}</h4>
-                      <span className={`px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wider ${
-                          consultation.status === 'scheduled' ? 'bg-green-100 text-green-800' :
-                          consultation.status === 'completed' ? 'bg-gray-100 text-gray-800' :
-                          'bg-yellow-100 text-yellow-800'
-                        }`}>
-                        {consultation.status.replace('_', ' ')}
-                      </span>
+                      <StatusBadge status={consultation.status} />
                     </div>
                     {consultation.selectedTime && (
                       <p className="font-sans text-sm text-primary/70 mb-2 flex items-center gap-2">
                         <Calendar size={14} />
-                        {new Date(consultation.selectedTime).toLocaleString()}
+                        {formatDateTime(consultation.selectedTime, 'short')}
                       </p>
                     )}
                     {consultation.googleMeetUrl && (

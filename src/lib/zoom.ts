@@ -29,7 +29,7 @@ export async function createZoomMeeting({
   topic,
   startTimeIso,
   durationMinutes,
-}: CreateZoomMeetingArgs): Promise<string> {
+}: CreateZoomMeetingArgs): Promise<{ joinUrl: string; meetingId: string }> {
   const accessToken = await getZoomAccessToken();
 
   const res = await fetch('https://api.zoom.us/v2/users/me/meetings', {
@@ -58,5 +58,58 @@ export async function createZoomMeeting({
   }
 
   const data = await res.json();
-  return data.join_url;
+  // Member and leader both receive the exact same join_url. Never return or store start_url.
+  return {
+    joinUrl: data.join_url,
+    meetingId: String(data.id),
+  };
+}
+
+export async function updateZoomMeeting({
+  meetingId,
+  startTimeIso,
+  durationMinutes = 45,
+}: {
+  meetingId: string;
+  startTimeIso: string;
+  durationMinutes?: number;
+}): Promise<void> {
+  const accessToken = await getZoomAccessToken();
+  const res = await fetch(`https://api.zoom.us/v2/meetings/${meetingId}`, {
+    method: 'PATCH',
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      start_time: startTimeIso,
+      duration: durationMinutes,
+    }),
+  });
+  if (!res.ok && res.status !== 204) {
+    const errBody = await res.text();
+    console.warn(`[zoom] Update failed: ${res.status} ${errBody}`);
+  }
+}
+
+export async function deleteZoomMeeting({
+  meetingId,
+}: {
+  meetingId: string;
+}): Promise<void> {
+  try {
+    const accessToken = await getZoomAccessToken();
+    const res = await fetch(`https://api.zoom.us/v2/meetings/${meetingId}`, {
+      method: 'DELETE',
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    });
+    if (!res.ok && res.status !== 204) {
+      const errBody = await res.text();
+      console.warn(`[zoom] Meeting deletion skipped:`, errBody);
+    }
+  } catch (err: any) {
+    console.warn(`[zoom] Meeting deletion error:`, err?.message);
+  }
 }

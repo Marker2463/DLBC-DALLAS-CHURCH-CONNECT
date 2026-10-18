@@ -67,9 +67,9 @@ export function Roles() {
     setIsDeleting(true);
     
     try {
-      const userDocId = selectedUser.id || selectedUser.uid;
+      const userDocId = selectedUser.membershipId || selectedUser.uid;
       await deleteDoc(doc(db, 'users', userDocId));
-      setCongregation(prev => prev.filter(u => (u.id || u.uid) !== userDocId));
+      setCongregation(prev => prev.filter(u => (u.membershipId || u.uid) !== userDocId));
       setSelectedUser(null);
       setSearchQuery('');
     } catch (err) {
@@ -86,7 +86,7 @@ export function Roles() {
     setIsSubmitting(true);
     try {
       const newRole = selectedRole === 'pastoral' ? 'pastor' : 'leader';
-      const userUid = selectedUser.uid || selectedUser.id;
+      const userUid = selectedUser.uid || selectedUser.membershipId;
       
       // Update User Document
       const userRef = doc(db, 'users', userUid);

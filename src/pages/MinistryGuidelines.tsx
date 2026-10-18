@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { QuoteInline } from '../components/Quotes';
 
 export function MinistryGuidelines() {
   return (
@@ -12,7 +13,7 @@ export function MinistryGuidelines() {
           Ministry Guidelines
         </h1>
         <p className="font-sans text-lg text-primary/70 leading-relaxed max-w-3xl">
-          Defining the ethical and spiritual standards for pastoral care within the PastoralConnect ecosystem. This document serves as a living covenant for digital stewardship.
+          Defining the ethical and spiritual standards for pastoral care within the DLBC Church Connect ecosystem. This document serves as a living covenant for digital stewardship.
         </p>
       </div>
 
@@ -23,7 +24,7 @@ export function MinistryGuidelines() {
           Stewardship in the digital age requires a profound commitment to the sanctity of interaction. When individuals reach out for pastoral care, they are entrusting us not merely with their problems, but with their spiritual vulnerability.
         </p>
         <p className="font-sans text-primary/80 leading-relaxed">
-          PastoralConnect is built on the philosophy of "Digital Sanctuary." This means our platform must remain a space where the weight of pastoral authority is balanced perfectly with the precision and reliability of modern tools. Every feature, from direct messaging to resource sharing, must be treated as an extension of the pastoral office.
+          DLBC Church Connect is built on the philosophy of "Digital Sanctuary." This means our platform must remain a space where the weight of pastoral authority is balanced perfectly with the precision and reliability of modern tools. Every feature, from direct messaging to resource sharing, must be treated as an extension of the pastoral office.
         </p>
       </div>
 
@@ -34,7 +35,7 @@ export function MinistryGuidelines() {
           The pastoral counselor must maintain a posture of absolute integrity. Our ethical mandate demands that counselors recognize the power dynamics inherent in the relationship and guard rigorously against any exploitation of the counselee.
         </p>
         
-        <div className="bg-white border border-primary/10 rounded-xl p-8 shadow-sm max-w-3xl">
+        <div className="bg-white border border-primary/10 rounded-xl p-8 shadow-sm w-full">
           <div className="flex items-center gap-3 mb-6">
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-primary/80">
               <path d="m14.5 12.5-8 8a2.119 2.119 0 1 1-3-3l8-8" />
@@ -63,7 +64,7 @@ export function MinistryGuidelines() {
       <div className="mb-16 pt-8 border-t border-primary/10">
         <h2 className="font-serif text-3xl text-primary mb-6">3. Confidentiality Protocols</h2>
         <p className="font-sans text-primary/80 leading-relaxed mb-4">
-          Confidentiality is the cornerstone of trust in pastoral care. Within PastoralConnect, all communications are treated with the highest degree of technical and spiritual security.
+          Confidentiality is the cornerstone of trust in pastoral care. Within DLBC Church Connect, all communications are treated with the highest degree of technical and spiritual security.
         </p>
         <p className="font-sans text-primary/80 leading-relaxed">
           Information shared in counseling is strictly privileged. Exceptions to this rule are rare and defined solely by legal mandate (such as imminent threat of harm to self or others) and must be handled with profound pastoral sensitivity.
@@ -74,13 +75,9 @@ export function MinistryGuidelines() {
       <div className="pt-8 border-t border-primary/10">
         <h2 className="font-serif text-3xl text-primary mb-6">4. Spiritual Fidelity</h2>
         <p className="font-sans text-primary/80 leading-relaxed mb-8">
-          Ultimately, the goal of all pastoral intervention is to align the individual with spiritual truth and wholeness. Counselors using PastoralConnect must remain grounded in their theological convictions while extending grace to those in varying stages of their journey.
+          Ultimately, the goal of all pastoral intervention is to align the individual with spiritual truth and wholeness. Counselors using DLBC Church Connect must remain grounded in their theological convictions while extending grace to those in varying stages of their journey.
         </p>
-        <div className="border-l-[3px] border-secondary pl-6 py-2">
-          <p className="font-serif text-lg text-primary/90 italic leading-relaxed">
-            "The truest form of pastoral care does not seek to fix, but to bear witness to the presence of grace in the midst of suffering."
-          </p>
-        </div>
+        <QuoteInline quote="The truest form of pastoral care does not seek to fix, but to bear witness to the presence of grace in the midst of suffering." />
       </div>
     </div>
   );

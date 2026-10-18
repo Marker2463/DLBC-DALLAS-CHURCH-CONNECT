@@ -27,6 +27,27 @@ export const setGoogleAccessToken = (token: string | null) => {
 };
 
 /**
+ * Request or refresh Google OAuth access token via popup
+ */
+export async function requestGoogleAccessToken(): Promise<string | null> {
+  const existing = getGoogleAccessToken();
+  if (existing) return existing;
+
+  try {
+    const result = await signInWithPopup(auth, googleProvider);
+    const credential = GoogleAuthProvider.credentialFromResult(result);
+    const accessToken = credential?.accessToken || null;
+    if (accessToken) {
+      setGoogleAccessToken(accessToken);
+    }
+    return accessToken;
+  } catch (err: any) {
+    console.warn('Google authorization request cancelled or failed:', err);
+    return null;
+  }
+}
+
+/**
  * Sign in with Google and request Google Meet scopes
  */
 export async function signInWithGoogle(desiredRole: UserRole = 'member'): Promise<{ user: User; profile: UserProfile; accessToken: string }> {

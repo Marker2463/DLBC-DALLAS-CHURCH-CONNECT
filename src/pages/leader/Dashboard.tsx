@@ -4,8 +4,12 @@ import { useAuth } from '../../lib/AuthContext';
 import { useState, useEffect } from 'react';
 import { db, Consultation } from '../../lib/firebase';
 import { collection, query, where, onSnapshot } from 'firebase/firestore';
+import JoinSessionButton from '../../components/JoinSessionButton';
 import studyImg from '../../assets/images/pastoral_care_study_1787251812830.jpg';
 import pewsImg from '../../assets/images/church_pews_editorial_1787251824185.jpg';
+import { getInitials, formatDateTime, tertiaryLinkClass } from '../../lib/canonical';
+import { StatusBadge } from '../../components/StatusBadge';
+import { QuoteInline } from '../../components/Quotes';
 
 export function LeaderDashboard() {
   const { user } = useAuth();
@@ -25,8 +29,8 @@ export function LeaderDashboard() {
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const docs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Consultation));
       
-      // Filter out completed ones, keep only active
-      const activeDocs = docs.filter(c => c.status !== 'completed' && c.status !== 'archived');
+      // Filter out completed, archived, and cancelled ones, keep only active
+      const activeDocs = docs.filter(c => c.status !== 'completed' && c.status !== 'archived' && c.status !== 'cancelled');
       
       // Sort descending so most recent is first
       activeDocs.sort((a, b) => {
@@ -53,9 +57,10 @@ export function LeaderDashboard() {
         <h1 className="font-serif text-5xl md:text-6xl text-primary mb-4 tracking-tight">
           Peace be with you, {user?.displayName || 'Leader'}.
         </h1>
-        <p className="font-sans text-lg text-primary/70 italic border-l-2 border-secondary/50 pl-4 py-1">
-          "Let your light shine before others, that they may see your good deeds and glorify your Father in heaven." — Matthew 5:16
-        </p>
+        <QuoteInline
+          quote="Let your light shine before others, that they may see your good deeds and glorify your Father in heaven."
+          citation="Matthew 5:16"
+        />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-16 items-start">
@@ -67,11 +72,11 @@ export function LeaderDashboard() {
               <MessageSquare size={20} />
               <h2 className="font-serif text-2xl text-primary">Assigned Consultations</h2>
             </div>
-            <div className="flex gap-4">
-              <Link to="/pastor/availability" className="font-sans text-xs font-bold uppercase tracking-widest text-primary/50 hover:text-primary">
-                [Schedule Availability]
+            <div className="flex items-center gap-4">
+              <Link to="/pastor/availability" className={tertiaryLinkClass}>
+                Schedule Availability
               </Link>
-              <Link to="/pastor/archives" className="font-sans text-xs font-bold uppercase tracking-widest text-primary/50 hover:text-primary">
+              <Link to="/pastor/archives" className={tertiaryLinkClass}>
                 View Records
               </Link>
             </div>
@@ -101,7 +106,7 @@ export function LeaderDashboard() {
                 >
                   <div className="flex items-start gap-4">
                     <div className="w-12 h-12 rounded-full bg-surface-dim flex items-center justify-center font-sans font-medium text-primary shadow-sm shrink-0 uppercase text-sm font-semibold border border-primary/10">
-                      {consultation.memberName?.substring(0, 2) || '??'}
+                      {getInitials(consultation.memberName)}
                     </div>
                     <div>
                       <div className="flex items-center gap-2 mb-1 flex-wrap">
@@ -114,32 +119,24 @@ export function LeaderDashboard() {
                           {consultation.urgency || 'Normal'}
                         </span>
 
-                        <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${
-                          consultation.status === 'scheduled' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' :
-                          'bg-amber-50 text-amber-700 border border-amber-200'
-                        }`}>
-                          {consultation.status === 'scheduled' ? 'Confirmed' : 'Needs Finalization'}
-                        </span>
+                        <StatusBadge status={consultation.status} />
                       </div>
                       <p className="font-sans text-sm text-primary/70">
-                        {consultation.category} • {consultation.selectedTime ? new Date(consultation.selectedTime).toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' }) : 'Date pending'}
+                        {consultation.category} • {consultation.selectedTime ? formatDateTime(consultation.selectedTime, 'short') : 'Date pending'}
                       </p>
                     </div>
                   </div>
 
                   <div className="flex items-center gap-2 self-end sm:self-center">
                     {consultation.meetingMethod !== 'in_person' && consultation.status === 'scheduled' && (
-                      <button
-                        onClick={() => {
-                          const url = consultation.googleMeetUrl || consultation.meetingLink || 'https://meet.google.com/new';
-                          window.open(url, '_blank', 'noopener,noreferrer');
-                        }}
-                        className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg font-sans text-xs font-semibold bg-[#1c202e] text-white hover:bg-[#1c202e]/90 transition-all shadow-sm cursor-pointer"
-                        title="Launch video meeting"
-                      >
-                        <Video size={13} />
-                        Join
-                      </button>
+                      <JoinSessionButton
+                        consultationId={consultation.id}
+                        initialMeetingLink={consultation.meetingLink || consultation.meetUrl || consultation.googleMeetUrl}
+                        buttonText="Join"
+                        loadingText="Joining..."
+                        icon={<Video size={13} />}
+                        className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg font-sans text-xs font-semibold bg-[#1c202e] text-white hover:bg-[#1c202e]/90 transition-all shadow-sm cursor-pointer disabled:opacity-50"
+                      />
                     )}
                     <Link
                       to={`/pastor/request/${consultation.id}`}
@@ -167,7 +164,7 @@ export function LeaderDashboard() {
             <div className="mb-6">
               <h4 className="font-sans text-sm font-semibold text-primary mb-3">Leadership &amp; Discipleship Cadence</h4>
               <div className="w-full bg-primary/5 h-1.5 rounded-full mb-3 overflow-hidden">
-                <div className="bg-secondary h-full rounded-full" style={{ width: '85%' }}></div>
+                <div className="bg-primary h-full rounded-full" style={{ width: '85%' }}></div>
               </div>
               <div className="flex justify-between text-xs font-sans text-primary/70">
                 <span>Active Cohort</span>
@@ -192,7 +189,7 @@ export function LeaderDashboard() {
               placeholder="Personal ministry reflections, discipleship prayer points..."
             ></textarea>
             <div className="mt-auto flex justify-end">
-              <button className="font-sans text-xs font-bold uppercase tracking-widest text-primary/50 hover:text-primary transition-colors cursor-pointer">
+              <button className={tertiaryLinkClass}>
                 Save Note
               </button>
             </div>

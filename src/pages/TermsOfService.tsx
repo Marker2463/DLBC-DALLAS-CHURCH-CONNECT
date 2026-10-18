@@ -140,14 +140,14 @@ export function TermsOfService() {
       </main>
 
       {/* Footer Custom to Terms page */}
-      <footer className="w-full pt-16 pb-12 px-6 flex flex-col gap-4 max-w-5xl mx-auto bg-background mt-auto">
+      <footer className="w-full pt-16 pb-12 px-6 flex flex-col gap-4 max-w-7xl mx-auto bg-background mt-auto">
         <div className="flex flex-col md:flex-row justify-between items-center gap-8 mb-8">
           <div className="font-serif text-2xl text-primary">DLBC Church Connect</div>
-          <nav className="flex flex-wrap gap-x-6 gap-y-4">
-            <Link to="/privacy" className="font-sans text-xs text-primary/70 hover:text-primary transition-colors">Privacy Policy</Link>
-            <Link to="/terms" className="font-sans text-xs text-primary/70 hover:text-primary transition-colors">Terms of Service</Link>
-            <Link to="/ministry-guidelines" className="font-sans text-xs text-primary/70 hover:text-primary transition-colors">Ministry Guidelines</Link>
-            <Link to="/support" className="font-sans text-xs text-primary/70 hover:text-primary transition-colors">Contact Support</Link>
+          <nav className="flex items-center gap-x-8 gap-y-2 whitespace-nowrap overflow-x-auto">
+            <Link to="/privacy" className="font-sans text-xs text-primary/70 hover:text-primary transition-colors whitespace-nowrap">Privacy Policy</Link>
+            <Link to="/terms" className="font-sans text-xs text-primary/70 hover:text-primary transition-colors whitespace-nowrap">Terms of Service</Link>
+            <Link to="/ministry-guidelines" className="font-sans text-xs text-primary/70 hover:text-primary transition-colors whitespace-nowrap">Ministry Guidelines</Link>
+            <Link to="/support" className="font-sans text-xs text-primary/70 hover:text-primary transition-colors whitespace-nowrap">Contact Support</Link>
           </nav>
         </div>
         

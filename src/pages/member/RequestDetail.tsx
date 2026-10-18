@@ -3,9 +3,14 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "../../lib/AuthContext";
 import { db, Consultation } from "../../lib/firebase";
 import { doc, getDoc, updateDoc, collection, addDoc, query, orderBy, onSnapshot } from "firebase/firestore";
-import { ChevronLeft, FileText, Calendar, Edit2, CheckCircle2, Loader2, Video, Lock, Clock, Send, ExternalLink, Copy, Check, MapPin } from "lucide-react";
+import { ChevronLeft, FileText, Calendar, Edit2, CheckCircle2, Loader2, Video, Lock, Clock, Send, ExternalLink, Copy, Check, MapPin, X } from "lucide-react";
 import { generateGoogleCalendarUrl } from "../../lib/calendarHelper";
-import { getOrInitializeMeetUrl } from "../../lib/appointmentService";
+import { getOrInitializeMeetUrl, isSyntheticMeetUrl } from "../../lib/appointmentService";
+import { getGoogleAccessToken } from "../../lib/googleMeetClient";
+import JoinSessionButton from "../../components/JoinSessionButton";
+import { formatDateTime, getInitials, formatMeetingMethod, buttonSizes, buttonTokens, tertiaryLinkClass } from "../../lib/canonical";
+import { StatusBadge } from "../../components/StatusBadge";
+import { CancelConsultationModal } from "../../components/CancelConsultationModal";
 
 export function MemberRequestDetail() {
   const { id } = useParams();
@@ -31,7 +36,10 @@ export function MemberRequestDetail() {
   const [timeToMeeting, setTimeToMeeting] = useState<string>('');
 
   useEffect(() => {
-    if (!id) return;
+    if (!id || !user) {
+      if (!user) setLoading(false);
+      return;
+    }
     const docRef = doc(db, 'consultations', id);
     const unsubscribe = onSnapshot(docRef, (docSnap) => {
       if (docSnap.exists()) {
@@ -48,16 +56,22 @@ export function MemberRequestDetail() {
     });
 
     return () => unsubscribe();
-  }, [id]);
+  }, [id, user]);
 
   useEffect(() => {
-    if (!id) return;
+    if (!id || !user) return;
     const q = query(collection(db, `consultations/${id}/notes`), orderBy('createdAt', 'asc'));
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      setNotes(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
-    });
+    const unsubscribe = onSnapshot(
+      q,
+      (snapshot) => {
+        setNotes(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+      },
+      (err) => {
+        console.warn("Member consultation notes subscription notice:", err?.message || err);
+      }
+    );
     return () => unsubscribe();
-  }, [id]);
+  }, [id, user]);
 
   useEffect(() => {
     if (!consultation || consultation.status !== 'scheduled' || !consultation.scheduledStart) return;
@@ -97,23 +111,21 @@ export function MemberRequestDetail() {
     try {
       const selectedTime = new Date(`${newDate}T${newTime}:00`).toISOString();
       
-      if (consultation.googleEventId) {
-        await fetch('/api/calendar/update', {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            eventId: consultation.googleEventId,
-            selectedTime
-          })
-        });
-      }
+      await fetch('/api/consultations/reschedule', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          consultationId: id,
+          selectedTime
+        })
+      });
 
       await updateDoc(doc(db, 'consultations', id), {
         scheduledStart: selectedTime,
         selectedTime: selectedTime,
         journeyTimeline: [
           ...(consultation.journeyTimeline || []),
-          { status: 'Rescheduled', timestamp: new Date().toISOString(), description: `Meeting rescheduled to ${new Date(selectedTime).toLocaleString()} by member.` }
+          { status: 'Rescheduled', timestamp: new Date().toISOString(), description: `Meeting rescheduled to ${formatDateTime(selectedTime, 'short')} by member.` }
         ]
       });
 
@@ -157,32 +169,70 @@ export function MemberRequestDetail() {
     }
   };
 
+  const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
+  const [isCancelling, setIsCancelling] = useState(false);
+
+  const handleConfirmCancel = async (reason: string) => {
+    if (!consultation || !id) return;
+    setIsCancelling(true);
+    try {
+      const res = await fetch('/api/consultations/cancel', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          consultationId: id,
+          cancelledBy: 'member',
+          cancellationReason: reason,
+        }),
+      });
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}));
+        throw new Error(errorData.error || "Failed to cancel consultation.");
+      }
+    } catch (err: unknown) {
+      console.error("Failed to cancel consultation:", err);
+      throw err;
+    } finally {
+      setIsCancelling(false);
+    }
+  };
+
   const handleFinalSubmit = async () => {
     if (!consultation || !id || !user) return;
     setIsSubmitting(true);
     
     try {
       let googleMeetUrl = consultation.meetUrl || consultation.googleMeetUrl || consultation.meetingLink || null;
+      if (googleMeetUrl && isSyntheticMeetUrl(googleMeetUrl, id)) {
+        googleMeetUrl = null;
+      }
       let googleEventId = consultation.calendarEventId || consultation.googleEventId || null;
 
       if (!googleMeetUrl && (consultation.meetingMethod === 'google_meet' || consultation.meetingMethod === 'in_person')) {
+        const googleAccessToken = getGoogleAccessToken();
         const response = await fetch('/api/calendar/schedule', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: {
+            'Content-Type': 'application/json',
+            ...(googleAccessToken ? { 'x-google-access-token': googleAccessToken } : {}),
+          },
           body: JSON.stringify({
             consultationId: id,
             title: `Pastoral Consultation — ${consultation.category || 'Pastoral Care'}`,
             memberEmail: user.email,
             leaderEmail: consultation.leaderEmail,
             selectedTime: consultation.selectedTime || consultation.scheduledStart,
-            method: consultation.meetingMethod
+            method: consultation.meetingMethod,
+            googleAccessToken,
           })
         });
 
         if (response.ok) {
-          const data = await response.json();
-          if (data.googleMeetUrl || data.meetUrl) googleMeetUrl = data.meetUrl || data.googleMeetUrl;
-          if (data.eventId || data.calendarEventId) googleEventId = data.calendarEventId || data.eventId;
+          const resText = await response.text();
+          let data: any = null;
+          try { data = JSON.parse(resText); } catch {}
+          if (data?.googleMeetUrl || data?.meetUrl) googleMeetUrl = data.meetUrl || data.googleMeetUrl;
+          if (data?.eventId || data?.calendarEventId) googleEventId = data.calendarEventId || data.eventId;
         }
       }
 
@@ -226,7 +276,7 @@ export function MemberRequestDetail() {
         <FileText className="text-primary/20 mb-4" size={64} />
         <h2 className="text-xl font-serif text-primary mb-2">Record Not Found</h2>
         <p className="text-primary/60 font-sans max-w-md">The consultation request you are looking for may have been archived or does not exist.</p>
-        <button onClick={() => navigate('/member/sanctuary')} className="mt-6 text-[#b93c3c] font-medium hover:underline flex items-center gap-2">
+        <button onClick={() => navigate('/member/sanctuary')} className="mt-6 text-primary hover:text-primary/70 font-medium flex items-center gap-2">
           <ChevronLeft size={16} /> Return to Sanctuary
         </button>
       </div>
@@ -234,12 +284,12 @@ export function MemberRequestDetail() {
   }
 
   const isLocked = consultation.isLocked || consultation.status !== 'draft';
-  const meetingLink = consultation.meetUrl || consultation.googleMeetUrl || consultation.meetingLink;
+  const meetingLink = consultation.meetUrl || consultation.googleMeetUrl || consultation.meetingLink || (consultation as any)?.meeting?.url || null;
 
   const renderTimelineNode = (title: string, currentStatus: string, desc: string, isPast: boolean, isActive: boolean) => (
     <div className="relative pl-6">
-      <div className={`absolute -left-[5px] top-1 w-2.5 h-2.5 rounded-full ${isActive ? 'bg-[#b93c3c] shadow-[0_0_10px_rgba(185,60,60,0.5)]' : isPast ? 'bg-primary' : 'bg-primary/20'}`} />
-      <h4 className={`font-sans text-sm font-semibold ${isActive ? 'text-[#b93c3c]' : isPast ? 'text-primary' : 'text-primary/40'}`}>{title}</h4>
+      <div className={`absolute -left-[5px] top-1 w-2.5 h-2.5 rounded-full ${isActive ? 'bg-primary shadow-[0_0_8px_rgba(28,32,46,0.3)]' : isPast ? 'bg-primary' : 'bg-primary/20'}`} />
+      <h4 className={`font-sans text-sm font-semibold ${isActive ? 'text-primary' : isPast ? 'text-primary' : 'text-primary/40'}`}>{title}</h4>
       <p className="font-sans text-xs text-primary/60 mt-1">{desc}</p>
     </div>
   );
@@ -256,12 +306,13 @@ export function MemberRequestDetail() {
             <ChevronLeft size={20} />
           </button>
           <div>
-            <div className="flex items-center gap-3 mb-1">
+            <div className="flex items-center gap-3 mb-1 flex-wrap">
               <h1 className="font-serif text-2xl text-primary font-medium">Request Details</h1>
-              {isLocked && <Lock size={14} className="text-[#b93c3c]" />}
+              <StatusBadge status={consultation.status} />
+              {isLocked && <Lock size={14} className="text-primary/60" />}
             </div>
             <p className="font-sans text-sm text-primary/60">
-              Tracking ID: <span className="font-mono text-xs ml-1 bg-primary/5 px-2 py-0.5 rounded">{id}</span>
+              Tracking ID: <span className="font-mono text-xs ml-1 bg-primary/5 px-2 py-0.5 rounded break-all">{id}</span>
             </p>
           </div>
         </div>
@@ -282,25 +333,28 @@ export function MemberRequestDetail() {
         {/* Left Column - Main Content */}
         <div className="lg:w-[60%] flex flex-col gap-8">
           
-          {/* Status Banner */}
-          <div className="bg-surface rounded-xl p-6 halo-border flex items-start gap-4">
-            <div className="bg-primary/5 p-3 rounded-full text-primary mt-1">
-              {consultation.status === 'draft' ? <Edit2 size={24} /> : 
-               consultation.status === 'scheduled' ? <Calendar size={24} /> : 
-               <FileText size={24} />}
+          {/* Status Banner (F2: Omitted when Under Review; reflows upward cleanly) */}
+          {consultation.status !== 'under_review' && (
+            <div className="bg-surface rounded-xl p-6 halo-border flex items-start gap-4">
+              <div className="bg-primary/5 p-3 rounded-full text-primary mt-1">
+                {consultation.status === 'draft' ? <Edit2 size={24} /> : 
+                 consultation.status === 'scheduled' ? <Calendar size={24} /> : 
+                 <FileText size={24} />}
+              </div>
+              <div>
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="font-sans text-base font-semibold text-primary">Status:</span>
+                  <StatusBadge status={consultation.status} />
+                </div>
+                <p className="font-sans text-sm text-primary/70 leading-relaxed">
+                  {consultation.status === 'draft' && "Your request is saved as a draft. You can continue editing your reason and summary. When ready, finalize the submission above."}
+                  {consultation.status === 'scheduled' && "A pastoral consultation has been provisioned. See session details below."}
+                  {consultation.status === 'completed' && "This consultation session has concluded."}
+                  {consultation.status === 'cancelled' && (consultation.cancellationReason ? `This consultation was cancelled. Reason: ${consultation.cancellationReason}` : "This consultation has been cancelled.")}
+                </p>
+              </div>
             </div>
-            <div>
-              <h2 className="font-sans text-lg font-semibold text-primary capitalize mb-1">
-                Status: {consultation.status.replace('_', ' ')}
-              </h2>
-              <p className="font-sans text-sm text-primary/70 leading-relaxed">
-                {consultation.status === 'draft' && "Your request is saved as a draft. You can continue editing your reason and summary. When ready, finalize the submission above."}
-                {consultation.status === 'under_review' && "Your request has been securely submitted and is currently being reviewed by pastoral leadership."}
-                {consultation.status === 'scheduled' && "A pastoral consultation has been provisioned. See session details below."}
-                {consultation.status === 'completed' && "This consultation session has concluded."}
-              </p>
-            </div>
-          </div>
+          )}
 
           {/* Session Access (If Scheduled) */}
           {consultation.status === 'scheduled' && (
@@ -309,7 +363,7 @@ export function MemberRequestDetail() {
               
               <div className="relative z-10">
                 <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
-                  <span className="font-sans text-xs text-[#ffb3ae] uppercase tracking-widest font-semibold flex items-center gap-1.5">
+                  <span className="font-sans text-xs text-white/80 uppercase tracking-widest font-semibold flex items-center gap-1.5">
                     <CheckCircle2 size={14} className="text-emerald-400" /> Confirmed Pastoral Session
                   </span>
                 </div>
@@ -318,7 +372,7 @@ export function MemberRequestDetail() {
                   Session with {consultation.leaderName || 'Pastoral Team'}
                 </h2>
                 <p className="font-sans text-sm text-white/70 mb-6">
-                  Scheduled for {consultation.scheduledStart || consultation.selectedTime ? new Date(consultation.scheduledStart || consultation.selectedTime).toLocaleString('en-US', { dateStyle: 'full', timeStyle: 'short' }) : 'Pending Confirmation'}
+                  Scheduled for {consultation.scheduledStart || consultation.selectedTime ? formatDateTime(consultation.scheduledStart || consultation.selectedTime, 'long') : 'Pending Confirmation'}
                 </p>
 
                 <div className="flex flex-wrap items-center gap-4 pt-2 border-t border-white/10">
@@ -328,19 +382,14 @@ export function MemberRequestDetail() {
                       <span className="font-sans text-sm font-semibold">{consultation.meetingLocation || 'DLBC Church Sanctuary / Office'}</span>
                     </div>
                   ) : (
-                    <>
-                      {meetingLink && (
-                        <a 
-                          href={meetingLink}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="bg-white text-[#1c202e] hover:bg-white/90 px-6 py-3 rounded-lg font-sans text-sm font-bold transition-colors flex items-center justify-center gap-2 active-sink whitespace-nowrap"
-                        >
-                          <Video size={16} />
-                          Join Google Meet Room
-                        </a>
-                      )}
-                    </>
+                    <JoinSessionButton
+                      consultationId={consultation.id}
+                      initialMeetingLink={meetingLink}
+                      buttonText="Enter Session Room"
+                      loadingText="Connecting..."
+                      icon={<Video size={16} />}
+                      className="bg-white text-[#1c202e] hover:bg-white/90 px-6 py-3 rounded-lg font-sans text-sm font-bold transition-colors flex items-center justify-center gap-2 active-sink whitespace-nowrap cursor-pointer disabled:opacity-50"
+                    />
                   )}
 
                   {/* 1-Click Google Calendar Sync */}
@@ -360,20 +409,20 @@ export function MemberRequestDetail() {
           )}
 
           {/* Controls */}
-          {consultation.status !== 'completed' && isLocked && (
+          {consultation.status !== 'completed' && consultation.status !== 'cancelled' && (
             <div className="bg-surface rounded-xl p-6 halo-border mb-6">
               <h3 className="font-sans text-sm font-semibold text-primary mb-4 border-b border-primary/10 pb-2">Session Actions</h3>
               <div className="space-y-3">
                 <div className="w-full space-y-3">
-                  {meetingLink && consultation.meetingMethod !== 'in_person' && (
-                    <a 
-                      href={meetingLink}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="w-full bg-primary text-white hover:bg-[#b93c3c] py-3 rounded-md font-sans text-sm font-medium transition-colors flex items-center justify-center gap-2 active-sink"
-                    >
-                      <Video size={16} /> Open Google Meet Link
-                    </a>
+                  {consultation.meetingMethod !== 'in_person' && (
+                    <JoinSessionButton
+                      consultationId={consultation.id}
+                      initialMeetingLink={meetingLink}
+                      buttonText="Enter Session Room"
+                      loadingText="Connecting..."
+                      icon={<Video size={16} />}
+                      className="w-full bg-[#1c202e] text-white hover:bg-[#1c202e]/90 py-3 rounded-md font-sans text-sm font-medium transition-colors flex items-center justify-center gap-2 active-sink cursor-pointer disabled:opacity-50"
+                    />
                   )}
 
                   <a
@@ -387,6 +436,14 @@ export function MemberRequestDetail() {
                   
                   <button onClick={() => setIsEditingTime(!isEditingTime)} className="w-full bg-surface hover:bg-primary/5 text-primary py-3 rounded-md font-sans text-sm font-medium transition-colors flex items-center justify-center gap-2 active-sink halo-border">
                     <Clock size={16} /> Reschedule Time
+                  </button>
+
+                  <button
+                    onClick={() => setIsCancelModalOpen(true)}
+                    disabled={isCancelling}
+                    className="w-full bg-stone-100 hover:bg-stone-200 text-stone-700 py-3 rounded-md font-sans text-sm font-medium transition-colors flex items-center justify-center gap-2 border border-stone-300 cursor-pointer disabled:opacity-50"
+                  >
+                    <X size={16} /> Cancel Consultation
                   </button>
                   
                   {isEditingTime && (
@@ -459,7 +516,7 @@ export function MemberRequestDetail() {
               {!isLocked && (
                 <button 
                   onClick={() => setIsEditing(!isEditing)}
-                  className="text-primary hover:text-[#b93c3c] text-xs font-sans uppercase tracking-widest font-medium transition-colors"
+                  className="text-primary hover:text-primary/70 text-xs font-sans uppercase tracking-widest font-medium transition-colors"
                 >
                   {isEditing ? 'Cancel' : 'Edit'}
                 </button>
@@ -473,7 +530,7 @@ export function MemberRequestDetail() {
                   <textarea 
                     value={reasonDraft}
                     onChange={(e) => setReasonDraft(e.target.value)}
-                    className="w-full bg-background border border-primary/10 rounded-md p-4 font-sans text-sm text-primary focus:outline-none focus:border-[#b93c3c]/40 focus:ring-1 focus:ring-[#b93c3c]/40 transition-all resize-y min-h-[120px]"
+                    className="w-full bg-background border border-primary/10 rounded-md p-4 font-sans text-sm text-primary focus:outline-none focus:border-primary/40 focus:ring-1 focus:ring-primary/40 transition-all resize-y min-h-[120px]"
                   />
                   <div className="flex justify-end">
                     <button 
@@ -486,7 +543,9 @@ export function MemberRequestDetail() {
                 </div>
               ) : (
                 <p className="font-sans text-base text-primary/80 leading-relaxed whitespace-pre-wrap">
-                  {consultation.reason}
+                  {consultation.reason && consultation.reason.trim() && consultation.reason !== "No description provided."
+                    ? consultation.reason 
+                    : "No additional details provided."}
                 </p>
               )}
             </div>
@@ -499,7 +558,7 @@ export function MemberRequestDetail() {
               <div>
                 <span className="font-sans text-sm text-primary/50 block mb-1">Requested Time</span>
                 <span className="font-sans text-base text-primary">
-                  {consultation.selectedTime ? new Date(consultation.selectedTime).toLocaleString() : 'TBD'}
+                  {consultation.selectedTime ? formatDateTime(consultation.selectedTime, 'short') : 'TBD'}
                 </span>
               </div>
             </div>
@@ -519,7 +578,7 @@ export function MemberRequestDetail() {
                   <div key={note.id} className={`p-4 rounded-lg ${note.authorId === user?.uid ? 'bg-background border border-primary/10 ml-4' : 'bg-primary/5 mr-4'}`}>
                     <div className="flex justify-between items-center mb-1">
                       <span className="font-sans text-xs font-bold text-primary">{note.authorRole === 'member' ? 'You' : 'Pastor/Leader'}</span>
-                      <span className="font-sans text-[10px] text-primary/50">{new Date(note.createdAt).toLocaleTimeString()}</span>
+                      <span className="font-sans text-[10px] text-primary/50">{formatDateTime(note.createdAt, 'time')}</span>
                     </div>
                     <p className="font-sans text-sm text-primary/80">{note.content}</p>
                   </div>
@@ -533,9 +592,9 @@ export function MemberRequestDetail() {
                 value={newNote}
                 onChange={(e) => setNewNote(e.target.value)}
                 placeholder="Add a secure note..."
-                className="w-full bg-background border border-primary/10 rounded-md py-3 pl-4 pr-12 font-sans text-sm focus:outline-none focus:border-[#b93c3c]/40"
+                className="w-full bg-background border border-primary/10 rounded-md py-3 pl-4 pr-12 font-sans text-sm focus:outline-none focus:border-primary/40"
               />
-              <button type="submit" disabled={!newNote.trim()} className="absolute right-2 top-1/2 -translate-y-1/2 p-2 text-primary/50 hover:text-[#b93c3c] disabled:opacity-50">
+              <button type="submit" disabled={!newNote.trim()} className="absolute right-2 top-1/2 -translate-y-1/2 p-2 text-primary/50 hover:text-primary disabled:opacity-50">
                 <Send size={16} />
               </button>
             </form>
@@ -543,6 +602,14 @@ export function MemberRequestDetail() {
 
         </div>
       </div>
+
+      <CancelConsultationModal
+        isOpen={isCancelModalOpen}
+        onClose={() => setIsCancelModalOpen(false)}
+        onConfirm={handleConfirmCancel}
+        role="member"
+        consultationCategory={consultation.category}
+      />
     </div>
   );
 }

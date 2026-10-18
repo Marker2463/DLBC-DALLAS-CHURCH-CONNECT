@@ -19,7 +19,11 @@ import { db, Consultation } from '../../lib/firebase';
 import { doc, onSnapshot, updateDoc } from 'firebase/firestore';
 import { generateGoogleCalendarUrl } from '../../lib/calendarHelper';
 import { createGoogleMeetSpace } from '../../lib/googleMeetClient';
-import { getOrInitializeMeetUrl } from '../../lib/appointmentService';
+import { getOrInitializeMeetUrl, isSyntheticMeetUrl } from '../../lib/appointmentService';
+import JoinSessionButton from '../../components/JoinSessionButton';
+import { formatDateTime, getInitials, formatMeetingMethod, buttonSizes, buttonTokens, tertiaryLinkClass } from '../../lib/canonical';
+import { StatusBadge } from '../../components/StatusBadge';
+import { CancelConsultationModal } from '../../components/CancelConsultationModal';
 
 export function PastorRequestDetail() {
   const { id } = useParams<{ id: string }>();
@@ -46,17 +50,27 @@ export function PastorRequestDetail() {
   }, []);
 
   useEffect(() => {
-    if (!id) return;
-    const unsub = onSnapshot(doc(db, 'consultations', id), (docSnap) => {
-      if (docSnap.exists()) {
-        const data = docSnap.data() as Consultation;
-        const consultObj = { ...data, id: docSnap.id };
-        setConsultation(consultObj);
+    if (!id || !user) {
+      if (!user) setLoading(false);
+      return;
+    }
+    const unsub = onSnapshot(
+      doc(db, 'consultations', id),
+      (docSnap) => {
+        if (docSnap.exists()) {
+          const data = docSnap.data() as Consultation;
+          const consultObj = { ...data, id: docSnap.id };
+          setConsultation(consultObj);
+        }
+        setLoading(false);
+      },
+      (err) => {
+        console.error("Pastor consultation subscription error:", err);
+        setLoading(false);
       }
-      setLoading(false);
-    });
+    );
     return () => unsub();
-  }, [id]);
+  }, [id, user]);
 
   const getJoinState = (consultation: Consultation | null) => {
     if (!consultation) return 'upcoming';
@@ -76,7 +90,8 @@ export function PastorRequestDetail() {
   };
 
   const joinState = getJoinState(consultation);
-  const meetingLink = consultation?.meetUrl || consultation?.googleMeetUrl || consultation?.meetingLink;
+  const rawMeetingLink = consultation?.meetUrl || consultation?.googleMeetUrl || consultation?.meetingLink || (consultation as any)?.meeting?.url;
+  const meetingLink = rawMeetingLink ? rawMeetingLink.trim() : null;
 
   /**
    * Finalize & Confirm Consultation with Exact Requested Details
@@ -94,57 +109,14 @@ export function PastorRequestDetail() {
       const endTime = new Date(startTime.getTime() + 45 * 60000);
       const reqMethod = consultation.meetingMethod || 'google_meet';
 
-      let googleMeetUrl = consultation.meetUrl || consultation.googleMeetUrl || consultation.meetingLink || null;
-      let googleEventId = consultation.calendarEventId || consultation.googleEventId || null;
-
-      // Call the Calendar API to provision the official Google Calendar event + Google Meet (if online)
-      if (!googleMeetUrl && reqMethod !== 'in_person') {
-        try {
-          const response = await fetch('/api/calendar/schedule', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              consultationId: id,
-              title: `DLBC Pastoral Consultation — ${consultation.category || 'Pastoral Care'}`,
-              memberEmail: consultation.memberEmail,
-              leaderEmail: user?.email || consultation.leaderEmail,
-              selectedTime: selectedIso,
-              method: reqMethod
-            })
-          });
-
-          if (response.ok) {
-            const resData = await response.json();
-            if (resData.googleMeetUrl || resData.meetUrl) googleMeetUrl = resData.meetUrl || resData.googleMeetUrl;
-            if (resData.eventId || resData.calendarEventId) googleEventId = resData.calendarEventId || resData.eventId;
-          }
-        } catch (calErr) {
-          console.warn("Calendar API call completed with fallback:", calErr);
-        }
-
-        if (!googleMeetUrl) {
-          try {
-            const meetSpace = await createGoogleMeetSpace();
-            googleMeetUrl = meetSpace.meetingUri;
-          } catch (meetErr) {
-            console.warn("Google Meet Space API provision not available:", meetErr);
-          }
-        }
-      }
-
-      const finalMeetingLink = reqMethod === 'in_person' ? null : googleMeetUrl;
-
-      const formattedReadable = new Date(selectedIso).toLocaleString('en-US', {
-        dateStyle: 'full',
-        timeStyle: 'short'
-      });
+      const formattedReadable = formatDateTime(selectedIso, 'long');
 
       const updatedTimeline = [
         ...(consultation.journeyTimeline || []),
         {
           status: 'Confirmed & Scheduled',
           timestamp: new Date().toISOString(),
-          description: `Meeting confirmed for ${formattedReadable} (${reqMethod === 'in_person' ? 'In-Person' : 'Google Meet'}).`
+          description: `Meeting confirmed for ${formattedReadable} (${reqMethod === 'in_person' ? 'In-Person' : formatMeetingMethod(reqMethod)}).`
         }
       ];
 
@@ -156,12 +128,6 @@ export function PastorRequestDetail() {
         scheduledEnd: endTime.toISOString(),
         meetingMethod: reqMethod,
         meetingLocation: reqMethod === 'in_person' ? (consultation.meetingLocation || 'DLBC Church Sanctuary / Pastoral Suite') : null,
-        meetingLink: finalMeetingLink,
-        googleMeetUrl: finalMeetingLink,
-        meetUrl: finalMeetingLink,
-        googleEventId: googleEventId || `event-${Date.now()}`,
-        calendarEventId: googleEventId || `event-${Date.now()}`,
-        meetingLinkStatus: 'active',
         journeyTimeline: updatedTimeline,
         updatedAt: new Date().toISOString()
       });
@@ -191,30 +157,29 @@ export function PastorRequestDetail() {
     setFinalizeSuccessMessage("Consultation marked as completed.");
   };
 
-  const handleCancelConsultation = async () => {
+  const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
+
+  const handleConfirmCancel = async (reason: string) => {
     if (!consultation || !id) return;
-    const confirmed = window.confirm("Are you sure you want to cancel this consultation request?");
-    if (!confirmed) return;
     setIsSubmittingFinalize(true);
     try {
-      const updatedTimeline = [
-        ...(consultation.journeyTimeline || []),
-        {
-          status: 'Cancelled',
-          timestamp: new Date().toISOString(),
-          description: 'Consultation was cancelled by pastoral leadership.'
-        }
-      ];
-
-      await updateDoc(doc(db, 'consultations', id), {
-        status: 'cancelled',
-        journeyTimeline: updatedTimeline,
-        updatedAt: new Date().toISOString()
+      const res = await fetch('/api/consultations/cancel', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          consultationId: id,
+          cancelledBy: 'leader',
+          cancellationReason: reason,
+        }),
       });
-
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}));
+        throw new Error(errorData.error || "Failed to cancel consultation.");
+      }
       setFinalizeSuccessMessage("Consultation request has been cancelled.");
-    } catch (err) {
+    } catch (err: unknown) {
       console.error("Failed to cancel consultation:", err);
+      throw err;
     } finally {
       setIsSubmittingFinalize(false);
     }
@@ -296,19 +261,7 @@ export function PastorRequestDetail() {
           </div>
 
           <div className="flex items-center gap-3">
-            <span className={`inline-flex items-center px-3.5 py-1.5 rounded-full font-sans text-xs font-semibold uppercase tracking-wider border ${
-              consultation.status === 'scheduled' ? 'bg-emerald-50 text-emerald-800 border-emerald-200' :
-              consultation.status === 'completed' ? 'bg-primary/5 text-primary/70 border-primary/15' :
-              consultation.status === 'cancelled' ? 'bg-red-50 text-red-800 border-red-200' :
-              'bg-amber-50 text-amber-800 border-amber-200'
-            }`}>
-              <span className={`w-2 h-2 rounded-full mr-2 ${
-                consultation.status === 'scheduled' ? 'bg-emerald-500' :
-                consultation.status === 'completed' ? 'bg-primary/40' : 
-                consultation.status === 'cancelled' ? 'bg-red-500' : 'bg-amber-500'
-              }`}></span>
-              {consultation.status.replace('_', ' ')}
-            </span>
+            <StatusBadge status={consultation.status} />
           </div>
         </div>
       </div>
@@ -349,7 +302,7 @@ export function PastorRequestDetail() {
                     <span className="block text-xs uppercase tracking-wider text-white/60 mb-1">Requested Date &amp; Time</span>
                     <span className="font-semibold text-white text-base">
                       {consultation.selectedTime 
-                        ? new Date(consultation.selectedTime).toLocaleString('en-US', { dateStyle: 'full', timeStyle: 'short' })
+                        ? formatDateTime(consultation.selectedTime, 'long')
                         : 'No specific time selected'}
                     </span>
                   </div>
@@ -358,13 +311,13 @@ export function PastorRequestDetail() {
                     <span className="font-medium text-white/90 capitalize flex items-center gap-1.5">
                       {consultation.meetingMethod === 'in_person' ? (
                         <>
-                          <MapPin size={14} className="text-[#ffb3ae]" />
-                          In-Person ({consultation.meetingLocation || 'Sanctuary / Office'})
+                          <MapPin size={14} className="text-white/80" />
+                          {formatMeetingMethod(consultation.meetingMethod)} ({consultation.meetingLocation || 'Sanctuary / Office'})
                         </>
                       ) : (
                         <>
-                          <Video size={14} className="text-[#ffb3ae]" />
-                          Google Meet Video Call
+                          <Video size={14} className="text-white/80" />
+                          {formatMeetingMethod(consultation.meetingMethod)} Video Call
                         </>
                       )}
                     </span>
@@ -390,9 +343,9 @@ export function PastorRequestDetail() {
                     )}
                   </button>
                   <button
-                    onClick={handleCancelConsultation}
+                    onClick={() => setIsCancelModalOpen(true)}
                     disabled={isSubmittingFinalize}
-                    className="inline-flex items-center justify-center gap-2 bg-red-500/20 hover:bg-red-500/30 text-red-200 border border-red-400/30 font-sans text-sm font-medium px-6 py-3.5 rounded-xl transition-colors cursor-pointer disabled:opacity-50"
+                    className="inline-flex items-center justify-center gap-2 bg-stone-100 hover:bg-stone-200 text-stone-700 border border-stone-300 font-sans text-sm font-medium px-6 py-3.5 rounded-xl transition-colors cursor-pointer disabled:opacity-50"
                   >
                     <X size={16} />
                     Cancel Request
@@ -411,12 +364,12 @@ export function PastorRequestDetail() {
                 <div className="flex flex-wrap items-center justify-between gap-4 mb-4">
                   <div className="flex items-center gap-2 font-sans text-xs uppercase tracking-widest text-white/60 font-semibold">
                     {consultation.meetingMethod === 'in_person' ? (
-                      <MapPin size={15} className="text-[#ffb3ae]" />
+                      <MapPin size={15} className="text-white/80" />
                     ) : (
-                      <Video size={15} className="text-[#ffb3ae]" />
+                      <Video size={15} className="text-white/80" />
                     )}
                     <span>
-                      {consultation.meetingMethod === 'in_person' ? 'On-Campus Consultation' : 'Google Meet Video Consultation'}
+                      {formatMeetingMethod(consultation.meetingMethod)} Consultation
                     </span>
                   </div>
                 </div>
@@ -427,7 +380,7 @@ export function PastorRequestDetail() {
 
                 <p className="font-sans text-sm text-white/80 mb-6">
                   {consultation.selectedTime 
-                    ? new Date(consultation.selectedTime).toLocaleString('en-US', { dateStyle: 'full', timeStyle: 'short' })
+                    ? formatDateTime(consultation.selectedTime, 'long')
                     : 'Time pending'}
                 </p>
 
@@ -469,14 +422,14 @@ export function PastorRequestDetail() {
                   <div className="pt-4 border-t border-white/10 flex flex-wrap items-center gap-4">
                     {/* Direct Launch for Online Meetings */}
                     {consultation.meetingMethod !== 'in_person' && (
-                      <button 
-                        onClick={handleJoinMeeting}
-                        disabled={isJoining}
+                      <JoinSessionButton
+                        consultationId={consultation.id}
+                        initialMeetingLink={meetingLink}
+                        buttonText="Enter Session Room"
+                        loadingText="Connecting..."
+                        icon={<Video size={16} />}
                         className="bg-white text-[#1c202e] hover:bg-white/90 px-6 py-3 rounded-lg font-sans text-sm font-bold flex items-center justify-center gap-2 transition-colors active-sink cursor-pointer disabled:opacity-50"
-                      >
-                        <Video size={16} />
-                        {isJoining ? 'Connecting...' : 'Open Google Meet Room'}
-                      </button>
+                      />
                     )}
 
                     {/* 1-Click Google Calendar Sync */}
@@ -506,7 +459,7 @@ export function PastorRequestDetail() {
             
             <div className="flex items-start gap-4 mb-6">
               <div className="w-12 h-12 rounded-full bg-surface-dim flex items-center justify-center font-sans font-medium text-primary shrink-0 uppercase text-sm font-semibold border border-primary/10">
-                {consultation.memberName?.substring(0, 2) || '??'}
+                {getInitials(consultation.memberName)}
               </div>
               <div>
                 <h3 className="font-sans text-base font-semibold text-primary">{consultation.memberName}</h3>
@@ -516,8 +469,10 @@ export function PastorRequestDetail() {
               </div>
             </div>
 
-            <div className="prose prose-sm font-sans text-primary/80 mb-8 border-l-2 border-[#b93c3c]/50 pl-6 py-2 italic whitespace-pre-wrap bg-[#faf8f5] rounded-r-lg">
-              "{consultation.reason || 'No description provided.'}"
+            <div className="prose prose-sm font-sans text-primary/80 mb-8 border-l-2 border-primary/20 pl-6 py-2 italic whitespace-pre-wrap bg-[#faf8f5] rounded-r-lg">
+              "{consultation.reason && consultation.reason.trim() && consultation.reason !== 'No description provided.'
+                ? consultation.reason 
+                : 'No additional details provided.'}"
             </div>
             
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-6 border-t border-primary/10 pt-6">
@@ -568,9 +523,9 @@ export function PastorRequestDetail() {
 
               {consultation.status !== 'cancelled' && consultation.status !== 'completed' && (
                 <button
-                  onClick={handleCancelConsultation}
+                  onClick={() => setIsCancelModalOpen(true)}
                   disabled={isSubmittingFinalize}
-                  className="w-full bg-red-50 hover:bg-red-100 text-red-700 py-3 rounded-lg font-sans text-sm font-medium transition-colors flex items-center justify-center gap-2 border border-red-200 cursor-pointer disabled:opacity-50"
+                  className="w-full bg-stone-100 hover:bg-stone-200 text-stone-700 py-3 rounded-lg font-sans text-sm font-medium transition-colors flex items-center justify-center gap-2 border border-stone-300 cursor-pointer disabled:opacity-50"
                 >
                   <X size={16} /> Cancel Consultation
                 </button>
@@ -605,11 +560,11 @@ export function PastorRequestDetail() {
             <div className="relative border-l border-primary/10 ml-3 space-y-6 pb-2">
               {consultation.journeyTimeline?.map((item, idx) => (
                 <div key={idx} className="relative pl-6">
-                  <div className="absolute -left-[5px] top-1 w-2.5 h-2.5 rounded-full bg-[#b93c3c]" />
+                  <div className="absolute -left-[5px] top-1 w-2.5 h-2.5 rounded-full bg-primary" />
                   <h4 className="font-sans text-sm font-semibold text-primary">{item.status}</h4>
                   <p className="font-sans text-xs text-primary/70 mt-0.5 leading-relaxed">{item.description}</p>
                   <span className="font-sans text-[10px] text-primary/40 block mt-1">
-                    {new Date(item.timestamp).toLocaleString()}
+                    {formatDateTime(item.timestamp, 'short')}
                   </span>
                 </div>
               ))}
@@ -618,6 +573,14 @@ export function PastorRequestDetail() {
 
         </aside>
       </div>
+
+      <CancelConsultationModal
+        isOpen={isCancelModalOpen}
+        onClose={() => setIsCancelModalOpen(false)}
+        onConfirm={handleConfirmCancel}
+        role="leader"
+        consultationCategory={consultation.category}
+      />
     </div>
   );
 }
