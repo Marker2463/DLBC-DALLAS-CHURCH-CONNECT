@@ -881,7 +881,13 @@ async function startServer() {
   } else {
     const distPath = path.join(process.cwd(), "dist");
     app.use(express.static(distPath));
-    app.get("*", (req, res) => {
+    const spaFallbackRateLimit = rateLimit({
+      windowMs: 60_000,
+      limit: 100,
+      standardHeaders: true,
+      legacyHeaders: false,
+    });
+    app.get("*", spaFallbackRateLimit, (req, res) => {
       res.sendFile(path.join(distPath, "index.html"));
     });
   }
@@ -895,4 +901,3 @@ startServer().catch((err) => {
   console.error("Failed to start server:", err);
   process.exit(1);
 });
-
