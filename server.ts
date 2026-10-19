@@ -14,6 +14,39 @@ dotenv.config();
 
 // In-flight concurrency lock to deduplicate simultaneous requests for the same consultation
 const inFlightJoinRequests = new Map<string, Promise<any>>();
+const spaFallbackRequests = new Map<string, { count: number; resetAt: number }>();
+const SPA_FALLBACK_RATE_LIMIT = 100;
+const SPA_FALLBACK_RATE_WINDOW_MS = 60_000;
+
+setInterval(() => {
+  const now = Date.now();
+  for (const [clientIp, requestWindow] of spaFallbackRequests) {
+    if (requestWindow.resetAt <= now) {
+      spaFallbackRequests.delete(clientIp);
+    }
+  }
+}, SPA_FALLBACK_RATE_WINDOW_MS).unref();
+
+function limitSpaFallbackRequests(
+  req: express.Request,
+  res: express.Response,
+  next: express.NextFunction,
+) {
+  const now = Date.now();
+  let requestWindow = spaFallbackRequests.get(req.ip);
+  if (!requestWindow || requestWindow.resetAt <= now) {
+    requestWindow = { count: 0, resetAt: now + SPA_FALLBACK_RATE_WINDOW_MS };
+    spaFallbackRequests.set(req.ip, requestWindow);
+  }
+
+  requestWindow.count++;
+  if (requestWindow.count > SPA_FALLBACK_RATE_LIMIT) {
+    res.setHeader("Retry-After", Math.ceil((requestWindow.resetAt - now) / 1000));
+    return res.status(429).json({ success: false, error: "Too many requests." });
+  }
+
+  next();
+}
 
 function getAdminFirestore() {
   if (!getApps().length) {
@@ -873,7 +906,7 @@ async function startServer() {
   } else {
     const distPath = path.join(process.cwd(), "dist");
     app.use(express.static(distPath));
-    app.get("*", (req, res) => {
+    app.get("*", limitSpaFallbackRequests, (req, res) => {
       res.sendFile(path.join(distPath, "index.html"));
     });
   }
@@ -887,4 +920,3 @@ startServer().catch((err) => {
   console.error("Failed to start server:", err);
   process.exit(1);
 });
-
