@@ -14,12 +14,19 @@ export function isSyntheticMeetUrl(url?: string | null, appointmentId?: string):
   if (!url) return false;
 
   const trimmed = url.trim().toLowerCase();
-  
-  if (!trimmed.includes('meet.google.com/')) {
+
+  let parsedUrl: URL;
+  try {
+    parsedUrl = new URL(trimmed);
+  } catch {
     return false;
   }
 
-  const match = trimmed.match(/meet\.google\.com\/([a-z0-9-]+)/);
+  if (parsedUrl.protocol !== 'https:' || parsedUrl.host !== 'meet.google.com') {
+    return false;
+  }
+
+  const match = parsedUrl.pathname.match(/^\/([a-z0-9-]+)/);
   if (!match) return false;
 
   const code = match[1].replace(/-/g, '');
