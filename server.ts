@@ -14,6 +14,40 @@ dotenv.config();
 
 // In-flight concurrency lock to deduplicate simultaneous requests for the same consultation
 const inFlightJoinRequests = new Map<string, Promise<any>>();
+const JOIN_RATE_LIMIT_WINDOW_MS = 15 * 60 * 1000;
+const JOIN_RATE_LIMIT_MAX_REQUESTS = 20;
+const JOIN_RATE_LIMIT_MAX_CLIENTS = 10_000;
+const joinRequestCounts = new Map<string, { count: number; resetAt: number }>();
+let lastJoinRateLimitCleanup = 0;
+
+function limitConsultationJoinRequests(req: express.Request, res: express.Response, next: express.NextFunction) {
+  const now = Date.now();
+  if (now - lastJoinRateLimitCleanup >= JOIN_RATE_LIMIT_WINDOW_MS) {
+    for (const [client, bucket] of joinRequestCounts) {
+      if (bucket.resetAt <= now) joinRequestCounts.delete(client);
+    }
+    lastJoinRateLimitCleanup = now;
+  }
+
+  const client = req.ip || req.socket.remoteAddress || 'unknown';
+  let bucket = joinRequestCounts.get(client);
+  if (!bucket || bucket.resetAt <= now) {
+    if (!bucket && joinRequestCounts.size >= JOIN_RATE_LIMIT_MAX_CLIENTS) {
+      const oldestClient = joinRequestCounts.keys().next().value;
+      if (oldestClient) joinRequestCounts.delete(oldestClient);
+    }
+    bucket = { count: 0, resetAt: now + JOIN_RATE_LIMIT_WINDOW_MS };
+    joinRequestCounts.set(client, bucket);
+  }
+
+  if (bucket.count >= JOIN_RATE_LIMIT_MAX_REQUESTS) {
+    res.setHeader('Retry-After', String(Math.ceil((bucket.resetAt - now) / 1000)));
+    return res.status(429).json({ success: false, error: 'Too many consultation join requests. Please try again later.' });
+  }
+
+  bucket.count += 1;
+  next();
+}
 
 function getAdminFirestore() {
   if (!getApps().length) {
@@ -301,7 +335,7 @@ async function startServer() {
     }
   });
 
-  app.post("/api/consultations/join", async (req, res) => {
+  app.post("/api/consultations/join", limitConsultationJoinRequests, async (req, res) => {
     try {
       const { consultationId, isTestAccess, googleAccessToken } = req.body;
       const explicitGoogleToken = (googleAccessToken || req.headers['x-google-access-token']) as string | undefined;
