@@ -1,4 +1,5 @@
 import express from "express";
+import { rateLimit } from "express-rate-limit";
 import path from "path";
 import { createServer as createViteServer } from "vite";
 import { google } from "googleapis";
@@ -14,6 +15,13 @@ dotenv.config();
 
 // In-flight concurrency lock to deduplicate simultaneous requests for the same consultation
 const inFlightJoinRequests = new Map<string, Promise<any>>();
+const consultationJoinRateLimit = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 20,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { success: false, error: 'Too many consultation join requests. Please try again later.' },
+});
 
 function getAdminFirestore() {
   if (!getApps().length) {
@@ -301,7 +309,7 @@ async function startServer() {
     }
   });
 
-  app.post("/api/consultations/join", async (req, res) => {
+  app.post("/api/consultations/join", consultationJoinRateLimit, async (req, res) => {
     try {
       const { consultationId, isTestAccess, googleAccessToken } = req.body;
       const explicitGoogleToken = (googleAccessToken || req.headers['x-google-access-token']) as string | undefined;
