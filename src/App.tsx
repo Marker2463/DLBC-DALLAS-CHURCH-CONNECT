@@ -5,6 +5,7 @@
 
 import { useEffect } from 'react';
 import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
+import { Analytics } from '@vercel/analytics/react';
 import { Layout } from './components/layout/Layout';
 
 function ScrollToTop() {
@@ -72,6 +73,7 @@ export default function App() {
             <Route path="admin/roles" element={<Roles />} />
           </Route>
         </Routes>
+        <Analytics />
       </BrowserRouter>
     </AuthProvider>
   );
