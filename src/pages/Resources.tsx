@@ -11,7 +11,7 @@ export function Resources() {
     <div className="max-w-7xl mx-auto px-6 w-full py-16 pb-32">
       <div className="max-w-3xl mx-auto text-center mb-16">
         <PageTitle className="mb-6">Spiritual Resources</PageTitle>
-        <p className="font-sans text-lg text-primary/70 leading-relaxed max-w-2xl mx-auto">
+        <p className="font-sans text-lg text-primary-muted leading-relaxed max-w-2xl mx-auto">
           A curated library of tools, guides, and reflective materials designed to support your pastoral journey and personal stewardship.
         </p>
       </div>
@@ -22,8 +22,8 @@ export function Resources() {
         {/* Prayer Guides */}
         <div>
           <div className="flex justify-between items-end border-b border-primary/10 pb-4 mb-6">
-            <h3 className="font-serif text-2xl text-primary">Prayer Guides</h3>
-            <Book size={20} className="text-primary/50 mb-1" />
+            <h2 className="font-serif text-2xl text-primary">Prayer Guides</h2>
+            <Book size={20} className="text-primary-muted mb-1" />
           </div>
           <div className="space-y-6">
             <ResourceItem title="Morning Liturgy of the Hours" time="15 min read" action="download" />
@@ -35,8 +35,8 @@ export function Resources() {
         {/* Mental Health */}
         <div>
           <div className="flex justify-between items-end border-b border-primary/10 pb-4 mb-6">
-            <h3 className="font-serif text-2xl text-primary">Mental Health</h3>
-            <Brain size={20} className="text-primary/50 mb-1" />
+            <h2 className="font-serif text-2xl text-primary">Mental Health</h2>
+            <Brain size={20} className="text-primary-muted mb-1" />
           </div>
           <div className="space-y-6">
             <ResourceItem title="Recognizing Burnout in Ministry" time="20 min read" action="view" />
@@ -48,8 +48,8 @@ export function Resources() {
         {/* Family Stewardship */}
         <div>
           <div className="flex justify-between items-end border-b border-primary/10 pb-4 mb-6">
-            <h3 className="font-serif text-2xl text-primary">Family Stewardship</h3>
-            <Users size={20} className="text-primary/50 mb-1" />
+            <h2 className="font-serif text-2xl text-primary">Family Stewardship</h2>
+            <Users size={20} className="text-primary-muted mb-1" />
           </div>
           <div className="space-y-6">
             <ResourceItem title="Balancing Vocation and Home" time="15 min read" action="view" />
@@ -60,8 +60,8 @@ export function Resources() {
         {/* Ministry Guidelines */}
         <div>
           <div className="flex justify-between items-end border-b border-primary/10 pb-4 mb-6">
-            <h3 className="font-serif text-2xl text-primary">Ministry Guidelines</h3>
-            <FileCheck size={20} className="text-primary/50 mb-1" />
+            <h2 className="font-serif text-2xl text-primary">Ministry Guidelines</h2>
+            <FileCheck size={20} className="text-primary-muted mb-1" />
           </div>
           <div className="space-y-6">
             <ResourceItem title="Ethical Conduct in Counseling" time="45 min read" action="download" />
@@ -77,7 +77,7 @@ export function Resources() {
           <AlertTriangle size={24} fill="currentColor" className="text-secondary" />
           <h2 className="font-serif text-3xl">Emergency &amp; Crisis Support</h2>
         </div>
-        <p className="font-sans text-primary/80 mb-6 max-w-2xl leading-relaxed">
+        <p className="font-sans text-primary-muted mb-6 max-w-2xl leading-relaxed">
           DLBC Church Connect is a volunteer-led pastoral consultation platform and does not provide 24/7 acute crisis or emergency response. If you or someone in your care is experiencing an acute crisis, medical emergency, or immediate threat of harm, please contact emergency services immediately.
         </p>
         <div className="flex flex-wrap gap-4">
@@ -92,7 +92,7 @@ export function Resources() {
             href="tel:988" 
             className="bg-white hover:bg-primary/5 border border-primary/20 text-primary font-sans text-sm font-semibold px-6 py-3 rounded-lg active-sink flex items-center gap-2 transition-colors"
           >
-            <Phone size={18} className="text-primary/60" />
+            <Phone size={18} className="text-primary-muted" />
             Suicide &amp; Crisis Lifeline (988)
           </a>
         </div>
@@ -105,13 +105,13 @@ function ResourceItem({ title, time, action }: { title: string, time: string, ac
   return (
     <div className="flex items-center justify-between group cursor-pointer hover:bg-surface-dim/30 p-2 -mx-2 rounded transition-colors">
       <div>
-        <h4 className="font-sans text-sm font-medium text-primary mb-1 group-hover:text-primary transition-colors">{title}</h4>
-        <div className="flex items-center gap-1.5 text-primary/50 font-sans text-xs">
+        <h3 className="font-sans text-sm font-medium text-primary mb-1 group-hover:text-primary transition-colors">{title}</h3>
+        <div className="flex items-center gap-1.5 text-primary-muted font-sans text-xs">
           <Clock size={16} />
           <span>{time}</span>
         </div>
       </div>
-      <div className="text-primary/30 group-hover:text-primary transition-colors">
+      <div className="text-primary-subtle group-hover:text-primary transition-colors">
         {action === 'download' ? <Download size={18} /> : <Eye size={18} />}
       </div>
     </div>

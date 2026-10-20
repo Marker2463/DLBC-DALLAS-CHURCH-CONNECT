@@ -72,7 +72,7 @@ export function RosterFilterChips({
             className={`px-3.5 py-1.5 rounded-full font-sans text-xs font-semibold uppercase tracking-wider transition-colors cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary/40 focus:ring-offset-1 ${
               isSelected
                 ? 'bg-[#1c202e] text-white shadow-sm'
-                : 'bg-white border border-primary/10 text-primary/70 hover:bg-surface-dim'
+                : 'bg-white border border-primary/10 text-primary-muted hover:text-primary hover:bg-surface-dim'
             }`}
           >
             {tab.label}

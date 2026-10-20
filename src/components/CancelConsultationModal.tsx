@@ -50,7 +50,7 @@ export function CancelConsultationModal({
           onClick={onClose}
           disabled={submitting}
           aria-label="Close dialog"
-          className="absolute right-4 top-4 rounded-lg p-1.5 text-primary/50 hover:bg-primary/5 hover:text-primary transition-colors cursor-pointer disabled:opacity-50"
+          className="absolute right-4 top-4 rounded-lg p-1.5 text-primary-muted hover:bg-primary/5 hover:text-primary transition-colors cursor-pointer disabled:opacity-50"
         >
           <X size={18} />
         </button>
@@ -60,17 +60,17 @@ export function CancelConsultationModal({
             <AlertCircle size={20} />
           </div>
           <div>
-            <h3 id="cancel-dialog-title" className="font-serif text-lg font-semibold text-primary">
+            <h2 id="cancel-dialog-title" className="font-serif text-lg font-semibold text-primary">
               Cancel Consultation
-            </h3>
-            <p className="font-sans text-xs text-primary/60">
+            </h2>
+            <p className="font-sans text-xs text-primary-muted">
               {consultationCategory ? `${consultationCategory} — ` : ''}
               {role === 'member' ? 'Member cancellation' : 'Pastoral cancellation'}
             </p>
           </div>
         </div>
 
-        <p className="font-sans text-sm text-primary/70 mb-4 leading-relaxed">
+        <p className="font-sans text-sm text-primary-muted mb-4 leading-relaxed">
           Are you sure you want to cancel this consultation? This action will release any provisioned digital meeting links or schedule holds.
         </p>
 
@@ -82,8 +82,8 @@ export function CancelConsultationModal({
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label htmlFor="cancel-reason" className="block font-sans text-xs font-semibold text-primary/80 uppercase tracking-wider mb-1.5">
-              Reason for Cancellation <span className="font-normal lowercase text-primary/50">(optional)</span>
+            <label htmlFor="cancel-reason" className="block font-sans text-xs font-semibold text-primary uppercase tracking-wider mb-1.5">
+              Reason for Cancellation <span className="font-normal lowercase text-primary-muted">(optional)</span>
             </label>
             <textarea
               id="cancel-reason"
@@ -92,7 +92,7 @@ export function CancelConsultationModal({
               onChange={(e) => setReason(e.target.value)}
               placeholder="Provide context for the cancellation (e.g., schedule conflict, resolved issue)..."
               disabled={submitting}
-              className="w-full rounded-lg border border-primary/20 bg-background p-3 font-sans text-sm text-primary placeholder:text-primary/40 focus:border-primary/40 focus:outline-none focus:ring-1 focus:ring-primary/30 transition-all resize-y"
+              className="w-full rounded-lg border border-primary/20 bg-background p-3 font-sans text-sm text-primary placeholder:text-primary-muted focus:border-primary/40 focus:outline-none focus:ring-1 focus:ring-primary/30 transition-all resize-y"
             />
           </div>
 
@@ -101,7 +101,7 @@ export function CancelConsultationModal({
               type="button"
               onClick={onClose}
               disabled={submitting}
-              className="inline-flex min-h-[42px] items-center justify-center rounded-lg border border-primary/15 bg-surface px-4 py-2 font-sans text-xs font-semibold text-primary hover:bg-primary/5 transition-colors cursor-pointer disabled:opacity-50"
+              className="inline-flex min-h-[42px] items-center justify-center rounded-lg border border-control bg-surface px-4 py-2 font-sans text-xs font-semibold text-primary hover:bg-primary/5 transition-colors cursor-pointer disabled:opacity-50"
             >
               Keep Consultation
             </button>

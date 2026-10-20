@@ -18,14 +18,14 @@ export function FormatChip({ method, className }: FormatChipProps) {
 
   return (
     <span
-      className={`inline-flex items-center gap-1.5 px-2 py-1 rounded bg-[#faf8f5] border border-primary/10 text-primary/80 whitespace-nowrap text-xs font-medium ${
+      className={`inline-flex items-center gap-1.5 px-2 py-1 rounded bg-[#faf8f5] border border-primary/10 text-primary whitespace-nowrap text-xs font-medium ${
         className || ''
       }`}
     >
       {isInPerson ? (
-        <MapPin size={12} className="text-primary/60 shrink-0" />
+        <MapPin size={12} className="text-primary-muted shrink-0" />
       ) : (
-        <Video size={12} className="text-primary/60 shrink-0" />
+        <Video size={12} className="text-primary-muted shrink-0" />
       )}
       <span>{label}</span>
     </span>

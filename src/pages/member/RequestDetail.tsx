@@ -274,9 +274,9 @@ export function MemberRequestDetail() {
     return (
       <div className="flex-1 flex flex-col items-center justify-center p-8 text-center">
         <FileText className="text-primary/20 mb-4" size={64} />
-        <h2 className="text-xl font-serif text-primary mb-2">Record Not Found</h2>
-        <p className="text-primary/60 font-sans max-w-md">The consultation request you are looking for may have been archived or does not exist.</p>
-        <button onClick={() => navigate('/member/sanctuary')} className="mt-6 text-primary hover:text-primary/70 font-medium flex items-center gap-2">
+        <h1 className="text-xl font-serif text-primary mb-2">Record Not Found</h1>
+        <p className="text-primary-muted font-sans max-w-md">The consultation request you are looking for may have been archived or does not exist.</p>
+        <button onClick={() => navigate('/member/sanctuary')} className="mt-6 text-primary hover:text-primary-muted font-medium flex items-center gap-2">
           <ChevronLeft size={16} /> Return to Sanctuary
         </button>
       </div>
@@ -289,8 +289,8 @@ export function MemberRequestDetail() {
   const renderTimelineNode = (title: string, currentStatus: string, desc: string, isPast: boolean, isActive: boolean) => (
     <div className="relative pl-6">
       <div className={`absolute -left-[5px] top-1 w-2.5 h-2.5 rounded-full ${isActive ? 'bg-primary shadow-[0_0_8px_rgba(28,32,46,0.3)]' : isPast ? 'bg-primary' : 'bg-primary/20'}`} />
-      <h4 className={`font-sans text-sm font-semibold ${isActive ? 'text-primary' : isPast ? 'text-primary' : 'text-primary/40'}`}>{title}</h4>
-      <p className="font-sans text-xs text-primary/60 mt-1">{desc}</p>
+      <h3 className={`font-sans text-sm font-semibold ${isActive ? 'text-primary' : isPast ? 'text-primary' : 'text-primary-muted'}`}>{title}</h3>
+      <p className="font-sans text-xs text-primary-muted mt-1">{desc}</p>
     </div>
   );
 
@@ -301,7 +301,7 @@ export function MemberRequestDetail() {
         <div className="flex items-center gap-4">
           <button 
             onClick={() => navigate('/member/sanctuary')}
-            className="p-2 -ml-2 rounded-full hover:bg-primary/5 text-primary/60 hover:text-primary transition-colors"
+            className="p-2 -ml-2 rounded-full hover:bg-primary/5 text-primary-muted hover:text-primary transition-colors"
           >
             <ChevronLeft size={20} />
           </button>
@@ -309,9 +309,9 @@ export function MemberRequestDetail() {
             <div className="flex items-center gap-3 mb-1 flex-wrap">
               <h1 className="font-serif text-2xl text-primary font-medium">Request Details</h1>
               <StatusBadge status={consultation.status} />
-              {isLocked && <Lock size={14} className="text-primary/60" />}
+              {isLocked && <Lock size={14} className="text-primary-muted" />}
             </div>
-            <p className="font-sans text-sm text-primary/60">
+            <p className="font-sans text-sm text-primary-muted">
               Tracking ID: <span className="font-mono text-xs ml-1 bg-primary/5 px-2 py-0.5 rounded break-all">{id}</span>
             </p>
           </div>
@@ -346,7 +346,7 @@ export function MemberRequestDetail() {
                   <span className="font-sans text-base font-semibold text-primary">Status:</span>
                   <StatusBadge status={consultation.status} />
                 </div>
-                <p className="font-sans text-sm text-primary/70 leading-relaxed">
+                <p className="font-sans text-sm text-primary-muted leading-relaxed">
                   {consultation.status === 'draft' && "Your request is saved as a draft. You can continue editing your reason and summary. When ready, finalize the submission above."}
                   {consultation.status === 'scheduled' && "A pastoral consultation has been provisioned. See session details below."}
                   {consultation.status === 'completed' && "This consultation session has concluded."}
@@ -371,14 +371,14 @@ export function MemberRequestDetail() {
                 <h2 className="font-serif text-2xl font-medium mb-1">
                   Session with {consultation.leaderName || 'Pastoral Team'}
                 </h2>
-                <p className="font-sans text-sm text-white/70 mb-6">
+                <p className="font-sans text-sm text-white/90 mb-6">
                   Scheduled for {consultation.scheduledStart || consultation.selectedTime ? formatDateTime(consultation.scheduledStart || consultation.selectedTime, 'long') : 'Pending Confirmation'}
                 </p>
 
                 <div className="flex flex-wrap items-center gap-4 pt-2 border-t border-white/10">
                   {consultation.meetingMethod === 'in_person' ? (
                     <div className="bg-white/10 px-5 py-3 rounded-lg text-left">
-                      <span className="block font-sans text-[10px] text-white/60 uppercase tracking-wider mb-0.5">Location</span>
+                      <span className="block font-sans text-xs text-white/80 uppercase tracking-wider mb-0.5">Location</span>
                       <span className="font-sans text-sm font-semibold">{consultation.meetingLocation || 'DLBC Church Sanctuary / Office'}</span>
                     </div>
                   ) : (
@@ -411,7 +411,7 @@ export function MemberRequestDetail() {
           {/* Controls */}
           {consultation.status !== 'completed' && consultation.status !== 'cancelled' && (
             <div className="bg-surface rounded-xl p-6 halo-border mb-6">
-              <h3 className="font-sans text-sm font-semibold text-primary mb-4 border-b border-primary/10 pb-2">Session Actions</h3>
+              <h2 className="font-sans text-sm font-semibold text-primary mb-4 border-b border-primary/10 pb-2">Session Actions</h2>
               <div className="space-y-3">
                 <div className="w-full space-y-3">
                   {consultation.meetingMethod !== 'in_person' && (
@@ -449,14 +449,14 @@ export function MemberRequestDetail() {
                   {isEditingTime && (
                     <div className="mt-4 p-4 border border-primary/10 rounded-lg bg-surface space-y-4">
                       <div>
-                        <label className="block text-xs font-semibold text-primary mb-1 uppercase tracking-wider">New Date</label>
-                        <input type="date" value={newDate} onChange={e => setNewDate(e.target.value)} className="w-full bg-white border border-primary/10 rounded p-2 text-sm focus:outline-none focus:border-secondary" />
+                        <label htmlFor="reschedule-date" className="block text-xs font-semibold text-primary mb-1 uppercase tracking-wider">New Date</label>
+                        <input id="reschedule-date" aria-label="New Date" type="date" value={newDate} onChange={e => setNewDate(e.target.value)} className="w-full bg-white border border-primary/20 rounded p-2 text-sm text-primary focus:outline-none focus:border-secondary" />
                       </div>
                       <div>
-                        <label className="block text-xs font-semibold text-primary mb-1 uppercase tracking-wider">New Time</label>
-                        <input type="time" value={newTime} onChange={e => setNewTime(e.target.value)} className="w-full bg-white border border-primary/10 rounded p-2 text-sm focus:outline-none focus:border-secondary" />
+                        <label htmlFor="reschedule-time" className="block text-xs font-semibold text-primary mb-1 uppercase tracking-wider">New Time</label>
+                        <input id="reschedule-time" aria-label="New Time" type="time" value={newTime} onChange={e => setNewTime(e.target.value)} className="w-full bg-white border border-primary/20 rounded p-2 text-sm text-primary focus:outline-none focus:border-secondary" />
                       </div>
-                      <button onClick={handleUpdateTime} disabled={isUpdatingTime} className="w-full bg-[#1c202e] hover:bg-[#1c202e]/90 text-white py-2 rounded text-sm font-medium transition-colors disabled:opacity-50">
+                      <button onClick={handleUpdateTime} disabled={isUpdatingTime} className="w-full bg-[#1c202e] hover:bg-[#1c202e]/90 text-white py-2 rounded text-sm font-medium transition-colors disabled:opacity-50 cursor-pointer shadow-sm">
                         {isUpdatingTime ? 'Updating...' : 'Confirm Reschedule'}
                       </button>
                     </div>
@@ -468,9 +468,9 @@ export function MemberRequestDetail() {
 
           {/* Request Journey Timeline */}
           <div>
-            <h3 className="font-sans text-xs text-primary/50 uppercase tracking-widest font-semibold mb-8">
+            <h2 className="font-sans text-xs text-primary-muted uppercase tracking-widest font-semibold mb-8">
               Request Journey
-            </h3>
+            </h2>
             
             <div className="relative border-l border-primary/10 ml-4 space-y-10 pb-4">
               {renderTimelineNode(
@@ -510,13 +510,13 @@ export function MemberRequestDetail() {
         <div className="lg:w-[40%] flex flex-col gap-6">
           <div className="bg-surface rounded-xl p-8 halo-border">
             <div className="flex items-center justify-between mb-6">
-              <h3 className="font-sans text-xs text-primary/50 uppercase tracking-widest font-semibold">
+              <h2 className="font-sans text-xs text-primary-muted uppercase tracking-widest font-semibold">
                 Original Summary
-              </h3>
+              </h2>
               {!isLocked && (
                 <button 
                   onClick={() => setIsEditing(!isEditing)}
-                  className="text-primary hover:text-primary/70 text-xs font-sans uppercase tracking-widest font-medium transition-colors"
+                  className="text-primary hover:text-primary-muted text-xs font-sans uppercase tracking-widest font-medium transition-colors"
                 >
                   {isEditing ? 'Cancel' : 'Edit'}
                 </button>
@@ -524,25 +524,28 @@ export function MemberRequestDetail() {
             </div>
             
             <div className="mb-8">
-              <span className="font-sans text-sm text-primary/50 block mb-2">Request Context</span>
+              <span className="font-sans text-sm text-primary-muted block mb-2">Request Context</span>
               {isEditing ? (
                 <div className="flex flex-col gap-3">
+                  <label htmlFor="reason-draft-textarea" className="sr-only">Edit request context</label>
                   <textarea 
+                    id="reason-draft-textarea"
+                    aria-label="Edit request context"
                     value={reasonDraft}
                     onChange={(e) => setReasonDraft(e.target.value)}
-                    className="w-full bg-background border border-primary/10 rounded-md p-4 font-sans text-sm text-primary focus:outline-none focus:border-primary/40 focus:ring-1 focus:ring-primary/40 transition-all resize-y min-h-[120px]"
+                    className="w-full bg-background border border-primary/20 rounded-md p-4 font-sans text-sm text-primary focus:outline-none focus:border-primary/60 focus:ring-1 focus:ring-primary/60 transition-all resize-y min-h-[120px]"
                   />
                   <div className="flex justify-end">
                     <button 
                       onClick={handleSaveReason}
-                      className="px-4 py-2 bg-[#1c202e] text-white rounded text-sm font-medium hover:bg-[#2c2e35] transition-colors"
+                      className="px-4 py-2 bg-[#1c202e] text-white rounded text-sm font-medium hover:bg-[#2c2e35] transition-colors cursor-pointer shadow-sm"
                     >
                       Save Changes
                     </button>
                   </div>
                 </div>
               ) : (
-                <p className="font-sans text-base text-primary/80 leading-relaxed whitespace-pre-wrap">
+                <p className="font-sans text-base text-primary leading-relaxed whitespace-pre-wrap">
                   {consultation.reason && consultation.reason.trim() && consultation.reason !== "No description provided."
                     ? consultation.reason 
                     : "No additional details provided."}
@@ -552,11 +555,11 @@ export function MemberRequestDetail() {
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <span className="font-sans text-sm text-primary/50 block mb-1">Urgency</span>
+                <span className="font-sans text-sm text-primary-muted block mb-1">Urgency</span>
                 <span className="font-sans text-base text-primary capitalize">{consultation.urgency}</span>
               </div>
               <div>
-                <span className="font-sans text-sm text-primary/50 block mb-1">Requested Time</span>
+                <span className="font-sans text-sm text-primary-muted block mb-1">Requested Time</span>
                 <span className="font-sans text-base text-primary">
                   {consultation.selectedTime ? formatDateTime(consultation.selectedTime, 'short') : 'TBD'}
                 </span>
@@ -566,35 +569,38 @@ export function MemberRequestDetail() {
 
           {/* Pastoral Notes & Comments */}
           <div className="bg-surface rounded-xl p-8 halo-border flex flex-col">
-            <h3 className="font-sans text-xs text-primary/50 uppercase tracking-widest font-semibold mb-6">
+            <h2 className="font-sans text-xs text-primary-muted uppercase tracking-widest font-semibold mb-6">
               Notes & Updates
-            </h3>
+            </h2>
             
             <div className="flex-1 overflow-y-auto max-h-[300px] mb-4 space-y-4 pr-2">
               {notes.length === 0 ? (
-                <p className="text-sm font-sans text-primary/40 italic">No notes yet.</p>
+                <p className="text-sm font-sans text-primary-muted italic">No notes yet.</p>
               ) : (
                 notes.map(note => (
                   <div key={note.id} className={`p-4 rounded-lg ${note.authorId === user?.uid ? 'bg-background border border-primary/10 ml-4' : 'bg-primary/5 mr-4'}`}>
                     <div className="flex justify-between items-center mb-1">
                       <span className="font-sans text-xs font-bold text-primary">{note.authorRole === 'member' ? 'You' : 'Pastor/Leader'}</span>
-                      <span className="font-sans text-[10px] text-primary/50">{formatDateTime(note.createdAt, 'time')}</span>
+                      <span className="font-sans text-xs text-primary-muted">{formatDateTime(note.createdAt, 'time')}</span>
                     </div>
-                    <p className="font-sans text-sm text-primary/80">{note.content}</p>
+                    <p className="font-sans text-sm text-primary">{note.content}</p>
                   </div>
                 ))
               )}
             </div>
 
             <form onSubmit={handleAddNote} className="relative mt-auto">
+              <label htmlFor="member-note-input" className="sr-only">Add a secure note</label>
               <input 
+                id="member-note-input"
                 type="text" 
+                aria-label="Add a secure note"
                 value={newNote}
                 onChange={(e) => setNewNote(e.target.value)}
                 placeholder="Add a secure note..."
-                className="w-full bg-background border border-primary/10 rounded-md py-3 pl-4 pr-12 font-sans text-sm focus:outline-none focus:border-primary/40"
+                className="w-full bg-background border border-primary/20 rounded-md py-3 pl-4 pr-12 font-sans text-sm text-primary placeholder:text-primary-muted focus:outline-none focus:border-primary/60"
               />
-              <button type="submit" disabled={!newNote.trim()} className="absolute right-2 top-1/2 -translate-y-1/2 p-2 text-primary/50 hover:text-primary disabled:opacity-50">
+              <button type="submit" aria-label="Send note" disabled={!newNote.trim()} className="absolute right-2 top-1/2 -translate-y-1/2 p-2 text-primary-muted hover:text-primary disabled:opacity-50 cursor-pointer">
                 <Send size={16} />
               </button>
             </form>

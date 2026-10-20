@@ -262,17 +262,17 @@ export function Login() {
 
         <div className="w-full flex items-center gap-3 mb-6">
           <div className="flex-1 h-[1px] bg-primary/10"></div>
-          <span className="font-sans text-[11px] text-primary/40 uppercase tracking-wider">Or quick demo access</span>
+          <span className="font-sans text-xs text-primary-muted uppercase tracking-wider">Or quick demo access</span>
           <div className="flex-1 h-[1px] bg-primary/10"></div>
         </div>
 
         {/* 1-Click Quick Demo Sign-Ins */}
         <div className="w-full mb-6 p-4 rounded-xl bg-[#faf8f5] border border-primary/10 text-left">
           <div className="flex items-center justify-between mb-2.5">
-            <span className="font-sans text-[11px] font-bold text-primary/70 uppercase tracking-widest">
+            <span className="font-sans text-xs font-bold text-primary uppercase tracking-widest">
               Quick Demo Access
             </span>
-            <span className="font-sans text-[10px] text-primary/50">One-click sign in</span>
+            <span className="font-sans text-xs text-primary-muted">One-click sign in</span>
           </div>
 
           <div className="grid grid-cols-3 gap-2">
@@ -284,11 +284,11 @@ export function Login() {
                 onClick={() => handleQuickDemoLogin(demo)}
                 className="px-2.5 py-2 rounded-lg bg-white border border-primary/15 hover:border-[#1c202e] hover:bg-primary/[0.02] transition-all text-left group shadow-sm disabled:opacity-60 cursor-pointer"
               >
-                <span className="block font-sans text-xs font-semibold text-primary group-hover:text-primary/80 transition-colors truncate">
+                <span className="block font-sans text-xs font-semibold text-primary group-hover:text-primary transition-colors truncate">
                   {quickAction === demo.label ? <Loader2 size={12} className="animate-spin inline mr-1" /> : null}
                   {demo.label}
                 </span>
-                <span className="block font-sans text-[10px] text-primary/50 truncate">
+                <span className="block font-sans text-xs text-primary-muted truncate">
                   {demo.sublabel}
                 </span>
               </button>
@@ -298,7 +298,7 @@ export function Login() {
 
         <div className="w-full flex items-center gap-3 mb-6">
           <div className="flex-1 h-[1px] bg-primary/10"></div>
-          <span className="font-sans text-[11px] text-primary/40 uppercase tracking-wider">Or sign in with email</span>
+          <span className="font-sans text-xs text-primary-muted uppercase tracking-wider">Or sign in with email</span>
           <div className="flex-1 h-[1px] bg-primary/10"></div>
         </div>
 
@@ -319,7 +319,7 @@ export function Login() {
           )}
           
           <div className="space-y-1.5">
-            <label className="block font-sans text-xs font-bold uppercase tracking-wider text-primary/80" htmlFor="email">
+            <label className="block font-sans text-xs font-bold uppercase tracking-wider text-primary" htmlFor="email">
               Email Address
             </label>
             <div className="relative">
@@ -337,7 +337,7 @@ export function Login() {
           
           <div className="space-y-1.5">
             <div className="flex justify-between items-center w-full">
-              <label className="block font-sans text-xs font-bold uppercase tracking-wider text-primary/80" htmlFor="password">
+              <label className="block font-sans text-xs font-bold uppercase tracking-wider text-primary" htmlFor="password">
                 Password
               </label>
             </div>
@@ -356,7 +356,7 @@ export function Login() {
             <button 
               type="submit" 
               disabled={loading}
-              className="w-full bg-[#1e232a] text-white hover:bg-[#2c323b] py-3.5 rounded-xl text-xs font-bold tracking-wider uppercase transition-colors flex justify-center items-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed shadow-md"
+              className="w-full bg-[#1e232a] text-white hover:bg-[#2c323b] py-3.5 rounded-xl text-xs font-bold tracking-wider uppercase transition-colors flex justify-center items-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed shadow-md cursor-pointer"
             >
               {loading && !quickAction ? (
                 <>
@@ -372,9 +372,9 @@ export function Login() {
         </form>
 
         <div className="mt-8 text-center w-full pt-4 border-t border-primary/10">
-          <p className="font-sans text-xs text-primary/70">
+          <p className="font-sans text-xs text-primary-muted">
             Seeking connection? 
-            <Link to="/auth/register" className="text-primary font-bold hover:text-primary/70 transition-colors ml-1.5 uppercase tracking-wider">
+            <Link to="/auth/register" className="text-primary font-bold hover:text-secondary transition-colors ml-1.5 uppercase tracking-wider">
               Create an account
             </Link>
           </p>

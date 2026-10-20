@@ -138,7 +138,7 @@ export function Register() {
 
         <div className="w-full flex items-center gap-3 mb-6">
           <div className="flex-1 h-[1px] bg-primary/10"></div>
-          <span className="font-sans text-[11px] text-primary/40 uppercase tracking-wider">Or register with email</span>
+          <span className="font-sans text-xs text-primary-muted uppercase tracking-wider">Or register with email</span>
           <div className="flex-1 h-[1px] bg-primary/10"></div>
         </div>
 
@@ -157,7 +157,7 @@ export function Register() {
           )}
           
           <div className="space-y-1.5">
-            <label className="block font-sans text-xs font-bold uppercase tracking-wider text-primary/80" htmlFor="name">
+            <label className="block font-sans text-xs font-bold uppercase tracking-wider text-primary" htmlFor="name">
               Full Name
             </label>
             <input 
@@ -172,7 +172,7 @@ export function Register() {
           </div>
           
           <div className="space-y-1.5">
-            <label className="block font-sans text-xs font-bold uppercase tracking-wider text-primary/80" htmlFor="email">
+            <label className="block font-sans text-xs font-bold uppercase tracking-wider text-primary" htmlFor="email">
               Email Address
             </label>
             <input 
@@ -187,7 +187,7 @@ export function Register() {
           </div>
           
           <div className="space-y-1.5">
-            <label className="block font-sans text-xs font-bold uppercase tracking-wider text-primary/80" htmlFor="password">
+            <label className="block font-sans text-xs font-bold uppercase tracking-wider text-primary" htmlFor="password">
               Password (6+ characters)
             </label>
             <input 
@@ -203,7 +203,7 @@ export function Register() {
           </div>
 
           <div className="space-y-1.5 pt-1">
-            <label className="block font-sans text-xs font-bold uppercase tracking-wider text-primary/80">
+            <label className="block font-sans text-xs font-bold uppercase tracking-wider text-primary">
               Account Purpose / Role
             </label>
             <div className="grid grid-cols-3 gap-2">
@@ -213,7 +213,7 @@ export function Register() {
                 className={`py-2 px-2 rounded-lg text-xs font-medium border text-center transition-all ${
                   requestedRole === 'member'
                     ? 'bg-primary text-white border-primary shadow-sm'
-                    : 'bg-white text-primary/70 border-[#e2dcce] hover:border-primary/40'
+                    : 'bg-white text-primary-muted border-[#e2dcce] hover:border-primary/40'
                 }`}
               >
                 Church Member
@@ -224,7 +224,7 @@ export function Register() {
                 className={`py-2 px-2 rounded-lg text-xs font-medium border text-center transition-all ${
                   requestedRole === 'leader'
                     ? 'bg-primary text-white border-primary shadow-sm'
-                    : 'bg-white text-primary/70 border-[#e2dcce] hover:border-primary/40'
+                    : 'bg-white text-primary-muted border-[#e2dcce] hover:border-primary/40'
                 }`}
               >
                 Ministry Leader
@@ -235,14 +235,14 @@ export function Register() {
                 className={`py-2 px-2 rounded-lg text-xs font-medium border text-center transition-all ${
                   requestedRole === 'pastor'
                     ? 'bg-primary text-white border-primary shadow-sm'
-                    : 'bg-white text-primary/70 border-[#e2dcce] hover:border-primary/40'
+                    : 'bg-white text-primary-muted border-[#e2dcce] hover:border-primary/40'
                 }`}
               >
                 Pastor
               </button>
             </div>
             {requestedRole !== 'member' && (
-              <p className="text-[11px] text-primary/60 italic pt-1 leading-snug">
+              <p className="text-xs text-primary-muted italic pt-1 leading-snug">
                 Note: Leader &amp; Pastor accounts activate as member accounts and receive pastoral dashboard privileges upon verification by the administrator.
               </p>
             )}
@@ -250,9 +250,9 @@ export function Register() {
           
           <div className="pt-3">
             <button 
-              type="submit"
+              type="submit" 
               disabled={loading}
-              className="w-full bg-[#1e232a] text-white hover:bg-[#2c323b] py-3.5 rounded-xl text-xs font-bold tracking-wider uppercase transition-colors flex justify-center items-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed shadow-md"
+              className="w-full bg-[#1e232a] text-white hover:bg-[#2c323b] py-3.5 rounded-xl text-xs font-bold tracking-wider uppercase transition-colors flex justify-center items-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed shadow-md cursor-pointer"
             >
               {loading ? (
                 <>
@@ -268,9 +268,9 @@ export function Register() {
         </form>
         
         <div className="mt-8 text-center w-full pt-4 border-t border-primary/10">
-          <p className="font-sans text-xs text-primary/70">
+          <p className="font-sans text-xs text-primary-muted">
             Already walking with us? 
-            <Link to="/auth/login" className="text-primary font-bold hover:text-[#b93c3c] transition-colors ml-1.5 uppercase tracking-wider">
+            <Link to="/auth/login" className="text-primary font-bold hover:text-secondary transition-colors ml-1.5 uppercase tracking-wider">
               Sign In
             </Link>
           </p>

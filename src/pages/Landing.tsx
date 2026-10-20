@@ -10,7 +10,7 @@ export function Landing() {
         <h1 className="font-serif text-5xl md:text-7xl text-primary mb-8 leading-tight tracking-tight">
           Faithful Guidance for Life’s Deepest Journeys.
         </h1>
-        <p className="font-sans text-lg md:text-xl text-primary/70 mb-12 max-w-2xl mx-auto leading-relaxed">
+        <p className="font-sans text-lg md:text-xl text-primary-muted mb-12 max-w-2xl mx-auto leading-relaxed">
           A digital sanctuary designed to provide confidential, compassionate pastoral care when you need it most. Connect securely with trusted spiritual leadership.
         </p>
         <Link 
@@ -56,8 +56,8 @@ export function Landing() {
                 <span className="font-serif text-lg text-[#2c2a29] font-medium tracking-wide">SJ</span>
               </div>
               <h3 className="font-serif text-2xl text-primary mb-2">Sarah Jenkins</h3>
-              <span className="font-sans text-[10px] font-bold text-secondary uppercase tracking-[0.2em] mb-4 block">Youth Leader</span>
-              <p className="font-sans text-base text-primary/70 mb-10 flex-grow">Guiding teenagers through the complexities of modern faith, blending rigorous scriptural study with empathetic application.</p>
+              <span className="font-sans text-xs font-bold text-secondary uppercase tracking-[0.2em] mb-4 block">Youth Leader</span>
+              <p className="font-sans text-base text-primary-muted mb-10 flex-grow">Guiding teenagers through the complexities of modern faith, blending rigorous scriptural study with empathetic application.</p>
               <Link 
                 to="/auth/login"
                 className="w-full py-4 px-4 rounded-lg halo-border text-primary font-sans text-sm font-medium hover:bg-surface-dim transition-colors active-sink"
@@ -72,8 +72,8 @@ export function Landing() {
                 <span className="font-serif text-lg text-[#2c2a29] font-medium tracking-wide">DM</span>
               </div>
               <h3 className="font-serif text-2xl text-primary mb-2">David Miller</h3>
-              <span className="font-sans text-[10px] font-bold text-secondary uppercase tracking-[0.2em] mb-4 block">Children Leader</span>
-              <p className="font-sans text-base text-primary/70 mb-10 flex-grow">Overseeing foundational ministry to ensure the youngest members experience the warmth of spiritual belonging and moral development.</p>
+              <span className="font-sans text-xs font-bold text-secondary uppercase tracking-[0.2em] mb-4 block">Children Leader</span>
+              <p className="font-sans text-base text-primary-muted mb-10 flex-grow">Overseeing foundational ministry to ensure the youngest members experience the warmth of spiritual belonging and moral development.</p>
               <Link 
                 to="/auth/login"
                 className="w-full py-4 px-4 rounded-lg halo-border text-primary font-sans text-sm font-medium hover:bg-surface-dim transition-colors active-sink"

@@ -6,13 +6,13 @@ export function PrivacyPolicy() {
       {/* Header */}
       <div className="flex flex-col items-center mb-16 text-center">
         <h1 className="font-serif text-5xl md:text-6xl text-primary mb-6 tracking-tight">Privacy Policy</h1>
-        <p className="font-sans text-lg text-primary/70">
+        <p className="font-sans text-lg text-primary-muted">
           Dedicated to digital stewardship and pastoral care. Your trust is our highest calling.
         </p>
         
         <div className="flex items-center gap-2 mt-8 text-secondary font-sans text-xs tracking-widest font-bold uppercase">
           <Clock size={14} />
-          <span>Last Updated: Insert date</span>
+          <span>Last Updated: March 2026</span>
         </div>
       </div>
 
@@ -22,10 +22,10 @@ export function PrivacyPolicy() {
           <Lock size={24} className="text-secondary" />
           <h2 className="font-serif text-3xl text-primary">Our Commitment to Spiritual Confidentiality</h2>
         </div>
-        <p className="font-sans text-primary/80 leading-relaxed mb-6 max-w-4xl">
+        <p className="font-sans text-primary-muted leading-relaxed mb-6 max-w-4xl">
           At DLBC Church Connect, we understand that the conversations and data shared within our platform often carry the weight of spiritual and personal confession. We approach data protection not merely as a legal requirement, but as a sacred duty of stewardship.
         </p>
-        <p className="font-sans text-primary/80 leading-relaxed max-w-4xl">
+        <p className="font-sans text-primary-muted leading-relaxed max-w-4xl">
           This policy outlines our transparent approach to data collection, emphasizing minimal extraction and maximum protection.
         </p>
       </div>
@@ -36,26 +36,26 @@ export function PrivacyPolicy() {
           {/* Minimal Data Collection */}
           <div className="bg-surface border border-primary/10 rounded-xl p-8 halo-border">
             <div className="flex items-center gap-3 mb-8">
-              <PieChart size={24} className="text-primary/70" />
+              <PieChart size={24} className="text-primary-muted" />
               <h2 className="font-serif text-2xl text-primary">Minimal Data Collection</h2>
             </div>
             
             <div className="space-y-6">
               <div>
-                <h3 className="font-sans text-sm text-primary mb-2">Account Creation</h3>
-                <p className="font-sans text-sm text-primary/70 leading-relaxed">
+                <h3 className="font-sans text-sm font-semibold text-primary mb-2">Account Creation</h3>
+                <p className="font-sans text-sm text-primary-muted leading-relaxed">
                   We collect only essential information: Name, Email, and Pastoral Affiliation. We do not aggregate behavioral data for third-party marketing.
                 </p>
               </div>
               <div className="border-t border-primary/10 pt-6">
-                <h3 className="font-sans text-sm text-primary mb-2">Session Data</h3>
-                <p className="font-sans text-sm text-primary/70 leading-relaxed">
+                <h3 className="font-sans text-sm font-semibold text-primary mb-2">Session Data</h3>
+                <p className="font-sans text-sm text-primary-muted leading-relaxed">
                   Temporary connection logs are maintained strictly for diagnostic and security purposes, automatically purged every 72 hours.
                 </p>
               </div>
               <div className="border-t border-primary/10 pt-6">
-                <h3 className="font-sans text-sm text-primary mb-2">Voluntary Disclosures</h3>
-                <p className="font-sans text-sm text-primary/70 leading-relaxed">
+                <h3 className="font-sans text-sm font-semibold text-primary mb-2">Voluntary Disclosures</h3>
+                <p className="font-sans text-sm text-primary-muted leading-relaxed">
                   Any notes or reflections you enter are stored locally on your device where possible, or encrypted at rest on our secure servers.
                 </p>
               </div>
@@ -65,15 +65,15 @@ export function PrivacyPolicy() {
           {/* Confidentiality & Law */}
           <div className="bg-surface border border-primary/10 rounded-xl p-8 halo-border">
             <div className="flex items-center gap-3 mb-6">
-              <Scale size={24} className="text-primary/70" />
+              <Scale size={24} className="text-primary-muted" />
               <h2 className="font-serif text-2xl text-primary">Confidentiality & Law</h2>
             </div>
-            <p className="font-sans text-sm text-primary/80 leading-relaxed mb-6">
+            <p className="font-sans text-sm text-primary-muted leading-relaxed mb-6">
               We respect the ancient tradition of pastoral confidentiality. Data entered into private counseling modules is treated with the same sanctity as a closed-door session.
             </p>
             <div className="border-l-2 border-secondary pl-4 py-1 mt-6">
               <span className="font-sans text-xs font-bold uppercase tracking-widest text-secondary block mb-2">Legal Exceptions</span>
-              <p className="font-sans text-sm text-primary/70 leading-relaxed">
+              <p className="font-sans text-sm text-primary-muted leading-relaxed">
                 We will only disclose information without your consent if required by a valid legal subpoena, or in immediate, credible situations involving imminent risk of harm to self or others, as mandated by regional laws.
               </p>
             </div>
@@ -88,7 +88,7 @@ export function PrivacyPolicy() {
               <Lock size={24} className="text-secondary" />
               <h2 className="font-serif text-2xl text-primary">Encryption Standards</h2>
             </div>
-            <p className="font-sans text-sm text-primary/80 leading-relaxed mb-6">
+            <p className="font-sans text-sm text-primary-muted leading-relaxed mb-6">
               We employ military-grade encryption to ensure your pastoral interactions remain private.
             </p>
             
@@ -103,7 +103,7 @@ export function PrivacyPolicy() {
               </div>
             </div>
 
-            <p className="font-serif text-sm text-primary/60 italic leading-relaxed">
+            <p className="font-serif text-sm text-primary-muted italic leading-relaxed">
               End-to-End Encryption (E2EE) is enabled by default for all direct messaging and video consultations.
             </p>
           </div>
@@ -111,17 +111,17 @@ export function PrivacyPolicy() {
           {/* Your Rights */}
           <div className="bg-surface border border-primary/10 rounded-xl p-8 halo-border flex-grow">
             <div className="flex items-center gap-3 mb-8">
-              <Hand size={24} className="text-primary/70" />
+              <Hand size={24} className="text-primary-muted" />
               <h2 className="font-serif text-2xl text-primary">Your Rights</h2>
             </div>
             
             <div className="space-y-4">
               <div className="flex items-center gap-4 border border-primary/10 rounded p-4">
-                <Download size={20} className="text-primary/70" />
+                <Download size={20} className="text-primary-muted" />
                 <span className="font-sans text-sm text-primary">Right to Access Data</span>
               </div>
               <div className="flex items-center gap-4 border border-primary/10 rounded p-4">
-                <AlignLeft size={20} className="text-primary/70" />
+                <AlignLeft size={20} className="text-primary-muted" />
                 <span className="font-sans text-sm text-primary">Right to Rectification</span>
               </div>
               <div className="flex items-center gap-4 border border-secondary/20 bg-secondary/5 rounded p-4">
@@ -135,8 +135,8 @@ export function PrivacyPolicy() {
 
       {/* Footer Block */}
       <div className="bg-surface-dim/40 rounded-xl p-12 flex flex-col items-center text-center mt-12 border border-primary/5">
-        <h3 className="font-serif text-2xl text-primary mb-4">Questions about our stewardship of your data?</h3>
-        <p className="font-sans text-sm text-primary/70 max-w-xl mb-8 leading-relaxed">
+        <h2 className="font-serif text-2xl text-primary mb-4">Questions about our stewardship of your data?</h2>
+        <p className="font-sans text-sm text-primary-muted max-w-xl mb-8 leading-relaxed">
           Our Data Protection Officer is available to discuss any concerns regarding how DLBC Church Connect handles your sensitive information.
         </p>
         <button className="bg-primary hover:bg-primary/90 text-white font-sans text-sm font-medium px-6 py-3 rounded active-sink flex items-center gap-2 transition-colors">

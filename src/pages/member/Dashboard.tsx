@@ -46,7 +46,7 @@ export function Dashboard() {
         <h1 className="font-serif text-5xl md:text-6xl text-primary mb-4 tracking-tight">
           Welcome back, {user?.displayName || 'Friend'}.
         </h1>
-        <p className="font-serif text-2xl text-primary/70 italic">Peace be with you.</p>
+        <p className="font-serif text-2xl text-primary-muted italic">Peace be with you.</p>
       </div>
 
       {/* Daily Reflection */}
@@ -66,27 +66,36 @@ export function Dashboard() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           
           {/* Active Consultations */}
-          <div className="bg-surface rounded-lg p-8 halo-border col-span-1 md:col-span-2 relative overflow-hidden group">
-            <span className="inline-block px-3 py-1 bg-background rounded-full font-sans text-xs text-primary/70 mb-6 halo-border">Active Consultations</span>
+          <div className="bg-surface rounded-lg p-8 halo-border col-span-1 md:col-span-2 relative overflow-hidden group min-h-[380px] sm:min-h-[420px] flex flex-col">
+            <span className="inline-block px-3 py-1 bg-background rounded-full font-sans text-xs text-primary-muted mb-6 halo-border self-start">Active Consultations</span>
             
             {loading ? (
-              <div className="flex justify-center items-center h-32">
-                <Loader2 className="animate-spin text-primary/30" size={32} />
+              <div className="space-y-4 animate-pulse flex-1" role="status" aria-busy="true" aria-label="Loading consultations">
+                {[1, 2, 3].map((i) => (
+                  <div key={i} className="bg-background border border-primary/10 rounded-lg p-4">
+                    <div className="flex justify-between items-start mb-2">
+                      <div className="h-5 bg-primary/10 rounded w-1/3"></div>
+                      <div className="h-5 bg-primary/10 rounded w-20"></div>
+                    </div>
+                    <div className="h-4 bg-primary/10 rounded w-1/2 mb-2"></div>
+                    <div className="h-3 bg-primary/10 rounded w-1/3 mt-3"></div>
+                  </div>
+                ))}
               </div>
             ) : consultations.length === 0 ? (
-              <div className="text-center py-8">
-                <p className="font-sans text-base text-primary/60">You have no active consultations at this time.</p>
+              <div className="text-center py-8 my-auto">
+                <p className="font-sans text-base text-primary-subtle">You have no active consultations at this time.</p>
               </div>
             ) : (
               <div className="space-y-4">
                 {consultations.slice(0, 3).map((consultation) => (
                   <Link key={consultation.id} to={`/member/request/${consultation.id}`} className="block bg-background border border-primary/10 rounded-lg p-4 hover:border-primary/30 transition-colors">
                     <div className="flex justify-between items-start mb-2">
-                      <h4 className="font-sans text-base font-medium text-primary">{consultation.category}</h4>
+                      <h3 className="font-sans text-base font-medium text-primary min-w-0 break-words line-clamp-3">{consultation.category}</h3>
                       <StatusBadge status={consultation.status} />
                     </div>
                     {consultation.selectedTime && (
-                      <p className="font-sans text-sm text-primary/70 mb-2 flex items-center gap-2">
+                      <p className="font-sans text-sm text-primary-muted mb-2 flex items-center gap-2">
                         <Calendar size={14} />
                         {formatDateTime(consultation.selectedTime, 'short')}
                       </p>

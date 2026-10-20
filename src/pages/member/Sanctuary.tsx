@@ -75,7 +75,7 @@ export function MemberSanctuary() {
       <div className="max-w-7xl mx-auto px-6 w-full pt-16">
         
         {/* Breadcrumbs */}
-        <div className="mb-6 font-sans text-xs font-bold uppercase tracking-widest text-primary/50 flex items-center justify-between">
+        <div className="mb-6 font-sans text-xs font-bold uppercase tracking-widest text-primary-muted flex items-center justify-between">
           <span>MEMBER PORTAL &gt; CONSULTATIONS</span>
           <Link 
             to="/member/request" 
@@ -99,10 +99,10 @@ export function MemberSanctuary() {
         <div className="mb-16">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
             <div>
-              <h3 className="font-sans text-sm font-bold uppercase tracking-widest text-primary">
+              <h2 className="font-sans text-sm font-bold uppercase tracking-widest text-primary">
                 Your Consultations &amp; Appointments Ledger
-              </h3>
-              <p className="font-sans text-xs text-primary/60 mt-0.5">
+              </h2>
+              <p className="font-sans text-xs text-primary-muted mt-0.5">
                 {filteredSessions.length} total
               </p>
             </div>
@@ -116,25 +116,25 @@ export function MemberSanctuary() {
               <table className="w-full text-left font-sans text-sm">
                 <thead>
                   <tr className="border-b border-primary/10 bg-[#faf8f5]">
-                    <th className="px-6 py-4 font-semibold text-primary/70 text-xs uppercase tracking-wider">Date &amp; Time</th>
-                    <th className="px-6 py-4 font-semibold text-primary/70 text-xs uppercase tracking-wider">Counselor / Leader</th>
-                    <th className="px-6 py-4 font-semibold text-primary/70 text-xs uppercase tracking-wider">Session Category</th>
-                    <th className="px-6 py-4 font-semibold text-primary/70 text-xs uppercase tracking-wider">Format</th>
-                    <th className="px-6 py-4 font-semibold text-primary/70 text-xs uppercase tracking-wider">Status</th>
-                    <th className="w-48 px-6 py-4 font-semibold text-primary/70 text-xs uppercase tracking-wider text-right">Actions</th>
+                    <th className="px-6 py-4 font-semibold text-primary-muted text-xs uppercase tracking-wider">Date &amp; Time</th>
+                    <th className="px-6 py-4 font-semibold text-primary-muted text-xs uppercase tracking-wider">Counselor / Leader</th>
+                    <th className="px-6 py-4 font-semibold text-primary-muted text-xs uppercase tracking-wider">Session Category</th>
+                    <th className="px-6 py-4 font-semibold text-primary-muted text-xs uppercase tracking-wider">Format</th>
+                    <th className="px-6 py-4 font-semibold text-primary-muted text-xs uppercase tracking-wider">Status</th>
+                    <th className="w-48 px-6 py-4 font-semibold text-primary-muted text-xs uppercase tracking-wider text-right">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-primary/5">
                   {loading ? (
                     <tr>
-                      <td colSpan={6} className="px-6 py-12 text-center text-primary/50">
-                        <Loader2 className="animate-spin mx-auto mb-2 text-primary/30" size={24} />
+                      <td colSpan={6} className="px-6 py-12 text-center text-primary-muted">
+                        <Loader2 className="animate-spin mx-auto mb-2 text-primary-muted" size={24} />
                         Loading appointments...
                       </td>
                     </tr>
                   ) : filteredSessions.length === 0 ? (
                     <tr>
-                      <td colSpan={6} className="px-6 py-12 text-center text-primary/50 text-sm">
+                      <td colSpan={6} className="px-6 py-12 text-center text-primary-muted text-sm">
                         No {FILTER_EMPTY_NAMES[filter]} consultations.
                       </td>
                     </tr>
@@ -150,7 +150,7 @@ export function MemberSanctuary() {
                             <div className="font-medium">
                               {session.selectedTime ? formatDateTime(session.selectedTime, 'date') : 'Date Pending'}
                             </div>
-                            <div className="text-xs text-primary/60">
+                            <div className="text-xs text-primary-muted">
                               {session.selectedTime ? formatDateTime(session.selectedTime, 'time') : 'Awaiting Review'}
                             </div>
                           </td>
@@ -211,63 +211,66 @@ export function MemberSanctuary() {
         </div>
 
         {/* Pre-Consultation Preparation Guide */}
-        <div className="mb-16">
-          <h3 className="font-sans text-sm font-bold uppercase tracking-widest text-primary mb-6">
+        <section aria-labelledby="prep-guide-heading" className="mb-16">
+          <h2 id="prep-guide-heading" className="font-sans text-sm font-bold uppercase tracking-widest text-primary mb-6">
             Consultation Preparation Checklist
-          </h3>
+          </h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="bg-white rounded-xl p-8 border border-primary/10 shadow-sm flex flex-col gap-3">
               <MapPin className="text-[#b93c3c] mb-1" size={20} />
-              <h4 className="font-serif text-xl text-primary">Private Location</h4>
-              <p className="font-sans text-sm text-primary/70 leading-relaxed">
+              <h3 className="font-serif text-xl text-primary">Private Location</h3>
+              <p className="font-sans text-sm text-primary-muted leading-relaxed">
                 Choose a quiet, undisturbed room to ensure your conversation remains peaceful and completely confidential.
               </p>
             </div>
 
             <div className="bg-white rounded-xl p-8 border border-primary/10 shadow-sm flex flex-col gap-3">
               <BookOpen className="text-[#b93c3c] mb-1" size={20} />
-              <h4 className="font-serif text-xl text-primary">Bible &amp; Notebook</h4>
-              <p className="font-sans text-sm text-primary/70 leading-relaxed">
+              <h3 className="font-serif text-xl text-primary">Bible &amp; Notebook</h3>
+              <p className="font-sans text-sm text-primary-muted leading-relaxed">
                 Keep your Bible and a notepad ready for scriptural guidance, prayer directives, and pastoral insights.
               </p>
             </div>
 
             <div className="bg-white rounded-xl p-8 border border-primary/10 shadow-sm flex flex-col gap-3">
               <Heart className="text-[#b93c3c] mb-1" size={20} />
-              <h4 className="font-serif text-xl text-primary">Prayer &amp; Peace</h4>
-              <p className="font-sans text-sm text-primary/70 leading-relaxed">
+              <h3 className="font-serif text-xl text-primary">Prayer &amp; Peace</h3>
+              <p className="font-sans text-sm text-primary-muted leading-relaxed">
                 Enter your consultation with an open heart. Our pastoral counselors are committed to walking with you in faith.
               </p>
             </div>
           </div>
-        </div>
+        </section>
 
         {/* Trust & Privacy Pillars */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="bg-white rounded-xl p-8 border border-primary/10 flex flex-col gap-3 shadow-sm">
-            <Lock className="text-[#b93c3c] mb-1" size={20} />
-            <h4 className="font-serif text-xl text-primary">Confidential Counsel</h4>
-            <p className="font-sans text-sm text-primary/70 leading-relaxed">
-              All appointments and spiritual counsel remain strictly protected under pastoral non-disclosure.
-            </p>
+        <section aria-labelledby="trust-pillars-heading">
+          <h2 id="trust-pillars-heading" className="sr-only">Trust &amp; Privacy Pillars</h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="bg-white rounded-xl p-8 border border-primary/10 flex flex-col gap-3 shadow-sm">
+              <Lock className="text-[#b93c3c] mb-1" size={20} />
+              <h3 className="font-serif text-xl text-primary">Confidential Counsel</h3>
+              <p className="font-sans text-sm text-primary-muted leading-relaxed">
+                All appointments and spiritual counsel remain strictly protected under pastoral non-disclosure.
+              </p>
+            </div>
+            
+            <div className="bg-white rounded-xl p-8 border border-primary/10 flex flex-col gap-3 shadow-sm">
+              <ShieldCheck className="text-[#b93c3c] mb-1" size={20} />
+              <h3 className="font-serif text-xl text-primary">Immutable Privacy</h3>
+              <p className="font-sans text-sm text-primary-muted leading-relaxed">
+                Session records and reflection notes are restricted to your secure account and your assigned spiritual counselor.
+              </p>
+            </div>
+            
+            <div className="bg-white rounded-xl p-8 border border-primary/10 flex flex-col gap-3 shadow-sm">
+              <ScrollText className="text-[#b93c3c] mb-1" size={20} />
+              <h3 className="font-serif text-xl text-primary">Pastoral Covenant</h3>
+              <p className="font-sans text-sm text-primary-muted leading-relaxed">
+                Every counselor on this platform adheres to biblical standards of pastoral confidentiality and care.
+              </p>
+            </div>
           </div>
-          
-          <div className="bg-white rounded-xl p-8 border border-primary/10 flex flex-col gap-3 shadow-sm">
-            <ShieldCheck className="text-[#b93c3c] mb-1" size={20} />
-            <h4 className="font-serif text-xl text-primary">Immutable Privacy</h4>
-            <p className="font-sans text-sm text-primary/70 leading-relaxed">
-              Session records and reflection notes are restricted to your secure account and your assigned spiritual counselor.
-            </p>
-          </div>
-          
-          <div className="bg-white rounded-xl p-8 border border-primary/10 flex flex-col gap-3 shadow-sm">
-            <ScrollText className="text-[#b93c3c] mb-1" size={20} />
-            <h4 className="font-serif text-xl text-primary">Pastoral Covenant</h4>
-            <p className="font-sans text-sm text-primary/70 leading-relaxed">
-              Every counselor on this platform adheres to biblical standards of pastoral confidentiality and care.
-            </p>
-          </div>
-        </div>
+        </section>
 
       </div>
     </div>

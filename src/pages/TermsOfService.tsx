@@ -26,23 +26,23 @@ export function TermsOfService() {
         {/* Left Sidebar Content Outline */}
         <aside className="w-full md:w-64 shrink-0">
           <div className="bg-white border border-primary/10 rounded-xl p-6 shadow-sm sticky top-8">
-            <h3 className="font-sans text-xs text-primary font-bold uppercase tracking-widest mb-6">Contents</h3>
+            <p className="font-sans text-xs text-primary font-bold uppercase tracking-widest mb-6">Contents</p>
             <nav className="flex flex-col gap-4">
               <a href="#section-1" className="flex items-center gap-4 group">
-                <span className="font-serif text-sm text-primary/30 group-hover:text-secondary transition-colors">01</span>
-                <span className="font-sans text-sm text-primary/70 group-hover:text-primary transition-colors">Acceptance of Terms</span>
+                <span className="font-serif text-sm text-primary-subtle group-hover:text-secondary transition-colors">01</span>
+                <span className="font-sans text-sm text-primary-muted group-hover:text-primary transition-colors">Acceptance of Terms</span>
               </a>
               <a href="#section-2" className="flex items-center gap-4 group">
-                <span className="font-serif text-sm text-primary/30 group-hover:text-secondary transition-colors">02</span>
-                <span className="font-sans text-sm text-primary/70 group-hover:text-primary transition-colors">Scope of Digital Pastoral Care</span>
+                <span className="font-serif text-sm text-primary-subtle group-hover:text-secondary transition-colors">02</span>
+                <span className="font-sans text-sm text-primary-muted group-hover:text-primary transition-colors">Scope of Digital Pastoral Care</span>
               </a>
               <a href="#section-3" className="flex items-center gap-4 group">
-                <span className="font-serif text-sm text-primary/30 group-hover:text-secondary transition-colors">03</span>
-                <span className="font-sans text-sm text-primary/70 group-hover:text-primary transition-colors">User Responsibilities</span>
+                <span className="font-serif text-sm text-primary-subtle group-hover:text-secondary transition-colors">03</span>
+                <span className="font-sans text-sm text-primary-muted group-hover:text-primary transition-colors">User Responsibilities</span>
               </a>
               <a href="#section-4" className="flex items-center gap-4 group">
-                <span className="font-serif text-sm text-primary/30 group-hover:text-secondary transition-colors">04</span>
-                <span className="font-sans text-sm text-primary/70 group-hover:text-primary transition-colors">Limitation of Liability</span>
+                <span className="font-serif text-sm text-primary-subtle group-hover:text-secondary transition-colors">04</span>
+                <span className="font-sans text-sm text-primary-muted group-hover:text-primary transition-colors">Limitation of Liability</span>
               </a>
             </nav>
           </div>
@@ -53,10 +53,10 @@ export function TermsOfService() {
           {/* Header section in content */}
           <div className="mb-16 text-center">
             <h1 className="font-serif text-5xl md:text-6xl text-primary mb-6 tracking-tight">Terms of Service</h1>
-            <p className="font-sans text-lg text-primary/70 leading-relaxed mb-6">
+            <p className="font-sans text-lg text-primary-muted leading-relaxed mb-6">
               Governing your use of PastoralConnect, ensuring a secure and respectful environment for digital stewardship.
             </p>
-            <span className="font-sans text-xs text-primary/50 font-bold uppercase tracking-widest">
+            <span className="font-sans text-xs text-primary-muted font-bold uppercase tracking-widest">
               LAST UPDATED: OCTOBER 24, 2024
             </span>
           </div>
@@ -65,10 +65,10 @@ export function TermsOfService() {
             {/* Section 1 */}
             <section id="section-1">
               <h2 className="flex items-baseline gap-4 mb-6">
-                <span className="font-serif text-4xl text-primary/20">01</span>
+                <span aria-hidden="true" className="font-serif text-4xl text-primary/20 select-none">01</span>
                 <span className="font-serif text-3xl text-primary">Acceptance of Terms</span>
               </h2>
-              <div className="font-sans text-primary/80 leading-relaxed space-y-4">
+              <div className="font-sans text-primary-muted leading-relaxed space-y-4">
                 <p>
                   By accessing or using the PastoralConnect platform, you agree to be bound by these Terms of Service. If you disagree with any part of the terms, you may not access the service. These terms constitute a legally binding agreement between you and PastoralConnect regarding your use of the platform.
                 </p>
@@ -81,15 +81,15 @@ export function TermsOfService() {
             {/* Section 2 */}
             <section id="section-2" className="pt-8 border-t border-primary/10">
               <h2 className="flex items-baseline gap-4 mb-6">
-                <span className="font-serif text-4xl text-primary/20">02</span>
+                <span aria-hidden="true" className="font-serif text-4xl text-primary/20 select-none">02</span>
                 <span className="font-serif text-3xl text-primary">Scope of Digital Pastoral Care</span>
               </h2>
-              <div className="font-sans text-primary/80 leading-relaxed space-y-6">
+              <div className="font-sans text-primary-muted leading-relaxed space-y-6">
                 <p>
                   PastoralConnect provides a digital sanctuary for pastoral care, counseling, and community support. The platform facilitates communication between spiritual leaders and individuals seeking guidance.
                 </p>
                 <div className="bg-surface border-l-[3px] border-secondary p-6 rounded-r-md">
-                  <p className="font-serif text-sm text-primary/90 italic leading-relaxed">
+                  <p className="font-serif text-sm text-primary italic leading-relaxed">
                     Important Notice: The guidance provided through PastoralConnect is spiritual and pastoral in nature. It is not a substitute for professional medical, psychological, or legal advice. In emergencies, please contact appropriate emergency services.
                   </p>
                 </div>
@@ -99,28 +99,28 @@ export function TermsOfService() {
             {/* Section 3 */}
             <section id="section-3" className="pt-8 border-t border-primary/10">
               <h2 className="flex items-baseline gap-4 mb-6">
-                <span className="font-serif text-4xl text-primary/20">03</span>
+                <span aria-hidden="true" className="font-serif text-4xl text-primary/20 select-none">03</span>
                 <span className="font-serif text-3xl text-primary">User Responsibilities</span>
               </h2>
-              <p className="font-sans text-primary/80 leading-relaxed mb-6">
+              <p className="font-sans text-primary-muted leading-relaxed mb-6">
                 Users are expected to maintain an environment of respect and confidentiality. As a platform dedicated to stewardship and care, we require all interactions to reflect these values.
               </p>
               <ul className="space-y-4">
                 <li className="flex items-start gap-3">
                   <CheckCircle2 size={20} className="text-secondary shrink-0 mt-0.5" />
-                  <span className="font-sans text-primary/80">Provide accurate and current information during registration.</span>
+                  <span className="font-sans text-primary-muted">Provide accurate and current information during registration.</span>
                 </li>
                 <li className="flex items-start gap-3">
                   <CheckCircle2 size={20} className="text-secondary shrink-0 mt-0.5" />
-                  <span className="font-sans text-primary/80">Maintain the confidentiality of your account credentials.</span>
+                  <span className="font-sans text-primary-muted">Maintain the confidentiality of your account credentials.</span>
                 </li>
                 <li className="flex items-start gap-3">
                   <CheckCircle2 size={20} className="text-secondary shrink-0 mt-0.5" />
-                  <span className="font-sans text-primary/80">Engage with others in a respectful, non-abusive manner.</span>
+                  <span className="font-sans text-primary-muted">Engage with others in a respectful, non-abusive manner.</span>
                 </li>
                 <li className="flex items-start gap-3">
                   <CheckCircle2 size={20} className="text-secondary shrink-0 mt-0.5" />
-                  <span className="font-sans text-primary/80">Refrain from using the platform for unauthorized commercial purposes.</span>
+                  <span className="font-sans text-primary-muted">Refrain from using the platform for unauthorized commercial purposes.</span>
                 </li>
               </ul>
             </section>
@@ -128,10 +128,10 @@ export function TermsOfService() {
             {/* Section 4 */}
             <section id="section-4" className="pt-8 border-t border-primary/10">
               <h2 className="flex items-baseline gap-4 mb-6">
-                <span className="font-serif text-4xl text-primary/20">04</span>
+                <span aria-hidden="true" className="font-serif text-4xl text-primary/20 select-none">04</span>
                 <span className="font-serif text-3xl text-primary">Limitation of Liability</span>
               </h2>
-              <p className="font-sans text-primary/80 leading-relaxed">
+              <p className="font-sans text-primary-muted leading-relaxed">
                 To the maximum extent permitted by applicable law, PastoralConnect shall not be liable for any indirect, incidental, special, consequential, or punitive damages, or any loss of profits or revenues, whether incurred directly or indirectly, or any loss of data, use, goodwill, or other intangible losses resulting from your access to or use of or inability to access or use the platform.
               </p>
             </section>
@@ -144,16 +144,16 @@ export function TermsOfService() {
         <div className="flex flex-col md:flex-row justify-between items-center gap-8 mb-8">
           <div className="font-serif text-2xl text-primary">DLBC Church Connect</div>
           <nav className="flex items-center gap-x-8 gap-y-2 whitespace-nowrap overflow-x-auto">
-            <Link to="/privacy" className="font-sans text-xs text-primary/70 hover:text-primary transition-colors whitespace-nowrap">Privacy Policy</Link>
-            <Link to="/terms" className="font-sans text-xs text-primary/70 hover:text-primary transition-colors whitespace-nowrap">Terms of Service</Link>
-            <Link to="/ministry-guidelines" className="font-sans text-xs text-primary/70 hover:text-primary transition-colors whitespace-nowrap">Ministry Guidelines</Link>
-            <Link to="/support" className="font-sans text-xs text-primary/70 hover:text-primary transition-colors whitespace-nowrap">Contact Support</Link>
+            <Link to="/privacy" className="font-sans text-xs text-primary-muted hover:text-primary transition-colors whitespace-nowrap">Privacy Policy</Link>
+            <Link to="/terms" className="font-sans text-xs text-primary-muted hover:text-primary transition-colors whitespace-nowrap">Terms of Service</Link>
+            <Link to="/ministry-guidelines" className="font-sans text-xs text-primary-muted hover:text-primary transition-colors whitespace-nowrap">Ministry Guidelines</Link>
+            <Link to="/support" className="font-sans text-xs text-primary-muted hover:text-primary transition-colors whitespace-nowrap">Contact Support</Link>
           </nav>
         </div>
         
         <div className="w-full h-px bg-primary/10 mb-8" />
         
-        <div className="text-center font-sans text-xs text-primary/70">
+        <div className="text-center font-sans text-xs text-primary-muted">
           © {new Date().getFullYear()} DLBC Church Connect. Dedicated to digital stewardship and pastoral care.
         </div>
       </footer>

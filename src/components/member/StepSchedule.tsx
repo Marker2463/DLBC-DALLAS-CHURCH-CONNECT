@@ -193,7 +193,7 @@ export function StepSchedule({ onSlotSelected, selectedLeaderId, selectedTimeSlo
     return (
       <div className="flex justify-center items-center py-24">
         <Loader2 className="animate-spin text-primary/40 mr-2" size={28} />
-        <span className="font-sans text-sm text-primary/60">Loading counselors &amp; schedules...</span>
+        <span className="font-sans text-sm text-primary-muted">Loading counselors &amp; schedules...</span>
       </div>
     );
   }
@@ -204,7 +204,7 @@ export function StepSchedule({ onSlotSelected, selectedLeaderId, selectedTimeSlo
       {/* Header Banner */}
       <div>
         <h2 className="font-serif text-3xl text-primary mb-2">Select Spiritual Leader &amp; Schedule</h2>
-        <p className="font-sans text-sm text-primary/70 max-w-xl">
+        <p className="font-sans text-sm text-primary-muted max-w-xl">
           {category ? `Showing counselors tailored for ${category}. ` : ''}
           Choose a pastoral counselor, pick a date, and select an available time for your consultation.
         </p>
@@ -220,7 +220,7 @@ export function StepSchedule({ onSlotSelected, selectedLeaderId, selectedTimeSlo
             className={`px-4 py-2 rounded-xl font-sans text-xs font-semibold uppercase tracking-wider transition-all cursor-pointer ${
               filter === f 
                 ? 'bg-[#1c202e] text-white shadow-sm' 
-                : 'bg-white border border-primary/15 text-primary/70 hover:bg-primary/[0.04]'
+                : 'bg-white border border-primary/15 text-primary-muted hover:text-primary hover:bg-primary/[0.04]'
             }`}
           >
             {f}
@@ -261,7 +261,7 @@ export function StepSchedule({ onSlotSelected, selectedLeaderId, selectedTimeSlo
         {/* Left Column: Leader Selection (5 Cols) */}
         <div className="lg:col-span-5 flex flex-col gap-4">
           <div className="flex items-center justify-between">
-            <h3 className="font-sans text-xs font-bold uppercase tracking-widest text-primary/70">
+            <h3 className="font-sans text-xs font-bold uppercase tracking-widest text-primary-muted">
               1. Choose Spiritual Leader ({filteredLeaders.length})
             </h3>
           </div>
@@ -291,10 +291,10 @@ export function StepSchedule({ onSlotSelected, selectedLeaderId, selectedTimeSlo
                       <h4 className="font-serif text-base text-primary font-semibold truncate">
                         {leader.profile.displayName}
                       </h4>
-                      <p className="font-sans text-xs text-primary/60 truncate capitalize">
+                      <p className="font-sans text-xs text-primary-muted truncate capitalize">
                         {leader.profile.leaderType ? `${leader.profile.leaderType} Ministry` : (leader.profile.role === 'pastor' ? 'Pastoral Counselor' : 'Ministry Leader')}
                       </p>
-                      <span className="inline-flex items-center gap-1 mt-1 text-[10px] font-bold text-emerald-700 uppercase tracking-wider">
+                      <span className="inline-flex items-center gap-1 mt-1 text-xs font-bold text-emerald-700 uppercase tracking-wider">
                         <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Available
                       </span>
                     </div>
@@ -310,7 +310,7 @@ export function StepSchedule({ onSlotSelected, selectedLeaderId, selectedTimeSlo
                         <Check size={14} />
                       </span>
                     ) : (
-                      <span className="w-7 h-7 rounded-full bg-primary/5 text-primary/40 flex items-center justify-center">
+                      <span className="w-7 h-7 rounded-full bg-primary/5 text-primary-muted flex items-center justify-center">
                         <ChevronRight size={14} />
                       </span>
                     )}
@@ -320,7 +320,7 @@ export function StepSchedule({ onSlotSelected, selectedLeaderId, selectedTimeSlo
             })}
 
             {filteredLeaders.length === 0 && (
-              <div className="bg-white rounded-2xl p-8 border border-primary/10 text-center font-sans text-sm text-primary/50 italic">
+              <div className="bg-white rounded-2xl p-8 border border-primary/10 text-center font-sans text-sm text-primary-muted italic">
                 No leaders match this category filter.
               </div>
             )}
@@ -335,7 +335,7 @@ export function StepSchedule({ onSlotSelected, selectedLeaderId, selectedTimeSlo
             {/* Header info of selected counselor */}
             <div className="flex items-center justify-between border-b border-primary/10 pb-4">
               <div>
-                <h3 className="font-sans text-xs font-bold uppercase tracking-widest text-primary/70">
+                <h3 className="font-sans text-xs font-bold uppercase tracking-widest text-primary-muted">
                   2. Select Consultation Date &amp; Time
                 </h3>
                 <p className="font-serif text-lg text-primary font-semibold mt-1">
@@ -343,7 +343,7 @@ export function StepSchedule({ onSlotSelected, selectedLeaderId, selectedTimeSlo
                 </p>
               </div>
               <div className="text-right">
-                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary/5 text-primary/70 text-xs font-semibold whitespace-nowrap">
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary/5 text-primary text-xs font-semibold whitespace-nowrap">
                   <CalendarIcon size={13} /> {format(activeDay, 'MMMM yyyy')}
                 </span>
               </div>
@@ -351,7 +351,7 @@ export function StepSchedule({ onSlotSelected, selectedLeaderId, selectedTimeSlo
 
             {/* 7-Day Responsive Grid */}
             <div>
-              <label className="block font-sans text-xs font-bold uppercase tracking-wider text-primary/60 mb-3">
+              <label className="block font-sans text-xs font-bold uppercase tracking-wider text-primary-muted mb-3">
                 Select A Day (Next 7 Days)
               </label>
 
@@ -371,16 +371,16 @@ export function StepSchedule({ onSlotSelected, selectedLeaderId, selectedTimeSlo
                           : 'bg-[#faf8f5] hover:bg-primary/[0.04] border-primary/10 text-primary'
                       }`}
                     >
-                      <span className={`block font-sans text-[10px] font-bold uppercase tracking-widest ${isDaySelected ? 'text-white/70' : 'text-primary/50'}`}>
+                      <span className={`block font-sans text-xs font-bold uppercase tracking-widest ${isDaySelected ? 'text-white' : 'text-primary-muted'}`}>
                         {format(date, 'EEE')}
                       </span>
                       <span className={`block font-serif text-base font-bold my-0.5 ${isDaySelected ? 'text-white' : 'text-primary'}`}>
                         {format(date, 'd')}
                       </span>
-                      <span className={`block font-sans text-[10px] font-medium ${
+                      <span className={`block font-sans text-xs font-semibold ${
                         isDaySelected 
-                          ? 'text-white/80' 
-                          : slotsCount > 0 ? 'text-emerald-700' : 'text-primary/40'
+                          ? 'text-white' 
+                          : slotsCount > 0 ? 'text-emerald-700' : 'text-primary-muted'
                       }`}>
                         {slotsCount > 0 ? `${slotsCount} slots` : 'Off'}
                       </span>
@@ -393,10 +393,10 @@ export function StepSchedule({ onSlotSelected, selectedLeaderId, selectedTimeSlo
             {/* Time Slot Selection Grid */}
             <div>
               <div className="flex items-center justify-between mb-3">
-                <label className="font-sans text-xs font-bold uppercase tracking-wider text-primary/60">
+                <label className="font-sans text-xs font-bold uppercase tracking-wider text-primary-muted">
                   Available Times for {format(activeDay, 'EEEE, MMMM d')}
                 </label>
-                <span className="font-sans text-xs text-primary/50">
+                <span className="font-sans text-xs text-primary-muted">
                   {activeDaySlots.length} available slots
                 </span>
               </div>
@@ -421,7 +421,7 @@ export function StepSchedule({ onSlotSelected, selectedLeaderId, selectedTimeSlo
                             : 'bg-[#faf8f5] hover:bg-white text-primary border-primary/15 hover:border-primary/30 shadow-sm'
                         }`}
                       >
-                        <Clock size={15} className={isTimeSelected ? 'text-white' : 'text-primary/50'} />
+                        <Clock size={15} className={isTimeSelected ? 'text-white' : 'text-primary-muted'} />
                         {formattedSlot}
                         {isTimeSelected && <Check size={14} className="text-white ml-0.5" />}
                       </button>
@@ -430,9 +430,9 @@ export function StepSchedule({ onSlotSelected, selectedLeaderId, selectedTimeSlo
                 </div>
               ) : (
                 <div className="bg-[#faf8f5] rounded-xl p-8 border border-primary/10 text-center">
-                  <Clock className="mx-auto mb-2 text-primary/30" size={24} />
+                  <Clock className="mx-auto mb-2 text-primary-muted" size={24} />
                   <p className="font-serif text-base text-primary mb-1">No Times Available on this Day</p>
-                  <p className="font-sans text-xs text-primary/60">
+                  <p className="font-sans text-xs text-primary-muted">
                     Please choose another day above to see available consultation slots.
                   </p>
                 </div>
@@ -440,9 +440,9 @@ export function StepSchedule({ onSlotSelected, selectedLeaderId, selectedTimeSlo
             </div>
 
             {/* Privacy & Confidentiality Footnote */}
-            <div className="pt-4 border-t border-primary/10 flex items-center justify-between text-xs text-primary/60">
+            <div className="pt-4 border-t border-primary/10 flex items-center justify-between text-xs text-primary-muted">
               <span className="flex items-center gap-1.5 font-medium">
-                <CheckCircle2 size={13} className="text-primary/70" /> Pastoral Confidentiality Guaranteed
+                <CheckCircle2 size={13} className="text-primary" /> Pastoral Confidentiality Guaranteed
               </span>
               <span>All sessions 45 minutes</span>
             </div>

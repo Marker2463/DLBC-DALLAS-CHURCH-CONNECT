@@ -24,11 +24,11 @@ export function QuoteFeature({
           “
         </div>
       )}
-      <p className="font-serif text-2xl md:text-3xl text-primary/80 leading-relaxed italic">
+      <p className="font-serif text-2xl md:text-3xl text-primary leading-relaxed italic">
         “{cleanQuote}”
       </p>
       {citation && (
-        <p className="font-sans text-xs text-primary/60 uppercase tracking-widest font-semibold mt-4">
+        <p className="font-sans text-xs text-primary-muted uppercase tracking-widest font-semibold mt-4">
           {citation}
         </p>
       )}
@@ -47,10 +47,10 @@ export function QuoteInline({ quote, citation, className }: QuoteInlineProps) {
 
   return (
     <div className={cn('border-l-2 border-secondary/50 pl-4 py-1', className)}>
-      <p className="font-serif text-lg text-primary/80 italic leading-relaxed">
+      <p className="font-serif text-lg text-primary italic leading-relaxed">
         “{cleanQuote}”
         {citation && (
-          <span className="font-sans text-sm text-primary/60 not-italic ml-2 font-normal">
+          <span className="font-sans text-sm text-primary-muted not-italic ml-2 font-normal">
             — {citation}
           </span>
         )}

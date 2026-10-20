@@ -150,7 +150,7 @@ export function Request() {
           
           <div className="text-center mb-16 pt-12">
             <PageTitle className="mb-4">Request Consultation</PageTitle>
-            <p className="font-sans text-lg text-primary/70">Step forward in faith. We are here to listen.</p>
+            <p className="font-sans text-lg text-primary-muted">Step forward in faith. We are here to listen.</p>
           </div>
 
         {/* Stepper */}
@@ -165,10 +165,10 @@ export function Request() {
             { stepNum: 5, label: "Schedule" }
           ].map((s) => (
             <div key={s.stepNum} className="flex flex-col items-center gap-2">
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center font-sans text-sm ${step >= s.stepNum ? 'bg-primary text-white' : 'bg-surface text-primary/50 halo-border'}`}>
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center font-sans text-sm ${step >= s.stepNum ? 'bg-primary text-white' : 'bg-surface text-primary-muted halo-border'}`}>
                 {step > s.stepNum ? <Check size={16} /> : s.stepNum}
               </div>
-              <span className={`font-sans text-[10px] sm:text-xs uppercase tracking-widest ${step >= s.stepNum ? 'text-primary font-semibold' : 'text-primary/50 font-medium'}`}>{s.label}</span>
+              <span className={`font-sans text-xs uppercase tracking-widest ${step >= s.stepNum ? 'text-primary font-semibold' : 'text-primary-muted font-medium'}`}>{s.label}</span>
             </div>
           ))}
         </div>
@@ -184,13 +184,14 @@ export function Request() {
                   <input 
                     type="radio" 
                     name="category" 
+                    aria-label={cat}
                     className="peer sr-only" 
                     checked={category === cat}
                     onChange={() => setCategory(cat)} 
                   />
                   <div className="w-full p-6 bg-surface rounded-lg halo-border peer-checked:border-primary peer-checked:bg-surface-dim/30 transition-all duration-300 flex items-center justify-between active-sink">
                     <span className="font-sans text-lg text-primary group-hover:text-secondary transition-colors">{cat}</span>
-                    <ArrowRight size={20} className="text-primary/30 peer-checked:text-primary transition-colors" />
+                    <ArrowRight size={20} className="text-primary-muted peer-checked:text-primary transition-colors" />
                   </div>
                 </label>
               ))}
@@ -211,17 +212,18 @@ export function Request() {
                     <input 
                       type="radio" 
                       name="urgency" 
+                      aria-label={urg.title}
                       className="peer sr-only" 
                       checked={urgency === urg.id}
                       onChange={() => setUrgency(urg.id)} 
                     />
                     <div className="w-full p-6 bg-surface rounded-lg halo-border peer-checked:border-primary peer-checked:bg-surface-dim/30 transition-all duration-300 flex items-start gap-4 active-sink">
-                      <div className={`p-2 rounded-full mt-1 transition-colors ${urgency === urg.id ? 'bg-primary text-white' : 'bg-background text-primary/40 group-hover:text-secondary'}`}>
+                      <div className={`p-2 rounded-full mt-1 transition-colors ${urgency === urg.id ? 'bg-primary text-white' : 'bg-background text-primary-muted group-hover:text-secondary'}`}>
                         <Icon size={20} />
                       </div>
                       <div className="flex-1">
-                        <span className="block font-sans text-lg font-medium text-primary mb-1">{urg.title}</span>
-                        <span className="block font-sans text-sm text-primary/60">{urg.description}</span>
+                        <span className="block font-sans text-lg font-semibold text-primary mb-1">{urg.title}</span>
+                        <span className="block font-sans text-sm text-primary-muted">{urg.description}</span>
                       </div>
                     </div>
                   </label>
@@ -236,12 +238,14 @@ export function Request() {
           <div className="flex-grow flex flex-col gap-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
             <div className="flex flex-col gap-4">
               <h2 className="font-serif text-2xl text-primary mb-2">Heart of the Matter</h2>
-              <p className="font-sans text-sm text-primary/70 mb-2">
+              <p className="font-sans text-sm text-primary-muted mb-2">
                 Share what's on your mind. This helps us assign the right pastoral care. 
               </p>
               
+              <label htmlFor="consultation-reason" className="sr-only">Description of your consultation request</label>
               <textarea
-                className="w-full h-48 bg-surface halo-border rounded-lg p-6 text-primary placeholder:text-primary/30 font-sans text-base resize-none focus:outline-none focus:ring-1 focus:ring-secondary/20 focus:border-secondary/40 transition-colors"
+                id="consultation-reason"
+                className="w-full h-48 bg-surface halo-border rounded-lg p-6 text-primary placeholder:text-primary-muted font-sans text-base resize-none focus:outline-none focus:ring-1 focus:ring-secondary/40 focus:border-secondary transition-colors"
                 placeholder="I am seeking guidance regarding..."
                 value={reason}
                 onChange={(e) => setReason(e.target.value)}
@@ -250,7 +254,7 @@ export function Request() {
 
             <div className="bg-[#1c202e] text-white rounded-2xl p-6 relative overflow-hidden shadow-md">
               <div className="relative z-10">
-                <div className="flex items-center gap-2 text-white/70 font-sans text-xs uppercase tracking-widest mb-3 font-semibold">
+                <div className="flex items-center gap-2 text-white/90 font-sans text-xs uppercase tracking-widest mb-3 font-semibold">
                   <Lock size={14} className="text-[#ffb3ae]" />
                   Confidentiality Guarantee
                 </div>
@@ -269,7 +273,7 @@ export function Request() {
                     <label htmlFor="maskIdentity" className={`font-sans text-sm font-semibold text-white ${!isAuthenticated ? 'opacity-80' : 'cursor-pointer'} block mb-1`}>
                       Mask my identity during initial review
                     </label>
-                    <p className="font-sans text-xs text-white/70">
+                    <p className="font-sans text-xs text-white/80">
                       {isAuthenticated 
                         ? "When enabled, your name and contact history are hidden until you grant the responding pastor specific access."
                         : "You are currently signed out. Your request will be submitted completely anonymously."}
@@ -287,7 +291,7 @@ export function Request() {
           <div className="flex-grow flex flex-col gap-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
             <div className="flex flex-col gap-4">
               <h2 className="font-serif text-2xl text-primary mb-2">How would you like to meet?</h2>
-              <p className="font-sans text-sm text-primary/70 mb-2">Choose the format that feels right for this conversation.</p>
+              <p className="font-sans text-sm text-primary-muted mb-2">Choose the format that feels right for this conversation.</p>
               
               {[
                 { id: 'zoom', title: 'Video Call — Zoom', subtext: 'Join from any device via Zoom.' },
@@ -298,6 +302,7 @@ export function Request() {
                   <input 
                     type="radio" 
                     name="meetingMethod" 
+                    aria-label={m.title}
                     className="peer sr-only" 
                     checked={meetingMethod === m.id}
                     onChange={() => setMeetingMethod(m.id as any)} 
@@ -305,20 +310,21 @@ export function Request() {
                   <div className="w-full p-6 bg-surface rounded-lg halo-border peer-checked:border-primary peer-checked:bg-surface-dim/30 transition-all duration-300 flex items-center justify-between active-sink">
                     <div>
                       <span className="block font-sans text-lg text-primary group-hover:text-secondary transition-colors mb-1">{m.title}</span>
-                      <span className="block font-sans text-sm text-primary/60">{m.subtext}</span>
+                      <span className="block font-sans text-sm text-primary-muted">{m.subtext}</span>
                     </div>
-                    <ArrowRight size={20} className="text-primary/30 peer-checked:text-primary transition-colors" />
+                    <ArrowRight size={20} className="text-primary-muted peer-checked:text-primary transition-colors" />
                   </div>
                 </label>
               ))}
 
               {meetingMethod === 'in_person' && (
                 <div className="mt-4 animate-in fade-in slide-in-from-top-2 duration-300">
-                  <label className="block font-sans text-sm font-semibold text-primary mb-2">Campus Location *</label>
+                  <label htmlFor="campus-location" className="block font-sans text-sm font-semibold text-primary mb-2">Campus Location *</label>
                   <select 
+                    id="campus-location"
                     value={meetingLocation}
                     onChange={(e) => setMeetingLocation(e.target.value)}
-                    className="w-full bg-surface border border-primary/10 rounded-lg p-4 font-sans text-base text-primary focus:outline-none focus:border-secondary focus:ring-1 focus:ring-secondary/20 transition-all cursor-pointer appearance-none"
+                    className="w-full bg-surface border border-primary/20 rounded-lg p-4 font-sans text-base text-primary focus:outline-none focus:border-secondary focus:ring-1 focus:ring-secondary/20 transition-all cursor-pointer appearance-none"
                     required
                   >
                     <option value="" disabled>[ Select a location ▾ ]</option>

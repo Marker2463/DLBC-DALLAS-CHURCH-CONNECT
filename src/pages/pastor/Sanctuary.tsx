@@ -68,7 +68,7 @@ export function PastorSanctuary() {
       <div className="max-w-7xl mx-auto px-6 w-full pt-16">
         
         {/* Breadcrumbs */}
-        <div className="mb-6 font-sans text-xs font-bold uppercase tracking-widest text-primary/50 flex items-center justify-between">
+        <div className="mb-6 font-sans text-xs font-bold uppercase tracking-widest text-primary-muted flex items-center justify-between">
           <span>PASTORAL WORKSPACE &gt; CONSULTATIONS</span>
           <div className="flex items-center gap-4">
             <Link 
@@ -78,7 +78,7 @@ export function PastorSanctuary() {
               <Calendar size={13} />
               Manage Availability
             </Link>
-            <span className="text-primary/30">•</span>
+            <span className="text-primary-subtle">•</span>
             <Link 
               to="/pastor/archives" 
               className={tertiaryLinkClass}
@@ -103,10 +103,10 @@ export function PastorSanctuary() {
         <div className="mb-16">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
             <div>
-              <h3 className="font-sans text-sm font-bold uppercase tracking-widest text-primary">
+              <h2 className="font-sans text-sm font-bold uppercase tracking-widest text-primary">
                 Assigned Consultations &amp; Session Roster
-              </h3>
-              <p className="font-sans text-xs text-primary/60 mt-0.5">
+              </h2>
+              <p className="font-sans text-xs text-primary-muted mt-0.5">
                 {filteredSessions.length} total
               </p>
             </div>
@@ -120,25 +120,25 @@ export function PastorSanctuary() {
               <table className="w-full text-left font-sans text-sm">
                 <thead>
                   <tr className="border-b border-primary/10 bg-[#faf8f5]">
-                    <th className="px-6 py-4 font-semibold text-primary/70 text-xs uppercase tracking-wider">Date &amp; Time</th>
-                    <th className="px-6 py-4 font-semibold text-primary/70 text-xs uppercase tracking-wider">Member</th>
-                    <th className="px-6 py-4 font-semibold text-primary/70 text-xs uppercase tracking-wider">Session Category</th>
-                    <th className="px-6 py-4 font-semibold text-primary/70 text-xs uppercase tracking-wider">Format</th>
-                    <th className="px-6 py-4 font-semibold text-primary/70 text-xs uppercase tracking-wider">Status</th>
-                    <th className="px-6 py-4 font-semibold text-primary/70 text-xs uppercase tracking-wider text-right">Actions</th>
+                    <th className="px-6 py-4 font-semibold text-primary-muted text-xs uppercase tracking-wider">Date &amp; Time</th>
+                    <th className="px-6 py-4 font-semibold text-primary-muted text-xs uppercase tracking-wider">Member</th>
+                    <th className="px-6 py-4 font-semibold text-primary-muted text-xs uppercase tracking-wider">Session Category</th>
+                    <th className="px-6 py-4 font-semibold text-primary-muted text-xs uppercase tracking-wider">Format</th>
+                    <th className="px-6 py-4 font-semibold text-primary-muted text-xs uppercase tracking-wider">Status</th>
+                    <th className="w-48 px-6 py-4 font-semibold text-primary-muted text-xs uppercase tracking-wider text-right">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-primary/5">
                   {loading ? (
                     <tr>
-                      <td colSpan={6} className="px-6 py-12 text-center text-primary/50">
-                        <Loader2 className="animate-spin mx-auto mb-2 text-primary/30" size={24} />
+                      <td colSpan={6} className="px-6 py-12 text-center text-primary-muted">
+                        <Loader2 className="animate-spin mx-auto mb-2 text-primary-muted" size={24} />
                         Loading assigned consultations...
                       </td>
                     </tr>
                   ) : filteredSessions.length === 0 ? (
                     <tr>
-                      <td colSpan={6} className="px-6 py-12 text-center text-primary/50 text-sm">
+                      <td colSpan={6} className="px-6 py-12 text-center text-primary-muted text-sm">
                         No {FILTER_EMPTY_NAMES[filter]} consultations.
                       </td>
                     </tr>
@@ -154,7 +154,7 @@ export function PastorSanctuary() {
                             <div className="font-medium">
                               {session.selectedTime ? formatDateTime(session.selectedTime, 'date') : 'Pending Date'}
                             </div>
-                            <div className="text-xs text-primary/60">
+                            <div className="text-xs text-primary-muted">
                               {session.selectedTime ? formatDateTime(session.selectedTime, 'time') : 'Unscheduled'}
                             </div>
                           </td>
@@ -173,7 +173,7 @@ export function PastorSanctuary() {
                           <td className="px-6 py-4 text-primary whitespace-nowrap">
                             <span className="font-medium">{session.category}</span>
                             {session.urgency === 'high' && (
-                              <span className="ml-2 px-1.5 py-0.5 rounded bg-red-100 text-red-800 text-[10px] font-bold uppercase tracking-wider">
+                              <span className="ml-2 px-1.5 py-0.5 rounded bg-red-100 text-red-800 text-xs font-bold uppercase tracking-wider">
                                 Urgent
                               </span>
                             )}
@@ -221,46 +221,49 @@ export function PastorSanctuary() {
         </div>
 
         {/* Pastoral Support & Covenant Pillars */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="bg-white rounded-xl p-8 border border-primary/10 shadow-sm flex flex-col justify-between">
-            <div>
-              <Lock className="text-[#b93c3c] mb-3" size={22} />
-              <h4 className="font-serif text-xl text-primary mb-1">Encrypted Confidentiality</h4>
-              <p className="font-sans text-sm text-primary/70 leading-relaxed">
-                All consultation notes and pastoral reflections remain strictly confidential between you and the member.
-              </p>
+        <section aria-labelledby="pastoral-support-heading">
+          <h2 id="pastoral-support-heading" className="sr-only">Pastoral Support &amp; Covenant Pillars</h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="bg-white rounded-xl p-8 border border-primary/10 shadow-sm flex flex-col justify-between">
+              <div>
+                <Lock className="text-[#b93c3c] mb-3" size={22} />
+                <h3 className="font-serif text-xl text-primary mb-1">Encrypted Confidentiality</h3>
+                <p className="font-sans text-sm text-primary-muted leading-relaxed">
+                  All consultation notes and pastoral reflections remain strictly confidential between you and the member.
+                </p>
+              </div>
+              <Link to="/ministry-guidelines" className={`mt-4 ${tertiaryLinkClass}`}>
+                Read Guidelines <ArrowRight size={12} />
+              </Link>
             </div>
-            <Link to="/ministry-guidelines" className={`mt-4 ${tertiaryLinkClass}`}>
-              Read Guidelines <ArrowRight size={12} />
-            </Link>
-          </div>
 
-          <div className="bg-white rounded-xl p-8 border border-primary/10 shadow-sm flex flex-col justify-between">
-            <div>
-              <Calendar className="text-[#b93c3c] mb-3" size={22} />
-              <h4 className="font-serif text-xl text-primary mb-1">Calendar Integration</h4>
-              <p className="font-sans text-sm text-primary/70 leading-relaxed">
-                Sessions sync directly with your Google Calendar with automatic meeting link generation and reminders.
-              </p>
+            <div className="bg-white rounded-xl p-8 border border-primary/10 shadow-sm flex flex-col justify-between">
+              <div>
+                <Calendar className="text-[#b93c3c] mb-3" size={22} />
+                <h3 className="font-serif text-xl text-primary mb-1">Calendar Integration</h3>
+                <p className="font-sans text-sm text-primary-muted leading-relaxed">
+                  Sessions sync directly with your Google Calendar with automatic meeting link generation and reminders.
+                </p>
+              </div>
+              <Link to="/pastor/availability" className={`mt-4 ${tertiaryLinkClass}`}>
+                Update Timeslots <ArrowRight size={12} />
+              </Link>
             </div>
-            <Link to="/pastor/availability" className={`mt-4 ${tertiaryLinkClass}`}>
-              Update Timeslots <ArrowRight size={12} />
-            </Link>
-          </div>
 
-          <div className="bg-white rounded-xl p-8 border border-primary/10 shadow-sm flex flex-col justify-between">
-            <div>
-              <FileText className="text-[#b93c3c] mb-3" size={22} />
-              <h4 className="font-serif text-xl text-primary mb-1">Pastoral Case Notes</h4>
-              <p className="font-sans text-sm text-primary/70 leading-relaxed">
-                Record spiritual notes, scriptural passages, and prayer points securely during or after each consultation.
-              </p>
+            <div className="bg-white rounded-xl p-8 border border-primary/10 shadow-sm flex flex-col justify-between">
+              <div>
+                <FileText className="text-[#b93c3c] mb-3" size={22} />
+                <h3 className="font-serif text-xl text-primary mb-1">Pastoral Case Notes</h3>
+                <p className="font-sans text-sm text-primary-muted leading-relaxed">
+                  Record spiritual notes, scriptural passages, and prayer points securely during or after each consultation.
+                </p>
+              </div>
+              <Link to="/pastor/archives" className={`mt-4 ${tertiaryLinkClass}`}>
+                View Records <ArrowRight size={12} />
+              </Link>
             </div>
-            <Link to="/pastor/archives" className={`mt-4 ${tertiaryLinkClass}`}>
-              View Records <ArrowRight size={12} />
-            </Link>
           </div>
-        </div>
+        </section>
 
       </div>
     </div>

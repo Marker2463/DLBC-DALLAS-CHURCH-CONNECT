@@ -59,16 +59,17 @@ export function PastorDashboard() {
         <QuoteInline quote="Feed my sheep." citation="John 21:17" />
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8 mb-16 items-start">
+      <section className="mb-16 min-h-[580px] sm:min-h-[620px] lg:min-h-[520px]">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8 items-start">
         
         {/* Active Consultations */}
         <section
           aria-labelledby="active-consultations-heading"
-          className="lg:col-span-2 min-w-0 bg-surface rounded-xl p-5 sm:p-8 halo-border flex flex-col"
+          className="lg:col-span-2 min-w-0 bg-surface rounded-xl p-5 sm:p-8 halo-border flex flex-col min-h-[360px]"
         >
           <div className="mb-6 sm:mb-8 flex flex-col gap-3 border-b border-primary/10 pb-4 sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex min-w-0 items-center gap-3 text-primary/80">
-              <MessageSquare size={20} className="shrink-0" aria-hidden="true" />
+            <div className="flex min-w-0 items-center gap-3 text-primary">
+              <MessageSquare size={20} className="shrink-0 text-primary-muted" aria-hidden="true" />
               <h2 id="active-consultations-heading" className="min-w-0 break-words font-serif text-xl sm:text-2xl text-primary">
                 Active Consultations
               </h2>
@@ -80,18 +81,32 @@ export function PastorDashboard() {
           </div>
 
           {loading ? (
-            <div role="status" className="flex h-32 items-center justify-center">
-              <Loader2 className="animate-spin text-primary/30" size={32} aria-hidden="true" />
+            <div role="status" aria-busy="true" className="divide-y divide-primary/5 animate-pulse flex-1">
               <span className="sr-only">Loading consultations</span>
+              {[1, 2, 3].map((i) => (
+                <div
+                  key={i}
+                  className="grid grid-cols-[auto_minmax(0,1fr)] gap-x-4 gap-y-4 rounded-xl px-3 py-4 sm:grid-cols-[auto_minmax(0,1fr)_auto] sm:items-center"
+                >
+                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-primary/10" />
+                  <div className="min-w-0 space-y-2">
+                    <div className="h-5 bg-primary/10 rounded w-1/3" />
+                    <div className="h-4 bg-primary/10 rounded w-1/2" />
+                  </div>
+                  <div className="col-start-2 sm:col-start-3 sm:min-w-[12rem] flex justify-end">
+                    <div className="h-9 w-28 bg-primary/10 rounded" />
+                  </div>
+                </div>
+              ))}
             </div>
           ) : error ? (
             <div role="alert" className="py-8 text-center">
               <p className="font-sans text-base text-red-700">We couldn't load your consultations. Please refresh and try again.</p>
             </div>
           ) : consultations.length === 0 ? (
-            <div className="border border-dashed border-[#e2dcce] bg-[#faf8f3] rounded-xl p-8 text-center flex flex-col items-center justify-center">
+            <div className="border border-dashed border-[#e2dcce] bg-[#faf8f3] rounded-xl p-8 text-center flex flex-col items-center justify-center my-auto">
               <p className="font-serif text-lg text-primary mb-2">No active consultations currently scheduled.</p>
-              <p className="font-sans text-sm text-primary/60 max-w-sm">When congregants request guidance, upcoming sessions will appear here.</p>
+              <p className="font-sans text-sm text-primary-subtle max-w-sm">When congregants request guidance, upcoming sessions will appear here.</p>
             </div>
           ) : (
             <ul role="list" className="divide-y divide-primary/5">
@@ -112,14 +127,14 @@ export function PastorDashboard() {
                       <span className={`px-2 py-0.5 rounded text-xs shrink-0 whitespace-nowrap font-bold uppercase tracking-wider ${
                         c.urgency === 'high' ? 'bg-red-50 text-red-700 border border-red-200/50' :
                         c.urgency === 'medium' ? 'bg-yellow-50 text-yellow-700 border border-yellow-200/50' :
-                        'bg-surface-dim text-primary/70 border border-primary/10'
+                        'bg-surface-dim text-primary-muted border border-primary/10'
                       }`}>
                         {c.urgency || 'Normal'}
                       </span>
                       <StatusBadge status={c.status} />
                     </div>
-                    <p className="mt-1.5 break-words font-sans text-sm text-primary/70">{c.category}</p>
-                    <p className="font-sans text-sm text-primary/70">
+                    <p className="mt-1.5 break-words font-sans text-sm text-primary-muted">{c.category}</p>
+                    <p className="font-sans text-sm text-primary-muted">
                       {c.selectedTime ? formatDateTime(c.selectedTime, 'short') : 'Date pending'}
                     </p>
                   </div>
@@ -154,46 +169,50 @@ export function PastorDashboard() {
           
           {/* Ministry Oversight */}
           <div className="bg-surface rounded-xl p-8 halo-border">
-            <div className="flex items-center gap-3 mb-6 text-primary/50">
-              <Users size={20} />
+            <div className="flex items-center gap-3 mb-6 text-primary">
+              <Users size={20} className="text-primary-muted" />
               <h2 className="font-serif text-2xl text-primary">Ministry Oversight</h2>
             </div>
             
             <div className="mb-6">
-              <h4 className="font-sans text-sm font-semibold text-primary mb-3">Youth Leadership Program</h4>
+              <h3 className="font-sans text-sm font-semibold text-primary mb-3">Youth Leadership Program</h3>
               <div className="w-full bg-primary/5 h-1.5 rounded-full mb-3 overflow-hidden">
                 <div className="bg-primary h-full rounded-full" style={{ width: '85%' }}></div>
               </div>
-              <div className="flex justify-between text-xs font-sans text-primary/70">
+              <div className="flex justify-between text-xs font-sans text-primary-muted">
                 <span>12 Members Active</span>
                 <span>85% Complete</span>
               </div>
             </div>
 
-            <div className="flex items-center gap-2 text-xs font-sans text-primary/80 pt-4 border-t border-primary/5">
+            <div className="flex items-center gap-2 text-xs font-sans text-primary-muted pt-4 border-t border-primary/5">
               <Calendar size={14} />
-              <span className="font-medium">2 upcoming milestones this week</span>
+              <span className="font-semibold">2 upcoming milestones this week</span>
             </div>
           </div>
 
           {/* Reflections */}
           <div className="bg-surface rounded-xl p-8 halo-border flex-grow flex flex-col">
-            <div className="flex items-center gap-3 mb-6 text-primary/50">
-              <Edit3 size={20} />
+            <div className="flex items-center gap-3 mb-6 text-primary">
+              <Edit3 size={20} className="text-primary-muted" />
               <h2 className="font-serif text-2xl text-primary">Reflections</h2>
             </div>
+            <label htmlFor="pastor-reflections" className="sr-only">Personal pastoral reflections</label>
             <textarea 
-              className="w-full h-32 bg-background border border-primary/10 rounded-md p-4 font-sans text-sm text-primary focus:outline-none focus:border-secondary focus:ring-1 focus:ring-secondary transition-all resize-none mb-4"
+              id="pastor-reflections"
+              aria-label="Personal pastoral reflections or prayer points"
+              className="w-full h-32 bg-background border border-primary/20 rounded-md p-4 font-sans text-sm text-primary placeholder:text-primary-muted focus:outline-none focus:border-secondary focus:ring-1 focus:ring-secondary transition-all resize-none mb-4"
               placeholder="Personal pastoral reflections or prayer points..."
             ></textarea>
             <div className="mt-auto flex justify-end">
-              <button className={tertiaryLinkClass}>
+              <button className="font-sans text-xs font-semibold uppercase tracking-widest text-primary border border-control px-3.5 py-2 rounded-md hover:bg-surface-dim transition-colors cursor-pointer active-sink">
                 Save Note
               </button>
             </div>
           </div>
         </div>
-      </div>
+        </div>
+      </section>
       
       {/* Spiritual Vitality */}
       <div>
@@ -206,15 +225,17 @@ export function PastorDashboard() {
               <img 
                 src={studyImg} 
                 alt="Quiet study space" 
+                width={600}
+                height={257}
                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
               />
               <div className="absolute inset-0 bg-primary/10 group-hover:bg-transparent transition-colors duration-500"></div>
               <div className="absolute bottom-4 left-4">
-                <span className="bg-white/90 backdrop-blur-sm text-primary font-sans text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded">Protected Time</span>
+                <span className="bg-white/95 backdrop-blur-sm text-primary font-sans text-xs font-bold uppercase tracking-wider px-2.5 py-1 rounded">Protected Time</span>
               </div>
             </div>
             <h3 className="font-serif text-xl text-primary mb-2">Sabbath Rhythm</h3>
-            <p className="font-sans text-sm text-primary/70">Next scheduled rest: Friday, 8:00 AM - Saturday, 8:00 AM</p>
+            <p className="font-sans text-sm text-primary-muted">Next scheduled rest: Friday, 8:00 AM - Saturday, 8:00 AM</p>
           </div>
 
           {/* Elders Retreat */}
@@ -223,15 +244,17 @@ export function PastorDashboard() {
               <img 
                 src={pewsImg} 
                 alt="Empty church pews" 
+                width={600}
+                height={257}
                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
               />
               <div className="absolute inset-0 bg-primary/20 group-hover:bg-primary/10 transition-colors duration-500"></div>
               <div className="absolute bottom-4 left-4">
-                <span className="bg-white/90 backdrop-blur-sm text-primary font-sans text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded">Upcoming</span>
+                <span className="bg-white/95 backdrop-blur-sm text-primary font-sans text-xs font-bold uppercase tracking-wider px-2.5 py-1 rounded">Upcoming</span>
               </div>
             </div>
             <h3 className="font-serif text-xl text-primary mb-2">Elders Retreat 2026</h3>
-            <p className="font-sans text-sm text-primary/70">Reviewing agenda and spiritual objectives. Due in 14 days.</p>
+            <p className="font-sans text-sm text-primary-muted">Reviewing agenda and spiritual objectives. Due in 14 days.</p>
           </div>
         </div>
       </div>

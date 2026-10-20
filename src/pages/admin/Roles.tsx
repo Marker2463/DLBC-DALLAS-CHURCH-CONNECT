@@ -165,29 +165,31 @@ export function Roles() {
           {/* Left Column (4 Columns - Search & List) */}
           <div className="lg:col-span-4 flex flex-col gap-6">
             <div className="relative">
-              <label className="sr-only">Search Congregation</label>
+              <label htmlFor="congregation-search" className="sr-only">Search Congregation</label>
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <Search size={18} className="text-[#1c202e]/40" />
+                <Search size={18} className="text-primary-muted" />
               </div>
               <input
+                id="congregation-search"
                 type="text"
+                aria-label="Search Congregation"
                 placeholder="Name or Membership ID..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-4 py-3 bg-white border border-[#1c202e]/10 rounded-lg font-sans text-sm text-[#1c202e] placeholder-[#1c202e]/40 focus:outline-none focus:ring-2 focus:ring-[#1c202e]/20 transition-all shadow-sm"
+                className="w-full pl-10 pr-4 py-3 bg-white border border-[#1c202e]/10 rounded-lg font-sans text-sm text-[#1c202e] placeholder:text-primary-muted focus:outline-none focus:ring-2 focus:ring-[#1c202e]/20 transition-all shadow-sm"
               />
             </div>
             
             <div className="bg-white border border-[#1c202e]/10 rounded-xl overflow-hidden shadow-sm flex flex-col max-h-[600px]">
               <div className="px-4 py-3 border-b border-[#1c202e]/5 bg-gray-50/50">
-                <h3 className="font-sans text-xs font-semibold text-[#1c202e]/60 uppercase tracking-wider">
+                <h2 className="font-sans text-xs font-semibold text-primary-muted uppercase tracking-wider">
                   Congregation
-                </h3>
+                </h2>
               </div>
               
               <div className="flex-1 overflow-y-auto p-2 space-y-1">
                 {filteredCongregation.length === 0 ? (
-                  <div className="p-8 text-center text-[#1c202e]/50 font-sans text-sm">
+                  <div className="p-8 text-center text-primary-muted font-sans text-sm">
                     No members found matching your search.
                   </div>
                 ) : (
@@ -214,7 +216,7 @@ export function Roles() {
                         <span className="font-serif text-base text-[#1c202e] truncate">
                           {member.displayName}
                         </span>
-                        <span className="font-sans text-xs text-[#1c202e]/50 truncate">
+                        <span className="font-sans text-xs text-primary-muted truncate">
                           {member.email}
                         </span>
                       </div>
@@ -244,15 +246,15 @@ export function Roles() {
                       {selectedUser.displayName}
                     </h2>
                     <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-1">
-                      <span className="font-sans text-sm text-[#1c202e]/60">
+                      <span className="font-sans text-sm text-primary-muted">
                         ID: {selectedUser.membershipId || `DLBC-${selectedUser.uid.substring(0, 6).toUpperCase()}`}
                       </span>
                       <span className="text-[#1c202e]/30">•</span>
-                      <span className="font-sans text-sm text-[#1c202e]/60">
+                      <span className="font-sans text-sm text-primary-muted">
                         Member Since: {selectedUser.memberSince ? new Date(selectedUser.memberSince).toLocaleDateString() : 'N/A'}
                       </span>
                       <span className="text-[#1c202e]/30">•</span>
-                      <span className="font-sans text-sm text-[#1c202e]/60 capitalize">
+                      <span className="font-sans text-sm text-primary-muted capitalize">
                         Current Role: <strong className="text-[#1c202e] font-semibold">{selectedUser.role}</strong>
                       </span>
                     </div>
@@ -260,7 +262,7 @@ export function Roles() {
                 </div>
 
                 <div className="bg-white border border-[#1c202e]/10 rounded-xl shadow-sm p-6 flex flex-col gap-6">
-                  <h3 className="font-sans text-sm font-semibold text-[#1c202e]/60 uppercase tracking-wider mb-2">
+                  <h3 className="font-sans text-sm font-semibold text-primary-muted uppercase tracking-wider mb-2">
                     Stewardship Designation
                   </h3>
                   
@@ -276,7 +278,7 @@ export function Roles() {
                       }`}
                     >
                       <div className="flex items-center justify-between w-full mb-4">
-                        <div className={`p-2 rounded-lg ${selectedRole === 'youth' ? 'bg-[#b93c3c]/10 text-[#b93c3c]' : 'bg-[#1c202e]/5 text-[#1c202e]/70'}`}>
+                        <div className={`p-2 rounded-lg ${selectedRole === 'youth' ? 'bg-[#b93c3c]/10 text-[#b93c3c]' : 'bg-[#1c202e]/5 text-primary-muted'}`}>
                           <Users size={24} />
                         </div>
                         <div className={`w-5 h-5 rounded-full border flex items-center justify-center ${selectedRole === 'youth' ? 'border-[#b93c3c] bg-[#b93c3c]' : 'border-[#1c202e]/20'}`}>
@@ -284,7 +286,7 @@ export function Roles() {
                         </div>
                       </div>
                       <h4 className="font-serif text-lg text-[#1c202e] mb-2">Youth Leader</h4>
-                      <p className="font-sans text-xs text-[#1c202e]/60 leading-relaxed">
+                      <p className="font-sans text-xs text-primary-muted leading-relaxed">
                         Guide the youth in their spiritual growth, organizing weekly fellowships and mentorship sessions that bridge the gap between ancient wisdom and modern living.
                       </p>
                     </button>
@@ -300,7 +302,7 @@ export function Roles() {
                       }`}
                     >
                       <div className="flex items-center justify-between w-full mb-4">
-                        <div className={`p-2 rounded-lg ${selectedRole === 'children' ? 'bg-[#b93c3c]/10 text-[#b93c3c]' : 'bg-[#1c202e]/5 text-[#1c202e]/70'}`}>
+                        <div className={`p-2 rounded-lg ${selectedRole === 'children' ? 'bg-[#b93c3c]/10 text-[#b93c3c]' : 'bg-[#1c202e]/5 text-primary-muted'}`}>
                           <Baby size={24} />
                         </div>
                         <div className={`w-5 h-5 rounded-full border flex items-center justify-center ${selectedRole === 'children' ? 'border-[#b93c3c] bg-[#b93c3c]' : 'border-[#1c202e]/20'}`}>
@@ -308,7 +310,7 @@ export function Roles() {
                         </div>
                       </div>
                       <h4 className="font-serif text-lg text-[#1c202e] mb-2">Children Leader</h4>
-                      <p className="font-sans text-xs text-[#1c202e]/60 leading-relaxed">
+                      <p className="font-sans text-xs text-primary-muted leading-relaxed">
                         Steward the little ones in the sanctuary, fostering an environment of joy and discovery through Bible stories, creative arts, and foundational teachings.
                       </p>
                     </button>
@@ -324,7 +326,7 @@ export function Roles() {
                       }`}
                     >
                       <div className="flex items-center justify-between w-full mb-4">
-                        <div className={`p-2 rounded-lg ${selectedRole === 'pastoral' ? 'bg-[#b93c3c]/10 text-[#b93c3c]' : 'bg-[#1c202e]/5 text-[#1c202e]/70'}`}>
+                        <div className={`p-2 rounded-lg ${selectedRole === 'pastoral' ? 'bg-[#b93c3c]/10 text-[#b93c3c]' : 'bg-[#1c202e]/5 text-primary-muted'}`}>
                           <BookOpen size={24} />
                         </div>
                         <div className={`w-5 h-5 rounded-full border flex items-center justify-center ${selectedRole === 'pastoral' ? 'border-[#b93c3c] bg-[#b93c3c]' : 'border-[#1c202e]/20'}`}>
@@ -332,17 +334,19 @@ export function Roles() {
                         </div>
                       </div>
                       <h4 className="font-serif text-lg text-[#1c202e] mb-2">Pastor</h4>
-                      <p className="font-sans text-xs text-[#1c202e]/60 leading-relaxed">
+                      <p className="font-sans text-xs text-primary-muted leading-relaxed">
                         Shepherd the congregation with authority and humility. Oversee administration, counsel members, and lead the liturgy with reverence and technical precision.
                       </p>
                     </button>
                   </div>
                   
                   <div className="mt-4 pt-6 border-t border-[#1c202e]/10">
-                    <label className="flex items-start gap-4 cursor-pointer group">
+                    <label htmlFor="council-endorsement" className="flex items-start gap-4 cursor-pointer group">
                       <div className="relative flex items-center justify-center mt-0.5">
                         <input
+                          id="council-endorsement"
                           type="checkbox"
+                          aria-label="Confirm council endorsement"
                           className="peer sr-only"
                           checked={isEndorsed}
                           onChange={(e) => setIsEndorsed(e.target.checked)}
@@ -351,7 +355,7 @@ export function Roles() {
                           <Check size={14} className="text-white opacity-0 peer-checked:opacity-100 transition-opacity" />
                         </div>
                       </div>
-                      <span className="font-sans text-sm text-[#1c202e]/80 leading-relaxed">
+                      <span className="font-sans text-sm text-primary-muted leading-relaxed">
                         I confirm that this leadership appointment has been reviewed and approved by the Council of Elders in accordance with the Church Constitution.
                       </span>
                     </label>
@@ -381,10 +385,10 @@ export function Roles() {
             ) : (
               <div className="bg-white border border-[#1c202e]/10 rounded-xl shadow-sm p-12 flex flex-col items-center justify-center h-full min-h-[400px] text-center">
                 <div className="w-16 h-16 bg-[#1c202e]/5 rounded-full flex items-center justify-center mb-6">
-                  <Users size={28} className="text-[#1c202e]/40" />
+                  <Users size={28} className="text-primary-muted" />
                 </div>
-                <h3 className="font-serif text-2xl text-[#1c202e] mb-2">Select a Member</h3>
-                <p className="font-sans text-base text-[#1c202e]/60 max-w-md">
+                <h2 className="font-serif text-2xl text-primary mb-2">Select a Member</h2>
+                <p className="font-sans text-base text-primary-muted max-w-md">
                   Choose a member from the congregation list to view their current status and assign new stewardship responsibilities.
                 </p>
               </div>

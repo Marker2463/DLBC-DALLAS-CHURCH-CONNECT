@@ -242,8 +242,8 @@ export function PastorRequestDetail() {
     <div className="max-w-7xl mx-auto px-6 w-full py-12 pb-32">
       {/* Top Breadcrumb & Status */}
       <div className="mb-10">
-        <div className="flex items-center gap-2 text-primary/60 font-sans text-xs uppercase tracking-widest mb-3">
-          <button onClick={() => navigate(-1)} className="hover:text-primary transition-colors cursor-pointer">
+        <div className="flex items-center gap-2 text-primary-muted font-sans text-xs uppercase tracking-widest mb-3">
+          <button onClick={() => navigate(-1)} className="hover:text-primary underline transition-colors cursor-pointer">
             Dashboard
           </button>
           <ChevronRight size={12} />
@@ -255,7 +255,7 @@ export function PastorRequestDetail() {
             <h1 className="font-serif text-3xl md:text-4xl text-primary mb-2">
               Consultation: {consultation.category}
             </h1>
-            <p className="font-sans text-sm text-primary/60">
+            <p className="font-sans text-sm text-primary-muted">
               Requested by <strong className="text-primary">{consultation.memberName}</strong>
             </p>
           </div>
@@ -463,13 +463,13 @@ export function PastorRequestDetail() {
               </div>
               <div>
                 <h3 className="font-sans text-base font-semibold text-primary">{consultation.memberName}</h3>
-                <p className="font-sans text-xs text-primary/60">
+                <p className="font-sans text-xs text-primary-muted">
                   {consultation.memberEmail || 'Member'}
                 </p>
               </div>
             </div>
 
-            <div className="prose prose-sm font-sans text-primary/80 mb-8 border-l-2 border-primary/20 pl-6 py-2 italic whitespace-pre-wrap bg-[#faf8f5] rounded-r-lg">
+            <div className="prose prose-sm font-sans text-primary mb-8 border-l-2 border-primary/20 pl-6 py-2 italic whitespace-pre-wrap bg-[#faf8f5] rounded-r-lg">
               "{consultation.reason && consultation.reason.trim() && consultation.reason !== 'No description provided.'
                 ? consultation.reason 
                 : 'No additional details provided.'}"
@@ -477,7 +477,7 @@ export function PastorRequestDetail() {
             
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-6 border-t border-primary/10 pt-6">
               <div>
-                <span className="block font-sans text-xs text-primary/50 uppercase tracking-widest mb-1">Urgency</span>
+                <span className="block font-sans text-xs text-primary-muted uppercase tracking-widest mb-1">Urgency</span>
                 <span className={`font-sans text-sm font-semibold uppercase ${
                   consultation.urgency === 'high' ? 'text-red-700' : 'text-primary'
                 }`}>
@@ -485,11 +485,11 @@ export function PastorRequestDetail() {
                 </span>
               </div>
               <div>
-                <span className="block font-sans text-xs text-primary/50 uppercase tracking-widest mb-1">Category</span>
+                <span className="block font-sans text-xs text-primary-muted uppercase tracking-widest mb-1">Category</span>
                 <span className="font-sans text-sm font-semibold text-primary">{consultation.category}</span>
               </div>
               <div>
-                <span className="block font-sans text-xs text-primary/50 uppercase tracking-widest mb-1">Timeline Stage</span>
+                <span className="block font-sans text-xs text-primary-muted uppercase tracking-widest mb-1">Timeline Stage</span>
                 <span className="font-sans text-sm font-semibold text-primary capitalize">{consultation.status.replace('_', ' ')}</span>
               </div>
             </div>
@@ -501,9 +501,9 @@ export function PastorRequestDetail() {
           
           {/* Session Management Card */}
           <div className="bg-surface rounded-xl p-6 halo-border">
-            <h3 className="font-sans text-sm font-semibold text-primary mb-4 border-b border-primary/10 pb-2">
+            <h2 className="font-sans text-sm font-semibold text-primary mb-4 border-b border-primary/10 pb-2">
               Pastoral Controls
-            </h3>
+            </h2>
             
             <div className="space-y-3">
               {!isConfirmed && consultation.status !== 'cancelled' && (
@@ -553,17 +553,17 @@ export function PastorRequestDetail() {
           
           {/* Journey Timeline */}
           <div className="bg-surface rounded-xl p-6 halo-border">
-            <h3 className="font-sans text-xs text-primary/50 uppercase tracking-widest font-semibold mb-6">
+            <h2 className="font-sans text-xs text-primary-muted uppercase tracking-widest font-semibold mb-6">
               Consultation Journey
-            </h3>
+            </h2>
             
             <div className="relative border-l border-primary/10 ml-3 space-y-6 pb-2">
               {consultation.journeyTimeline?.map((item, idx) => (
                 <div key={idx} className="relative pl-6">
                   <div className="absolute -left-[5px] top-1 w-2.5 h-2.5 rounded-full bg-primary" />
-                  <h4 className="font-sans text-sm font-semibold text-primary">{item.status}</h4>
-                  <p className="font-sans text-xs text-primary/70 mt-0.5 leading-relaxed">{item.description}</p>
-                  <span className="font-sans text-[10px] text-primary/40 block mt-1">
+                  <h3 className="font-sans text-sm font-semibold text-primary">{item.status}</h3>
+                  <p className="font-sans text-xs text-primary-muted mt-0.5 leading-relaxed">{item.description}</p>
+                  <span className="font-sans text-xs text-primary-subtle block mt-1">
                     {formatDateTime(item.timestamp, 'short')}
                   </span>
                 </div>

@@ -65,27 +65,30 @@ export function PastorArchives() {
     <div className="max-w-7xl mx-auto px-6 w-full py-16 pb-32">
       <div className="mb-12">
         <PageTitle className="mb-4">Records</PageTitle>
-        <p className="font-sans text-lg text-primary/70">
+        <p className="font-sans text-lg text-primary-muted">
           A historical record of completed consultations and pastoral care sessions.
         </p>
       </div>
 
       <div className="bg-surface rounded-xl p-8 halo-border flex flex-col">
         <div className="flex flex-col gap-6 mb-8 border-b border-primary/10 pb-6">
-          <div className="flex items-center gap-3 text-primary/80">
-            <Archive size={20} />
+          <div className="flex items-center gap-3 text-primary">
+            <Archive size={20} className="text-primary-muted" />
             <h2 className="font-serif text-2xl text-primary">Completed Records</h2>
           </div>
           
           <div className="flex flex-col gap-4">
             <div className="relative w-full max-w-md">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-primary/40" size={14} />
+              <label htmlFor="records-search" className="sr-only">Search completed records</label>
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-primary-muted" size={14} />
               <input
+                id="records-search"
                 type="text"
+                aria-label="Search by member name or session type"
                 placeholder="Search by member name or session type..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full bg-white/80 border border-[#e2dcce] text-xs px-3 py-2 pl-9 rounded-lg focus:ring-1 focus:ring-[#8c2e2e] outline-none transition-all"
+                className="w-full bg-white/80 border border-[#e2dcce] text-xs px-3 py-2 pl-9 rounded-lg focus:ring-1 focus:ring-[#8c2e2e] outline-none transition-all text-primary placeholder:text-primary-muted"
               />
             </div>
             
@@ -97,7 +100,7 @@ export function PastorArchives() {
                   <button
                     key={tab}
                     onClick={() => setCategoryFilter(tab)}
-                    className={`font-sans text-xs uppercase tracking-wider font-medium transition-colors hover:text-primary relative ${isActive ? 'text-primary' : 'text-primary/50'}`}
+                    className={`font-sans text-xs uppercase tracking-wider font-semibold transition-colors hover:text-primary relative cursor-pointer ${isActive ? 'text-primary' : 'text-primary-muted'}`}
                   >
                     {label}
                     {isActive && (
@@ -113,17 +116,17 @@ export function PastorArchives() {
         <div className="space-y-6 flex-grow">
           {loading ? (
             <div className="flex justify-center items-center h-32">
-              <Loader2 className="animate-spin text-primary/30" size={32} />
+              <Loader2 className="animate-spin text-primary-muted" size={32} />
             </div>
           ) : error ? (
             <div className="text-center py-8">
-              <p className="font-sans text-base text-red-500">Error loading archives: {error}</p>
-              <p className="font-sans text-xs text-primary/50 mt-2">Check console for Firestore index links if missing.</p>
+              <p className="font-sans text-base text-red-600">Error loading archives: {error}</p>
+              <p className="font-sans text-xs text-primary-muted mt-2">Check console for Firestore index links if missing.</p>
             </div>
           ) : filteredConsultations.length === 0 ? (
             <div className="text-center py-16">
-              <Archive className="mx-auto text-primary/20 mb-4" size={48} />
-              <p className="font-sans text-lg text-primary/60">No matching records found.</p>
+              <Archive className="mx-auto text-primary-muted mb-4 opacity-40" size={48} />
+              <p className="font-sans text-lg text-primary-muted">No matching records found.</p>
             </div>
           ) : (
             filteredConsultations.map((consultation) => (
@@ -136,7 +139,7 @@ export function PastorArchives() {
                     <h3 className="font-sans text-base font-semibold text-primary group-hover:text-secondary transition-colors">{consultation.memberName}</h3>
                     <StatusBadge status={consultation.status} />
                   </div>
-                  <p className="font-sans text-sm text-primary/70">{consultation.category} • {consultation.selectedTime ? formatDateTime(consultation.selectedTime, 'date') : 'No date set'}</p>
+                  <p className="font-sans text-sm text-primary-muted">{consultation.category} • {consultation.selectedTime ? formatDateTime(consultation.selectedTime, 'date') : 'No date set'}</p>
                 </div>
                 <ChevronRight size={20} className="text-primary/20 group-hover:text-secondary transition-colors shrink-0" />
               </Link>

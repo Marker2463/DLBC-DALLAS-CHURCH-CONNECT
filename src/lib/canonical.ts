@@ -145,8 +145,8 @@ export type ButtonSize = 'sm' | 'md' | 'lg';
 
 export const buttonTokens: Record<ButtonVariant, string> = {
   primary: 'bg-primary text-white hover:bg-primary/90 shadow-sm active-sink transition-colors disabled:opacity-50 cursor-pointer',
-  secondary: 'border border-primary/20 text-primary hover:bg-surface-dim transition-colors active-sink disabled:opacity-50 cursor-pointer',
-  ghost: 'text-primary/70 hover:text-primary hover:bg-surface-dim/50 transition-colors disabled:opacity-50 cursor-pointer',
+  secondary: 'border border-control text-primary hover:bg-surface-dim transition-colors active-sink disabled:opacity-50 cursor-pointer',
+  ghost: 'text-primary hover:bg-surface-dim/50 border border-control transition-colors disabled:opacity-50 cursor-pointer',
   danger: 'bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 transition-colors active-sink disabled:opacity-50 cursor-pointer',
 };
 
@@ -159,7 +159,7 @@ export const buttonSizes: Record<ButtonSize, string> = {
 /**
  * Standard tertiary text link class
  */
-export const tertiaryLinkClass = 'font-sans text-xs font-semibold uppercase tracking-widest text-primary/60 hover:text-primary transition-colors inline-flex items-center gap-1 cursor-pointer';
+export const tertiaryLinkClass = 'font-sans text-xs font-semibold uppercase tracking-widest text-primary hover:underline focus:underline transition-colors inline-flex items-center gap-1 cursor-pointer';
 
 export interface CandidateConsultation {
   id: string;

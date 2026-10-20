@@ -8,7 +8,7 @@ export function Process() {
       <div className="max-w-4xl mx-auto px-6">
         <div className="text-center mb-24">
           <h1 className="font-serif text-5xl md:text-6xl mb-6 tracking-tight">The Journey of Care</h1>
-          <p className="font-sans text-lg text-primary/70 leading-relaxed max-w-2xl mx-auto">
+          <p className="font-sans text-lg text-primary-muted leading-relaxed max-w-2xl mx-auto">
             A deliberate, structured pathway designed to hold space for your needs while ensuring absolute privacy and pastoral fidelity. Every step is handled with reverence and secure precision.
           </p>
         </div>
@@ -29,11 +29,11 @@ export function Process() {
                 <div className="space-y-4">
                   <div className="flex items-start gap-4">
                     <Lock size={20} className="text-secondary mt-0.5" />
-                    <span className="font-sans text-sm text-primary/80">Role-restricted consultation access and review.</span>
+                    <span className="font-sans text-sm text-primary">Role-restricted consultation access and review.</span>
                   </div>
                   <div className="flex items-start gap-4">
                     <CheckCircle2 size={20} className="text-secondary mt-0.5" />
-                    <span className="font-sans text-sm text-primary/80">Private consultation request logged directly to church ministers.</span>
+                    <span className="font-sans text-sm text-primary">Private consultation request logged directly to church ministers.</span>
                   </div>
                 </div>
               </div>
@@ -54,11 +54,11 @@ export function Process() {
                 <div className="space-y-4">
                   <div className="flex items-start gap-4">
                     <Users size={20} className="text-secondary mt-0.5" />
-                    <span className="font-sans text-sm text-primary/80">Intentional matching with experienced pastoral leaders.</span>
+                    <span className="font-sans text-sm text-primary">Intentional matching with experienced pastoral leaders.</span>
                   </div>
                   <div className="flex items-start gap-4">
                     <Clock size={20} className="text-secondary mt-0.5" />
-                    <span className="font-sans text-sm text-primary/80">Pastoral team reviews and responds as volunteer availability permits.</span>
+                    <span className="font-sans text-sm text-primary">Pastoral team reviews and responds as volunteer availability permits.</span>
                   </div>
                 </div>
               </div>
@@ -79,11 +79,11 @@ export function Process() {
                 <div className="space-y-4">
                   <div className="flex items-start gap-4">
                     <Video size={20} className="text-secondary mt-0.5" />
-                    <span className="font-sans text-sm text-primary/80">Secure video consultation rooms hosted via Google Meet.</span>
+                    <span className="font-sans text-sm text-primary">Secure video consultation rooms hosted via Google Meet.</span>
                   </div>
                   <div className="flex items-start gap-4">
                     <Heart size={20} className="text-secondary mt-0.5" />
-                    <span className="font-sans text-sm text-primary/80">Compassionate pastoral follow-up and prayer support as availability permits.</span>
+                    <span className="font-sans text-sm text-primary">Compassionate pastoral follow-up and prayer support as availability permits.</span>
                   </div>
                 </div>
               </div>
@@ -93,16 +93,16 @@ export function Process() {
 
         <div className="mt-32 text-center">
           <div className="flex justify-center mb-6">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-secondary/70">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-secondary">
               <path d="M12 22C12 22 17 17 17 12C17 7 12 2 12 2C12 2 7 7 7 12C7 17 12 22 12 22Z" fill="currentColor" />
             </svg>
           </div>
-          <h3 className="font-serif text-2xl text-primary mb-2">Holding Space</h3>
+          <h2 className="font-serif text-2xl text-primary mb-2">Holding Space</h2>
           <QuoteFeature
             quote="In the spaces between our speaking and our listening, grace resides. Take a breath here. You are seen, and your request is held with care."
             className="py-2 mb-8 max-w-lg"
           />
-          <Link to="/auth/register" className="inline-flex items-center justify-center border border-primary/20 text-primary font-sans text-sm font-medium px-6 py-3 rounded-md hover:bg-surface-dim transition-colors active-sink">
+          <Link to="/auth/login" className="inline-flex items-center justify-center border border-control text-primary font-sans text-sm font-medium px-6 py-3 rounded-md hover:bg-surface-dim transition-colors active-sink">
             Begin the Journey
           </Link>
         </div>

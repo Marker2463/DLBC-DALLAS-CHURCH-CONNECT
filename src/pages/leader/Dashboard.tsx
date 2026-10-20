@@ -63,13 +63,14 @@ export function LeaderDashboard() {
         />
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-16 items-start">
+      <section className="mb-16 min-h-[580px] sm:min-h-[620px] lg:min-h-[520px]">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8 items-start">
         
         {/* Active Assigned Consultations */}
-        <div className="lg:col-span-2 bg-surface rounded-xl p-8 halo-border flex flex-col">
+        <div className="lg:col-span-2 bg-surface rounded-xl p-8 halo-border flex flex-col min-h-[360px]">
           <div className="flex justify-between items-center mb-8 border-b border-primary/10 pb-4">
-            <div className="flex items-center gap-3 text-primary/80">
-              <MessageSquare size={20} />
+            <div className="flex items-center gap-3 text-primary">
+              <MessageSquare size={20} className="text-primary-muted" />
               <h2 className="font-serif text-2xl text-primary">Assigned Consultations</h2>
             </div>
             <div className="flex items-center gap-4">
@@ -84,17 +85,29 @@ export function LeaderDashboard() {
 
           <div className="space-y-6">
             {loading ? (
-              <div className="flex justify-center items-center h-32">
-                <Loader2 className="animate-spin text-primary/30" size={32} />
+              <div role="status" aria-busy="true" className="space-y-4 animate-pulse flex-1">
+                <span className="sr-only">Loading consultations</span>
+                {[1, 2, 3].map((i) => (
+                  <div key={i} className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-primary/5 p-3 rounded-xl">
+                    <div className="flex items-start gap-4">
+                      <div className="w-12 h-12 rounded-full bg-primary/10 shrink-0" />
+                      <div className="space-y-2">
+                        <div className="h-5 bg-primary/10 rounded w-36" />
+                        <div className="h-4 bg-primary/10 rounded w-48" />
+                      </div>
+                    </div>
+                    <div className="h-9 w-24 bg-primary/10 rounded" />
+                  </div>
+                ))}
               </div>
             ) : error ? (
               <div className="text-center py-8">
                 <p className="font-sans text-base text-red-500">Error loading consultations: {error}</p>
               </div>
             ) : consultations.length === 0 ? (
-              <div className="border border-dashed border-[#e2dcce] bg-[#faf8f3] rounded-xl p-8 text-center flex flex-col items-center justify-center">
+              <div className="border border-dashed border-[#e2dcce] bg-[#faf8f3] rounded-xl p-8 text-center flex flex-col items-center justify-center my-auto">
                 <p className="font-serif text-lg text-primary mb-2">No active consultations assigned at this time.</p>
-                <p className="font-sans text-sm text-primary/60 max-w-sm">
+                <p className="font-sans text-sm text-primary-subtle max-w-sm">
                   When congregants schedule sessions with your ministry category, upcoming appointments will appear here.
                 </p>
               </div>
@@ -111,17 +124,17 @@ export function LeaderDashboard() {
                     <div>
                       <div className="flex items-center gap-2 mb-1 flex-wrap">
                         <h3 className="font-sans text-base font-semibold text-primary">{consultation.memberName}</h3>
-                        <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${
+                        <span className={`px-2 py-0.5 rounded text-xs font-bold uppercase tracking-wider ${
                           consultation.urgency === 'high' ? 'bg-red-50 text-red-700 border border-red-200/50' :
                           consultation.urgency === 'medium' ? 'bg-yellow-50 text-yellow-700 border border-yellow-200/50' :
-                          'bg-surface-dim text-primary/70 border border-primary/10'
+                          'bg-surface-dim text-primary-muted border border-primary/10'
                         }`}>
                           {consultation.urgency || 'Normal'}
                         </span>
 
                         <StatusBadge status={consultation.status} />
                       </div>
-                      <p className="font-sans text-sm text-primary/70">
+                      <p className="font-sans text-sm text-primary-muted">
                         {consultation.category} • {consultation.selectedTime ? formatDateTime(consultation.selectedTime, 'short') : 'Date pending'}
                       </p>
                     </div>
@@ -156,23 +169,23 @@ export function LeaderDashboard() {
           
           {/* Department & Ministry Oversight */}
           <div className="bg-surface rounded-xl p-8 halo-border">
-            <div className="flex items-center gap-3 mb-6 text-primary/50">
-              <Users size={20} />
+            <div className="flex items-center gap-3 mb-6 text-primary">
+              <Users size={20} className="text-primary-muted" />
               <h2 className="font-serif text-2xl text-primary">Ministry Oversight</h2>
             </div>
             
             <div className="mb-6">
-              <h4 className="font-sans text-sm font-semibold text-primary mb-3">Leadership &amp; Discipleship Cadence</h4>
+              <h3 className="font-sans text-sm font-semibold text-primary mb-3">Leadership &amp; Discipleship Cadence</h3>
               <div className="w-full bg-primary/5 h-1.5 rounded-full mb-3 overflow-hidden">
                 <div className="bg-primary h-full rounded-full" style={{ width: '85%' }}></div>
               </div>
-              <div className="flex justify-between text-xs font-sans text-primary/70">
+              <div className="flex justify-between text-xs font-sans text-primary-muted">
                 <span>Active Cohort</span>
                 <span>85% Engagement</span>
               </div>
             </div>
 
-            <div className="flex items-center gap-2 text-xs font-sans text-primary/80 pt-4 border-t border-primary/5">
+            <div className="flex items-center gap-2 text-xs font-sans text-primary-muted pt-4 border-t border-primary/5">
               <Calendar size={14} />
               <span className="font-medium">Upcoming leadership fellowship this week</span>
             </div>
@@ -180,22 +193,26 @@ export function LeaderDashboard() {
 
           {/* Reflections */}
           <div className="bg-surface rounded-xl p-8 halo-border flex-grow flex flex-col">
-            <div className="flex items-center gap-3 mb-6 text-primary/50">
-              <Edit3 size={20} />
+            <div className="flex items-center gap-3 mb-6 text-primary">
+              <Edit3 size={20} className="text-primary-muted" />
               <h2 className="font-serif text-2xl text-primary">Ministry Notes</h2>
             </div>
+            <label htmlFor="leader-notes" className="sr-only">Ministry Notes</label>
             <textarea 
-              className="w-full h-32 bg-background border border-primary/10 rounded-md p-4 font-sans text-sm text-primary focus:outline-none focus:border-secondary focus:ring-1 focus:ring-secondary transition-all resize-none mb-4"
+              id="leader-notes"
+              aria-label="Personal ministry reflections or discipleship prayer points"
+              className="w-full h-32 bg-background border border-primary/20 rounded-md p-4 font-sans text-sm text-primary placeholder:text-primary-muted focus:outline-none focus:border-secondary focus:ring-1 focus:ring-secondary transition-all resize-none mb-4"
               placeholder="Personal ministry reflections, discipleship prayer points..."
             ></textarea>
             <div className="mt-auto flex justify-end">
-              <button className={tertiaryLinkClass}>
+              <button className="font-sans text-xs font-semibold uppercase tracking-widest text-primary border border-control px-3.5 py-2 rounded-md hover:bg-surface-dim transition-colors cursor-pointer active-sink">
                 Save Note
               </button>
             </div>
           </div>
         </div>
-      </div>
+        </div>
+      </section>
       
       {/* Spiritual Vitality */}
       <div>
@@ -208,15 +225,17 @@ export function LeaderDashboard() {
               <img 
                 src={studyImg} 
                 alt="Quiet study space" 
+                width={600}
+                height={257}
                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
               />
               <div className="absolute inset-0 bg-primary/10 group-hover:bg-transparent transition-colors duration-500"></div>
               <div className="absolute bottom-4 left-4">
-                <span className="bg-white/90 backdrop-blur-sm text-primary font-sans text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded">Protected Time</span>
+                <span className="bg-white/95 backdrop-blur-sm text-primary font-sans text-xs font-bold uppercase tracking-wider px-2.5 py-1 rounded">Protected Time</span>
               </div>
             </div>
             <h3 className="font-serif text-xl text-primary mb-2">Personal Devotion</h3>
-            <p className="font-sans text-sm text-primary/70">Scheduled prayer and renewal: Weekly quiet time block</p>
+            <p className="font-sans text-sm text-primary-muted">Scheduled prayer and renewal: Weekly quiet time block</p>
           </div>
 
           {/* Leaders Fellowship */}
@@ -225,15 +244,17 @@ export function LeaderDashboard() {
               <img 
                 src={pewsImg} 
                 alt="Church fellowship" 
+                width={600}
+                height={257}
                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
               />
               <div className="absolute inset-0 bg-primary/20 group-hover:bg-primary/10 transition-colors duration-500"></div>
               <div className="absolute bottom-4 left-4">
-                <span className="bg-white/90 backdrop-blur-sm text-primary font-sans text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded">Upcoming</span>
+                <span className="bg-white/95 backdrop-blur-sm text-primary font-sans text-xs font-bold uppercase tracking-wider px-2.5 py-1 rounded">Upcoming</span>
               </div>
             </div>
             <h3 className="font-serif text-xl text-primary mb-2">Ministry Leaders Gathering</h3>
-            <p className="font-sans text-sm text-primary/70">Monthly leadership prayer and strategic alignment session.</p>
+            <p className="font-sans text-sm text-primary-muted">Monthly leadership prayer and strategic alignment session.</p>
           </div>
         </div>
       </div>
