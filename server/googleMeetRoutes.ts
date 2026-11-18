@@ -29,9 +29,9 @@ const meetingCreationRateLimit = rateLimit({
   },
 });
 
-const oauthFlowRateLimit = rateLimit({
+const googleOAuthRateLimit = rateLimit({
   windowMs: 15 * 60 * 1000,
-  limit: 10,
+  limit: 20,
   standardHeaders: true,
   legacyHeaders: false,
   validate: {
@@ -254,6 +254,7 @@ async function requireLeader(uid: string): Promise<UserProfile> {
 
 router.get(
   '/google/oauth/status',
+  googleOAuthRateLimit,
   requireFirebaseAuth,
   async (req: AuthenticatedRequest, res: Response) => {
     try {
