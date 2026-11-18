@@ -29,6 +29,22 @@ const meetingCreationRateLimit = rateLimit({
   },
 });
 
+const googleOAuthRateLimit = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 20,
+  standardHeaders: true,
+  legacyHeaders: false,
+  validate: {
+    trustProxy: false,
+    xForwardedForHeader: false,
+    forwardedHeader: false,
+  },
+  message: {
+    success: false,
+    error: 'Too many Google authorization requests. Please try again later.',
+  },
+});
+
 const APPOINTMENTS_COLLECTION =
   process.env.APPOINTMENTS_COLLECTION || 'consultations';
 
@@ -238,6 +254,7 @@ async function requireLeader(uid: string): Promise<UserProfile> {
 
 router.get(
   '/google/oauth/status',
+  googleOAuthRateLimit,
   requireFirebaseAuth,
   async (req: AuthenticatedRequest, res: Response) => {
     try {
