@@ -1,4 +1,5 @@
 import { Router, Request, Response, NextFunction } from 'express';
+import { rateLimit } from 'express-rate-limit';
 import { google, calendar_v3 } from 'googleapis';
 import {
   createCipheriv,
@@ -11,6 +12,22 @@ import { adminAuth, adminDb } from './firebaseAdmin';
 import { createHostedMeeting, configureMeetSpaceOpen } from '../src/server/meet';
 
 const router = Router();
+
+const meetingCreationRateLimit = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 20,
+  standardHeaders: true,
+  legacyHeaders: false,
+  validate: {
+    trustProxy: false,
+    xForwardedForHeader: false,
+    forwardedHeader: false,
+  },
+  message: {
+    success: false,
+    error: 'Too many meeting creation requests. Please try again later.',
+  },
+});
 
 const APPOINTMENTS_COLLECTION =
   process.env.APPOINTMENTS_COLLECTION || 'consultations';
@@ -644,6 +661,7 @@ export async function createOrRetrieveCalendarMeeting(args: {
 
 router.post(
   '/consultations/:consultationId/meeting',
+  meetingCreationRateLimit,
   requireFirebaseAuth,
   async (req: AuthenticatedRequest, res: Response) => {
     try {
