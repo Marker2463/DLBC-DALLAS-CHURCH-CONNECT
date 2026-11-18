@@ -11,11 +11,14 @@ import JoinSessionButton from "../../components/JoinSessionButton";
 import { formatDateTime, getInitials, formatMeetingMethod, buttonSizes, buttonTokens, tertiaryLinkClass } from "../../lib/canonical";
 import { StatusBadge } from "../../components/StatusBadge";
 import { CancelConsultationModal } from "../../components/CancelConsultationModal";
+import { useToast } from "../../components/ui/ToastProvider";
+import { Popover } from "../../components/ui/Popover";
 
 export function MemberRequestDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { showToast } = useToast();
   
   const [consultation, setConsultation] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -131,8 +134,18 @@ export function MemberRequestDetail() {
 
       setConsultation({...consultation, scheduledStart: selectedTime, selectedTime: selectedTime});
       setIsEditingTime(false);
+      showToast({
+        variant: 'success',
+        title: 'Session Rescheduled',
+        message: `Updated to ${formatDateTime(selectedTime, 'short')}.`,
+      });
     } catch (err) {
       console.error("Failed to update time", err);
+      showToast({
+        variant: 'error',
+        title: 'Reschedule Failed',
+        message: 'Could not update the consultation time. Please try again.',
+      });
     } finally {
       setIsUpdatingTime(false);
     }
@@ -147,8 +160,18 @@ export function MemberRequestDetail() {
       });
       setConsultation({ ...consultation, reason: reasonDraft });
       setIsEditing(false);
+      showToast({
+        variant: 'success',
+        title: 'Changes Saved',
+        message: 'Your consultation context has been updated.',
+      });
     } catch (err) {
       console.error(err);
+      showToast({
+        variant: 'error',
+        title: 'Save Failed',
+        message: 'Unable to save your changes. Please try again.',
+      });
     }
   };
 
@@ -166,6 +189,11 @@ export function MemberRequestDetail() {
       setNewNote("");
     } catch (err) {
       console.error(err);
+      showToast({
+        variant: 'error',
+        title: 'Note Failed',
+        message: 'Unable to send your note. Please try again.',
+      });
     }
   };
 
@@ -209,12 +237,10 @@ export function MemberRequestDetail() {
       let googleEventId = consultation.calendarEventId || consultation.googleEventId || null;
 
       if (!googleMeetUrl && (consultation.meetingMethod === 'google_meet' || consultation.meetingMethod === 'in_person')) {
-        const googleAccessToken = getGoogleAccessToken();
         const response = await fetch('/api/calendar/schedule', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            ...(googleAccessToken ? { 'x-google-access-token': googleAccessToken } : {}),
           },
           body: JSON.stringify({
             consultationId: id,
@@ -223,7 +249,7 @@ export function MemberRequestDetail() {
             leaderEmail: consultation.leaderEmail,
             selectedTime: consultation.selectedTime || consultation.scheduledStart,
             method: consultation.meetingMethod,
-            googleAccessToken,
+            isMember: true,
           })
         });
 
@@ -257,6 +283,11 @@ export function MemberRequestDetail() {
       navigate('/member/sanctuary');
     } catch (err) {
       console.error(err);
+      showToast({
+        variant: 'error',
+        title: 'Finalization Failed',
+        message: 'Unable to finalize your consultation request. Please try again.',
+      });
     } finally {
       setIsSubmitting(false);
     }
@@ -295,24 +326,25 @@ export function MemberRequestDetail() {
   );
 
   return (
-    <div className="flex-1 flex flex-col overflow-hidden bg-background">
+    <div className="flex-1 flex flex-col overflow-x-clip bg-background">
       {/* Header */}
-      <header className="bg-surface border-b border-primary/10 px-8 py-6 flex-shrink-0 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-        <div className="flex items-center gap-4">
+      <header className="bg-surface border-b border-primary/10 px-4 sm:px-6 lg:px-8 py-5 sm:py-6 flex-shrink-0 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+        <div className="flex items-center gap-3 sm:gap-4 min-w-0">
           <button 
             onClick={() => navigate('/member/sanctuary')}
-            className="p-2 -ml-2 rounded-full hover:bg-primary/5 text-primary-muted hover:text-primary transition-colors"
+            aria-label="Return to Sanctuary"
+            className="p-2 -ml-2 rounded-full hover:bg-primary/5 text-primary-muted hover:text-primary transition-colors cursor-pointer shrink-0"
           >
             <ChevronLeft size={20} />
           </button>
-          <div>
-            <div className="flex items-center gap-3 mb-1 flex-wrap">
-              <h1 className="font-serif text-2xl text-primary font-medium">Request Details</h1>
+          <div className="min-w-0">
+            <div className="flex items-center gap-2.5 mb-1 flex-wrap">
+              <h1 className="font-serif text-xl sm:text-2xl text-primary font-medium">Request Details</h1>
               <StatusBadge status={consultation.status} />
               {isLocked && <Lock size={14} className="text-primary-muted" />}
             </div>
-            <p className="font-sans text-sm text-primary-muted">
-              Tracking ID: <span className="font-mono text-xs ml-1 bg-primary/5 px-2 py-0.5 rounded break-all">{id}</span>
+            <p className="font-sans text-sm text-primary-muted truncate">
+              {consultation.category}
             </p>
           </div>
         </div>
@@ -321,44 +353,51 @@ export function MemberRequestDetail() {
           <button 
             onClick={handleFinalSubmit}
             disabled={isSubmitting}
-            className="bg-[#1c202e] hover:bg-[#1c202e]/90 text-white px-6 py-2.5 rounded text-sm font-medium transition-all active-sink shadow-sm flex items-center gap-2 disabled:opacity-50"
+            className="w-full md:w-auto min-h-[44px] bg-[#1c202e] hover:bg-[#1c202e]/90 text-white px-6 py-2.5 rounded-lg text-sm font-medium transition-all active-sink shadow-sm flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer shrink-0"
           >
             {isSubmitting ? <Loader2 size={16} className="animate-spin" /> : <CheckCircle2 size={16} />}
-            Finalize & Submit
+            Finalize &amp; Submit
           </button>
         )}
       </header>
 
-      <div className="flex-1 overflow-y-auto p-8 flex flex-col lg:flex-row gap-8 max-w-7xl mx-auto w-full">
+      <div className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 flex flex-col lg:flex-row gap-6 sm:gap-8 max-w-7xl mx-auto w-full">
         {/* Left Column - Main Content */}
-        <div className="lg:w-[60%] flex flex-col gap-8">
+        <div className="lg:w-[60%] flex flex-col gap-6 sm:gap-8 min-w-0">
           
-          {/* Status Banner (F2: Omitted when Under Review; reflows upward cleanly) */}
+          {/* Status Banner (Omitted when Under Review; reflows upward cleanly) */}
           {consultation.status !== 'under_review' && (
-            <div className="bg-surface rounded-xl p-6 halo-border flex items-start gap-4">
-              <div className="bg-primary/5 p-3 rounded-full text-primary mt-1">
-                {consultation.status === 'draft' ? <Edit2 size={24} /> : 
-                 consultation.status === 'scheduled' ? <Calendar size={24} /> : 
-                 <FileText size={24} />}
+            <div className="bg-surface rounded-xl p-5 sm:p-6 halo-border flex items-start gap-3.5 sm:gap-4">
+              <div className="bg-primary/5 p-2.5 sm:p-3 rounded-full text-primary mt-0.5 shrink-0">
+                {consultation.status === 'draft' ? <Edit2 size={20} /> : 
+                 consultation.status === 'scheduled' ? <Calendar size={20} /> : 
+                 <FileText size={20} />}
               </div>
-              <div>
-                <div className="flex items-center gap-2 mb-1">
-                  <span className="font-sans text-base font-semibold text-primary">Status:</span>
+              <div className="min-w-0 flex-1">
+                <div className="flex flex-wrap items-center gap-2 mb-1">
+                  <span className="font-sans text-sm sm:text-base font-semibold text-primary">Status:</span>
                   <StatusBadge status={consultation.status} />
                 </div>
-                <p className="font-sans text-sm text-primary-muted leading-relaxed">
-                  {consultation.status === 'draft' && "Your request is saved as a draft. You can continue editing your reason and summary. When ready, finalize the submission above."}
+                <p className="font-sans text-xs sm:text-sm text-primary-muted leading-relaxed">
+                  {consultation.status === 'draft' && "Your request is saved as a draft. Edit details below and finalize when ready."}
                   {consultation.status === 'scheduled' && "A pastoral consultation has been provisioned. See session details below."}
                   {consultation.status === 'completed' && "This consultation session has concluded."}
-                  {consultation.status === 'cancelled' && (consultation.cancellationReason ? `This consultation was cancelled. Reason: ${consultation.cancellationReason}` : "This consultation has been cancelled.")}
+                  {consultation.status === 'cancelled' && "This consultation has been cancelled."}
                 </p>
+                {consultation.status === 'cancelled' && consultation.cancellationReason && (
+                  <div className="mt-2.5">
+                    <Popover title="Cancellation Reason" triggerLabel="View Reason">
+                      <p>{consultation.cancellationReason}</p>
+                    </Popover>
+                  </div>
+                )}
               </div>
             </div>
           )}
 
           {/* Session Access (If Scheduled) */}
           {consultation.status === 'scheduled' && (
-            <div className="bg-[#1c202e] rounded-xl p-8 text-white relative overflow-hidden shadow-lg mb-6">
+            <div className="bg-[#1c202e] rounded-xl p-5 sm:p-8 text-white relative overflow-hidden shadow-lg">
               <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full blur-3xl -mr-20 -mt-20 pointer-events-none" />
               
               <div className="relative z-10">
@@ -375,7 +414,7 @@ export function MemberRequestDetail() {
                   Scheduled for {consultation.scheduledStart || consultation.selectedTime ? formatDateTime(consultation.scheduledStart || consultation.selectedTime, 'long') : 'Pending Confirmation'}
                 </p>
 
-                <div className="flex flex-wrap items-center gap-4 pt-2 border-t border-white/10">
+                <div className="flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-center gap-3 pt-4 border-t border-white/10">
                   {consultation.meetingMethod === 'in_person' ? (
                     <div className="bg-white/10 px-5 py-3 rounded-lg text-left">
                       <span className="block font-sans text-xs text-white/80 uppercase tracking-wider mb-0.5">Location</span>
@@ -388,7 +427,7 @@ export function MemberRequestDetail() {
                       buttonText="Enter Session Room"
                       loadingText="Connecting..."
                       icon={<Video size={16} />}
-                      className="bg-white text-[#1c202e] hover:bg-white/90 px-6 py-3 rounded-lg font-sans text-sm font-bold transition-colors flex items-center justify-center gap-2 active-sink whitespace-nowrap cursor-pointer disabled:opacity-50"
+                      className="min-h-[44px] w-full sm:w-auto bg-white text-[#1c202e] hover:bg-white/90 px-6 py-3 rounded-lg font-sans text-sm font-bold transition-colors flex items-center justify-center gap-2 active-sink whitespace-nowrap cursor-pointer disabled:opacity-50"
                     />
                   )}
 
@@ -397,7 +436,7 @@ export function MemberRequestDetail() {
                     href={generateGoogleCalendarUrl(consultation)}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="bg-white/10 hover:bg-white/20 text-white px-5 py-3 rounded-lg font-sans text-sm font-semibold flex items-center justify-center gap-2 transition-colors border border-white/15 cursor-pointer"
+                    className="min-h-[44px] w-full sm:w-auto bg-white/10 hover:bg-white/20 text-white px-5 py-3 rounded-lg font-sans text-sm font-semibold flex items-center justify-center gap-2 transition-colors border border-white/15 cursor-pointer whitespace-nowrap"
                   >
                     <Calendar size={16} />
                     Add to Google Calendar
@@ -410,7 +449,7 @@ export function MemberRequestDetail() {
 
           {/* Controls */}
           {consultation.status !== 'completed' && consultation.status !== 'cancelled' && (
-            <div className="bg-surface rounded-xl p-6 halo-border mb-6">
+            <div className="bg-surface rounded-xl p-5 sm:p-6 halo-border">
               <h2 className="font-sans text-sm font-semibold text-primary mb-4 border-b border-primary/10 pb-2">Session Actions</h2>
               <div className="space-y-3">
                 <div className="w-full space-y-3">
@@ -507,8 +546,8 @@ export function MemberRequestDetail() {
         </div>
 
         {/* Right Sidebar Summary Column */}
-        <div className="lg:w-[40%] flex flex-col gap-6">
-          <div className="bg-surface rounded-xl p-8 halo-border">
+        <div className="lg:w-[40%] flex flex-col gap-6 min-w-0">
+          <div className="bg-surface rounded-xl p-5 sm:p-8 halo-border">
             <div className="flex items-center justify-between mb-6">
               <h2 className="font-sans text-xs text-primary-muted uppercase tracking-widest font-semibold">
                 Original Summary
@@ -516,7 +555,7 @@ export function MemberRequestDetail() {
               {!isLocked && (
                 <button 
                   onClick={() => setIsEditing(!isEditing)}
-                  className="text-primary hover:text-primary-muted text-xs font-sans uppercase tracking-widest font-medium transition-colors"
+                  className="text-primary hover:text-primary-muted text-xs font-sans uppercase tracking-widest font-medium transition-colors cursor-pointer"
                 >
                   {isEditing ? 'Cancel' : 'Edit'}
                 </button>
@@ -545,7 +584,7 @@ export function MemberRequestDetail() {
                   </div>
                 </div>
               ) : (
-                <p className="font-sans text-base text-primary leading-relaxed whitespace-pre-wrap">
+                <p className="font-sans text-base text-primary leading-relaxed whitespace-pre-wrap break-words">
                   {consultation.reason && consultation.reason.trim() && consultation.reason !== "No description provided."
                     ? consultation.reason 
                     : "No additional details provided."}
@@ -553,7 +592,7 @@ export function MemberRequestDetail() {
               )}
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <span className="font-sans text-sm text-primary-muted block mb-1">Urgency</span>
                 <span className="font-sans text-base text-primary capitalize">{consultation.urgency}</span>
@@ -568,22 +607,22 @@ export function MemberRequestDetail() {
           </div>
 
           {/* Pastoral Notes & Comments */}
-          <div className="bg-surface rounded-xl p-8 halo-border flex flex-col">
+          <div className="bg-surface rounded-xl p-5 sm:p-8 halo-border flex flex-col">
             <h2 className="font-sans text-xs text-primary-muted uppercase tracking-widest font-semibold mb-6">
-              Notes & Updates
+              Notes &amp; Updates
             </h2>
             
-            <div className="flex-1 overflow-y-auto max-h-[300px] mb-4 space-y-4 pr-2">
+            <div className="flex-1 overflow-y-auto max-h-[300px] mb-4 space-y-4 pr-1">
               {notes.length === 0 ? (
                 <p className="text-sm font-sans text-primary-muted italic">No notes yet.</p>
               ) : (
                 notes.map(note => (
-                  <div key={note.id} className={`p-4 rounded-lg ${note.authorId === user?.uid ? 'bg-background border border-primary/10 ml-4' : 'bg-primary/5 mr-4'}`}>
-                    <div className="flex justify-between items-center mb-1">
+                  <div key={note.id} className={`p-3.5 sm:p-4 rounded-lg ${note.authorId === user?.uid ? 'bg-background border border-primary/10 ml-2 sm:ml-4' : 'bg-primary/5 mr-2 sm:mr-4'}`}>
+                    <div className="flex justify-between items-center gap-2 mb-1">
                       <span className="font-sans text-xs font-bold text-primary">{note.authorRole === 'member' ? 'You' : 'Pastor/Leader'}</span>
-                      <span className="font-sans text-xs text-primary-muted">{formatDateTime(note.createdAt, 'time')}</span>
+                      <span className="font-sans text-xs text-primary-muted whitespace-nowrap">{formatDateTime(note.createdAt, 'time')}</span>
                     </div>
-                    <p className="font-sans text-sm text-primary">{note.content}</p>
+                    <p className="font-sans text-sm text-primary break-words">{note.content}</p>
                   </div>
                 ))
               )}

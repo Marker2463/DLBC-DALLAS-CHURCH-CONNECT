@@ -39,13 +39,17 @@ import { MemberSanctuary } from './pages/member/Sanctuary';
 import { PastorSanctuary } from './pages/pastor/Sanctuary';
 import { Roles } from './pages/admin/Roles';
 import { AuthProvider } from './lib/AuthContext';
+import { RequireRole } from './components/auth/RequireRole';
+import Settings from './pages/Settings';
+import { ToastProvider } from './components/ui/ToastProvider';
 
 export default function App() {
   return (
     <AuthProvider>
-      <BrowserRouter>
-        <ScrollToTop />
-        <Routes>
+      <ToastProvider>
+        <BrowserRouter>
+          <ScrollToTop />
+          <Routes>
           <Route path="/terms" element={<TermsOfService />} />
           
           <Route path="/" element={<Layout />}>
@@ -59,20 +63,31 @@ export default function App() {
             <Route path="support" element={<ContactSupport />} />
             <Route path="auth/login" element={<Login />} />
             <Route path="auth/register" element={<Register />} />
-            <Route path="member/dashboard" element={<Dashboard />} />
-            <Route path="member/request" element={<Request />} />
-            <Route path="member/request/:id" element={<MemberRequestDetail />} />
-            <Route path="member/sanctuary" element={<MemberSanctuary />} />
-            <Route path="leader/dashboard" element={<LeaderDashboard />} />
-            <Route path="pastor/dashboard" element={<PastorDashboard />} />
-            <Route path="pastor/availability" element={<PastorAvailability />} />
-            <Route path="pastor/request/:id" element={<PastorRequestDetail />} />
-            <Route path="pastor/archives" element={<PastorArchives />} />
-            <Route path="pastor/sanctuary" element={<PastorSanctuary />} />
-            <Route path="admin/roles" element={<Roles />} />
+            
+            {/* Member Routes */}
+            <Route path="member/dashboard" element={<RequireRole allowedRoles={['member', 'admin']}><Dashboard /></RequireRole>} />
+            <Route path="member/request" element={<RequireRole allowedRoles={['member', 'admin']}><Request /></RequireRole>} />
+            <Route path="member/request/:id" element={<RequireRole allowedRoles={['member', 'admin']}><MemberRequestDetail /></RequireRole>} />
+            <Route path="member/sanctuary" element={<RequireRole allowedRoles={['member', 'admin']}><MemberSanctuary /></RequireRole>} />
+            
+            {/* Leader & Pastor Routes */}
+            <Route path="leader/dashboard" element={<RequireRole allowedRoles={['leader', 'pastor', 'admin']}><LeaderDashboard /></RequireRole>} />
+            <Route path="pastor/dashboard" element={<RequireRole allowedRoles={['pastor', 'leader', 'admin']}><PastorDashboard /></RequireRole>} />
+            <Route path="pastor/availability" element={<RequireRole allowedRoles={['pastor', 'leader', 'admin']}><PastorAvailability /></RequireRole>} />
+            <Route path="pastor/request/:id" element={<RequireRole allowedRoles={['pastor', 'leader', 'admin']}><PastorRequestDetail /></RequireRole>} />
+            <Route path="pastor/archives" element={<RequireRole allowedRoles={['pastor', 'leader', 'admin']}><PastorArchives /></RequireRole>} />
+            <Route path="pastor/sanctuary" element={<RequireRole allowedRoles={['pastor', 'leader', 'admin']}><PastorSanctuary /></RequireRole>} />
+            
+            {/* Admin Routes */}
+            <Route path="admin/roles" element={<RequireRole allowedRoles={['admin']}><Roles /></RequireRole>} />
+            
+            {/* Settings & Google Calendar Connection Routes */}
+            <Route path="settings" element={<RequireRole allowedRoles={['member', 'pastor', 'leader', 'admin']}><Settings /></RequireRole>} />
+            <Route path="pastor/settings" element={<RequireRole allowedRoles={['pastor', 'leader', 'admin']}><Settings /></RequireRole>} />
           </Route>
         </Routes>
-      </BrowserRouter>
+        </BrowserRouter>
+      </ToastProvider>
     </AuthProvider>
   );
 }

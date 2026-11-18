@@ -3,8 +3,9 @@ import { FormEvent, useState, useRef, useEffect } from 'react';
 import { auth, db, UserProfile } from '../../lib/firebase';
 import { signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
-import { ArrowRight, Mail, Lock, User, Loader2 } from 'lucide-react';
+import { ArrowRight, Loader2 } from 'lucide-react';
 import { GoogleSignInButton } from '../../components/GoogleSignInButton';
+import { useToast } from '../../components/ui/ToastProvider';
 
 interface DemoAccount {
   label: string;
@@ -44,10 +45,10 @@ const DEMO_ACCOUNTS: DemoAccount[] = [
 export function Login() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  const { showToast } = useToast();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
   const [quickAction, setQuickAction] = useState<string | null>(null);
 
   const isSubmittingRef = useRef(false);
@@ -86,76 +87,21 @@ export function Login() {
     }
   };
 
-  const authenticateOrAutoRegister = async (cleanEmail: string, pass: string, demoMeta?: DemoAccount) => {
-    let userCredential;
-    
-    try {
-      // First attempt standard sign in
-      userCredential = await signInWithEmailAndPassword(auth, cleanEmail, pass);
-    } catch (signInErr: any) {
-      if (signInErr.code === 'auth/invalid-credential' || signInErr.code === 'auth/user-not-found' || signInErr.code === 'auth/invalid-login-credentials') {
-        // Try creating user seamlessly
-        try {
-          userCredential = await createUserWithEmailAndPassword(auth, cleanEmail, pass);
-        } catch (createErr: any) {
-          if (createErr.code === 'auth/email-already-in-use') {
-            // The user exists, but password was incorrect
-            const passErr: any = new Error('Incorrect password. Please check your password or use a quick demo login.');
-            passErr.code = 'auth/wrong-password';
-            throw passErr;
-          } else {
-            throw createErr;
-          }
-        }
-      } else {
-        throw signInErr;
-      }
-    }
+  const isDemoLoginEnabled = import.meta.env.VITE_ENABLE_DEMO_LOGIN === 'true';
 
+  const authenticateUser = async (cleanEmail: string, pass: string) => {
+    // Only attempt standard sign-in. A failed sign-in must never create an account.
+    const userCredential = await signInWithEmailAndPassword(auth, cleanEmail, pass);
     const uid = userCredential.user.uid;
     const userDocRef = doc(db, 'users', uid);
     const userDoc = await getDoc(userDocRef);
     
-    let role: string = 'member';
-    const isAdminEmail = cleanEmail === 'markeroladipo@gmail.com';
-
-    if (userDoc.exists()) {
-      const data = userDoc.data() as UserProfile;
-      role = data.role || 'member';
-      if (isAdminEmail && role !== 'admin') {
-        await setDoc(userDocRef, { role: 'admin' }, { merge: true });
-        role = 'admin';
-      }
-    } else {
-      const demoConfig = demoMeta || DEMO_ACCOUNTS.find(d => d.email.toLowerCase() === cleanEmail);
-      const assignedRole = isAdminEmail ? 'admin' : (demoConfig ? demoConfig.role : 'member');
-      const assignedName = demoConfig ? demoConfig.name : (cleanEmail.split('@')[0]);
-
-      try {
-        await updateProfile(userCredential.user, { displayName: assignedName });
-      } catch (pErr) {
-        console.warn('Profile name update skipped:', pErr);
-      }
-
-      const newUserData: any = {
-        uid,
-        displayName: assignedName,
-        email: cleanEmail,
-        role: assignedRole,
-        createdAt: new Date().toISOString()
-      };
-
-      if (demoConfig?.leaderType) {
-        newUserData.leaderType = demoConfig.leaderType;
-      }
-
-      await setDoc(userDocRef, newUserData);
-      role = assignedRole;
-
-      if (role === 'leader' || role === 'pastor') {
-        await ensureLeaderAvailability(uid);
-      }
+    if (!userDoc.exists()) {
+      throw new Error('User profile record not found. Please contact administration or register.');
     }
+
+    const data = userDoc.data() as UserProfile;
+    const role = data.role || 'member';
 
     if (role === 'leader' || role === 'pastor') {
       await ensureLeaderAvailability(uid);
@@ -166,14 +112,37 @@ export function Login() {
 
   const handleQuickDemoLogin = async (demo: DemoAccount) => {
     if (loading) return;
-    setError('');
     setLoading(true);
     setQuickAction(demo.label);
     setEmail(demo.email);
     setPassword('password123');
 
     try {
-      const role = await authenticateOrAutoRegister(demo.email.toLowerCase(), 'password123', demo);
+      let role = 'member';
+      try {
+        role = await authenticateUser(demo.email.toLowerCase(), 'password123');
+      } catch (authErr: any) {
+        if (isDemoLoginEnabled && (authErr?.code === 'auth/user-not-found' || authErr?.code === 'auth/invalid-credential' || authErr?.code === 'auth/invalid-login-credentials')) {
+          // In development with demo login enabled, seed demo accounts once with password123
+          const userCredential = await createUserWithEmailAndPassword(auth, demo.email.toLowerCase(), 'password123');
+          await updateProfile(userCredential.user, { displayName: demo.name });
+          const userDocRef = doc(db, 'users', userCredential.user.uid);
+          await setDoc(userDocRef, {
+            uid: userCredential.user.uid,
+            displayName: demo.name,
+            email: demo.email.toLowerCase(),
+            role: demo.role,
+            leaderType: demo.leaderType || null,
+            createdAt: new Date().toISOString()
+          });
+          role = demo.role;
+          if (role === 'leader' || role === 'pastor') {
+            await ensureLeaderAvailability(userCredential.user.uid);
+          }
+        } else {
+          throw authErr;
+        }
+      }
       
       if (role === 'admin') {
         navigate('/admin/roles');
@@ -186,7 +155,11 @@ export function Login() {
       }
     } catch (err: any) {
       console.error('Demo Login Error:', err);
-      setError('Unable to log in to demo account. Please try again.');
+      showToast({
+        variant: 'error',
+        title: 'Demo Sign-In Unavailable',
+        message: 'Unable to log in to demo account. Please try again.',
+      });
     } finally {
       setLoading(false);
       setQuickAction(null);
@@ -199,15 +172,14 @@ export function Login() {
     
     if (isSubmittingRef.current || loading) return;
     isSubmittingRef.current = true;
-    setError('');
     setLoading(true);
     
     const cleanEmail = email.trim().toLowerCase();
 
     try {
-      const role = await authenticateOrAutoRegister(cleanEmail, password);
+      const role = await authenticateUser(cleanEmail, password);
       
-      if (role === 'admin' || cleanEmail === 'markeroladipo@gmail.com') {
+      if (role === 'admin') {
         navigate('/admin/roles');
       } else if (role === 'pastor') {
         navigate('/pastor/dashboard');
@@ -217,18 +189,37 @@ export function Login() {
         navigate('/member/dashboard');
       }
     } catch (err: any) {
+      if (err?.code === 'auth/popup-closed-by-user' || err?.code === 'auth/cancelled-popup-request') {
+        return;
+      }
       console.error('Login Error:', err.code, err.message);
       switch (err.code) {
         case 'auth/invalid-credential':
         case 'auth/user-not-found':
         case 'auth/wrong-password':
-          setError('Invalid email or password. If you do not have an account yet, please click "Create an account" below.');
+          showToast({
+            variant: 'error',
+            title: 'Invalid Credentials',
+            message: 'Email or password did not match. New to the sanctuary?',
+            action: {
+              label: 'Create Account',
+              onClick: () => navigate(`/auth/register?email=${encodeURIComponent(cleanEmail)}`),
+            },
+          });
           break;
         case 'auth/too-many-requests':
-          setError('Too many failed login attempts. Please wait a moment and try again.');
+          showToast({
+            variant: 'warning',
+            title: 'Too Many Attempts',
+            message: 'Please wait a moment before trying to sign in again.',
+          });
           break;
         default:
-          setError(err.message || 'Failed to sign in. Please check your credentials.');
+          showToast({
+            variant: 'error',
+            title: 'Sign-In Failed',
+            message: err.message || 'Please check your credentials and try again.',
+          });
       }
     } finally {
       setLoading(false);
@@ -237,8 +228,8 @@ export function Login() {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-[75vh] px-6 w-full max-w-7xl mx-auto py-16">
-      <div className="w-full max-w-md bg-surface rounded-2xl p-8 md:p-10 halo-border flex flex-col items-center text-center shadow-sm">
+    <div className="flex flex-col items-center justify-center min-h-[75vh] px-4 sm:px-6 w-full max-w-7xl mx-auto py-10 sm:py-16">
+      <div className="w-full max-w-md bg-surface rounded-2xl p-5 sm:p-8 md:p-10 halo-border flex flex-col items-center text-center shadow-sm">
         
         <h1 className="font-serif text-3xl text-primary mb-6">Sign In</h1>
 
@@ -256,45 +247,49 @@ export function Login() {
                 navigate('/member/dashboard');
               }
             }}
-            onError={(msg) => setError(msg)}
+            onError={(msg) => showToast({ variant: 'error', title: 'Google Sign-In Failed', message: msg })}
           />
         </div>
 
-        <div className="w-full flex items-center gap-3 mb-6">
-          <div className="flex-1 h-[1px] bg-primary/10"></div>
-          <span className="font-sans text-xs text-primary-muted uppercase tracking-wider">Or quick demo access</span>
-          <div className="flex-1 h-[1px] bg-primary/10"></div>
-        </div>
+        {/* 1-Click Quick Demo Sign-Ins - only rendered if VITE_ENABLE_DEMO_LOGIN === 'true' */}
+        {isDemoLoginEnabled && (
+          <>
+            <div className="w-full flex items-center gap-3 mb-6">
+              <div className="flex-1 h-[1px] bg-primary/10"></div>
+              <span className="font-sans text-xs text-primary-muted uppercase tracking-wider text-center">Or quick demo access</span>
+              <div className="flex-1 h-[1px] bg-primary/10"></div>
+            </div>
 
-        {/* 1-Click Quick Demo Sign-Ins */}
-        <div className="w-full mb-6 p-4 rounded-xl bg-[#faf8f5] border border-primary/10 text-left">
-          <div className="flex items-center justify-between mb-2.5">
-            <span className="font-sans text-xs font-bold text-primary uppercase tracking-widest">
-              Quick Demo Access
-            </span>
-            <span className="font-sans text-xs text-primary-muted">One-click sign in</span>
-          </div>
+            <div className="w-full mb-6 p-3.5 sm:p-4 rounded-xl bg-[#faf8f5] border border-primary/10 text-left">
+              <div className="flex flex-wrap items-center justify-between gap-1 mb-2.5">
+                <span className="font-sans text-xs font-bold text-primary uppercase tracking-widest">
+                  Quick Demo Access
+                </span>
+                <span className="font-sans text-xs text-primary-muted">One-click sign in</span>
+              </div>
 
-          <div className="grid grid-cols-3 gap-2">
-            {DEMO_ACCOUNTS.map((demo) => (
-              <button
-                key={demo.label}
-                type="button"
-                disabled={loading}
-                onClick={() => handleQuickDemoLogin(demo)}
-                className="px-2.5 py-2 rounded-lg bg-white border border-primary/15 hover:border-[#1c202e] hover:bg-primary/[0.02] transition-all text-left group shadow-sm disabled:opacity-60 cursor-pointer"
-              >
-                <span className="block font-sans text-xs font-semibold text-primary group-hover:text-primary transition-colors truncate">
-                  {quickAction === demo.label ? <Loader2 size={12} className="animate-spin inline mr-1" /> : null}
-                  {demo.label}
-                </span>
-                <span className="block font-sans text-xs text-primary-muted truncate">
-                  {demo.sublabel}
-                </span>
-              </button>
-            ))}
-          </div>
-        </div>
+              <div className="grid grid-cols-1 min-[420px]:grid-cols-3 gap-2">
+                {DEMO_ACCOUNTS.map((demo) => (
+                  <button
+                    key={demo.label}
+                    type="button"
+                    disabled={loading}
+                    onClick={() => handleQuickDemoLogin(demo)}
+                    className="px-2.5 py-2 rounded-lg bg-white border border-primary/15 hover:border-[#1c202e] hover:bg-primary/[0.02] transition-all text-left group shadow-sm disabled:opacity-60 cursor-pointer"
+                  >
+                    <span className="block font-sans text-xs font-semibold text-primary group-hover:text-primary transition-colors truncate">
+                      {quickAction === demo.label ? <Loader2 size={12} className="animate-spin inline mr-1" /> : null}
+                      {demo.label}
+                    </span>
+                    <span className="block font-sans text-xs text-primary-muted truncate">
+                      {demo.sublabel}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          </>
+        )}
 
         <div className="w-full flex items-center gap-3 mb-6">
           <div className="flex-1 h-[1px] bg-primary/10"></div>
@@ -303,20 +298,6 @@ export function Login() {
         </div>
 
         <form onSubmit={handleSubmit} className="w-full space-y-4 text-left">
-          {error && (
-            <div className="bg-[#b93c3c]/10 text-[#b93c3c] border border-[#b93c3c]/20 p-3.5 rounded-xl text-xs leading-relaxed">
-              {error}
-              <div className="mt-2 pt-2 border-t border-[#b93c3c]/20 flex justify-between items-center">
-                <span>New here?</span>
-                <Link
-                  to={`/auth/register?email=${encodeURIComponent(email)}`}
-                  className="font-bold underline hover:opacity-80"
-                >
-                  Create Account Now &rarr;
-                </Link>
-              </div>
-            </div>
-          )}
           
           <div className="space-y-1.5">
             <label className="block font-sans text-xs font-bold uppercase tracking-wider text-primary" htmlFor="email">

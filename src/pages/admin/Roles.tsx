@@ -4,12 +4,15 @@ import { useAuth } from '../../lib/AuthContext';
 import { db, UserProfile } from '../../lib/firebase';
 import { collection, onSnapshot, doc, updateDoc, deleteDoc, addDoc } from 'firebase/firestore';
 import { Search, Users, Baby, BookOpen, Check, Trash2 } from 'lucide-react';
+import { ConfirmModal } from '../../components/ui/ConfirmModal';
+import { useToast } from '../../components/ui/ToastProvider';
 
 export function Roles() {
   const { user, role, loading } = useAuth();
+  const { showToast } = useToast();
   const navigate = useNavigate();
   
-  const isAdmin = user?.email === 'markeroladipo@gmail.com' || role === 'admin';
+  const isAdmin = role === 'admin';
 
   const [congregation, setCongregation] = useState<UserProfile[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
@@ -20,6 +23,7 @@ export function Roles() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
 
   useEffect(() => {
@@ -63,18 +67,28 @@ export function Roles() {
 
   
   const handleDeleteUser = async () => {
-    if (!selectedUser || !window.confirm('Are you sure you want to permanently delete this user? This action cannot be undone.')) return;
+    if (!selectedUser) return;
     setIsDeleting(true);
     
     try {
       const userDocId = selectedUser.membershipId || selectedUser.uid;
       await deleteDoc(doc(db, 'users', userDocId));
       setCongregation(prev => prev.filter(u => (u.membershipId || u.uid) !== userDocId));
+      showToast({
+        variant: 'success',
+        title: 'User Removed',
+        message: `${selectedUser.displayName} has been permanently removed from the congregation directory.`,
+      });
+      setIsDeleteModalOpen(false);
       setSelectedUser(null);
       setSearchQuery('');
     } catch (err) {
       console.error("Failed to delete user", err);
-      alert("Failed to delete user. Please try again.");
+      showToast({
+        variant: 'error',
+        title: 'Delete Failed',
+        message: 'Failed to delete user. Please try again.',
+      });
     } finally {
       setIsDeleting(false);
     }
@@ -128,24 +142,32 @@ export function Roles() {
         adminEmail: user?.email || 'admin@dlbc.org'
       });
 
-      alert('Leadership role updated successfully.');
+      showToast({
+        variant: 'success',
+        title: 'Role Assigned',
+        message: `${selectedUser.displayName} has been updated with their new leadership role.`,
+      });
       setSelectedUser(null);
       setSelectedRole(null);
       setIsEndorsed(false);
     } catch (error) {
       console.error('Error updating role:', error);
-      alert('Failed to update leadership role.');
+      showToast({
+        variant: 'error',
+        title: 'Update Failed',
+        message: 'Failed to update leadership role. Please try again.',
+      });
     } finally {
       setIsSubmitting(false);
     }
   };
 
   if (loading || !isAdmin) {
-    return <div className="min-h-screen flex items-center justify-center bg-[#faf8f5]">Loading...</div>;
+    return <div className="flex items-center justify-center py-24 text-primary-muted font-sans text-sm">Loading...</div>;
   }
 
   return (
-    <div className="min-h-screen bg-[#faf8f5] py-12 px-6">
+    <div className="bg-[#faf8f5] py-8 sm:py-12 px-4 sm:px-6">
       <div className="max-w-7xl mx-auto flex flex-col gap-8">
         
         {/* Header Bar */}
@@ -231,8 +253,8 @@ export function Roles() {
           <div className="lg:col-span-8 flex flex-col gap-6">
             {selectedUser ? (
               <>
-                <div className="bg-white border border-[#1c202e]/10 rounded-xl p-6 shadow-sm flex items-center gap-6">
-                  <div className="w-16 h-16 rounded-full bg-[#1c202e]/10 flex items-center justify-center overflow-hidden flex-shrink-0">
+                <div className="bg-white border border-[#1c202e]/10 rounded-xl p-5 sm:p-6 shadow-sm flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-6">
+                  <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-[#1c202e]/10 flex items-center justify-center overflow-hidden flex-shrink-0">
                     {selectedUser.photoURL ? (
                       <img src={selectedUser.photoURL} alt={selectedUser.displayName} className="w-full h-full object-cover" />
                     ) : (
@@ -241,20 +263,20 @@ export function Roles() {
                       </span>
                     )}
                   </div>
-                  <div className="flex flex-col">
-                    <h2 className="font-serif text-2xl text-[#1c202e]">
+                  <div className="flex flex-col min-w-0">
+                    <h2 className="font-serif text-xl sm:text-2xl text-[#1c202e] break-words">
                       {selectedUser.displayName}
                     </h2>
-                    <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-1">
-                      <span className="font-sans text-sm text-primary-muted">
+                    <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1 text-xs sm:text-sm font-sans text-primary-muted">
+                      <span>
                         ID: {selectedUser.membershipId || `DLBC-${selectedUser.uid.substring(0, 6).toUpperCase()}`}
                       </span>
-                      <span className="text-[#1c202e]/30">•</span>
-                      <span className="font-sans text-sm text-primary-muted">
+                      <span className="hidden sm:inline text-[#1c202e]/30">•</span>
+                      <span>
                         Member Since: {selectedUser.memberSince ? new Date(selectedUser.memberSince).toLocaleDateString() : 'N/A'}
                       </span>
-                      <span className="text-[#1c202e]/30">•</span>
-                      <span className="font-sans text-sm text-primary-muted capitalize">
+                      <span className="hidden sm:inline text-[#1c202e]/30">•</span>
+                      <span className="capitalize">
                         Current Role: <strong className="text-[#1c202e] font-semibold">{selectedUser.role}</strong>
                       </span>
                     </div>
@@ -362,19 +384,21 @@ export function Roles() {
                   </div>
                   
                   
-                  <div className="mt-2 flex justify-between items-center">
+                  <div className="mt-2 flex flex-col-reverse gap-3 sm:flex-row sm:justify-between items-stretch sm:items-center">
                     <button
-                      onClick={handleDeleteUser}
+                      type="button"
+                      onClick={() => setIsDeleteModalOpen(true)}
                       disabled={isDeleting}
-                      className="bg-transparent text-red-600 hover:text-red-700 hover:bg-red-50 font-sans text-sm font-medium px-4 py-3 rounded-lg transition-colors disabled:opacity-50 flex items-center gap-2"
+                      className="bg-transparent text-red-600 hover:text-red-700 hover:bg-red-50 font-sans text-sm font-medium px-4 py-3 min-h-[44px] rounded-lg transition-colors disabled:opacity-50 flex items-center justify-center gap-2 w-full sm:w-auto cursor-pointer"
                     >
                       <Trash2 size={16} />
                       {isDeleting ? 'Deleting...' : 'Delete User'}
                     </button>
                     <button
+                      type="button"
                       onClick={handleUpdateRole}
                       disabled={!isEndorsed || !selectedRole || isSubmitting}
-                      className="bg-[#1c202e] text-white font-sans text-sm font-medium px-8 py-3 rounded-lg hover:bg-[#1c202e]/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
+                      className="bg-[#1c202e] text-white font-sans text-sm font-medium px-8 py-3 min-h-[44px] rounded-lg hover:bg-[#1c202e]/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-sm w-full sm:w-auto flex items-center justify-center cursor-pointer"
                     >
                       {isSubmitting ? 'Updating...' : 'Update Leadership Role'}
                     </button>
@@ -383,12 +407,12 @@ export function Roles() {
                 </div>
               </>
             ) : (
-              <div className="bg-white border border-[#1c202e]/10 rounded-xl shadow-sm p-12 flex flex-col items-center justify-center h-full min-h-[400px] text-center">
+              <div className="bg-white border border-[#1c202e]/10 rounded-xl shadow-sm p-8 sm:p-12 flex flex-col items-center justify-center h-full min-h-[360px] text-center">
                 <div className="w-16 h-16 bg-[#1c202e]/5 rounded-full flex items-center justify-center mb-6">
                   <Users size={28} className="text-primary-muted" />
                 </div>
                 <h2 className="font-serif text-2xl text-primary mb-2">Select a Member</h2>
-                <p className="font-sans text-base text-primary-muted max-w-md">
+                <p className="font-sans text-sm sm:text-base text-primary-muted max-w-md">
                   Choose a member from the congregation list to view their current status and assign new stewardship responsibilities.
                 </p>
               </div>
@@ -397,6 +421,18 @@ export function Roles() {
         </div>
         
       </div>
+
+      <ConfirmModal
+        isOpen={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+        onConfirm={handleDeleteUser}
+        loading={isDeleting}
+        danger
+        title="Remove User Account"
+        subtitle={selectedUser?.displayName}
+        description="Are you sure you want to permanently delete this user from the congregation directory? This action cannot be undone."
+        confirmLabel="Delete User"
+      />
     </div>
   );
 }

@@ -5,6 +5,7 @@ import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { Loader2, Save, Clock, CalendarOff } from 'lucide-react';
 import { addMinutes, format, parse } from 'date-fns';
 import { PageTitle } from '../../components/PageTitle';
+import { useToast } from '../../components/ui/ToastProvider';
 
 const DAYS_OF_WEEK = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
@@ -28,6 +29,7 @@ function generateSlots(startTime: string, endTime: string, duration: number = 45
 
 export function PastorAvailability() {
   const { user } = useAuth();
+  const { showToast } = useToast();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   
@@ -127,9 +129,18 @@ export function PastorAvailability() {
 
     try {
       await setDoc(doc(db, 'availability', user.uid), dataToSave);
-      // Show success somehow
+      showToast({
+        variant: 'success',
+        title: 'Availability Saved',
+        message: 'Your weekly ministry hours and blackout dates have been updated.',
+      });
     } catch (e) {
       console.error(e);
+      showToast({
+        variant: 'error',
+        title: 'Save Failed',
+        message: 'Unable to save availability settings. Please try again.',
+      });
     } finally {
       setSaving(false);
     }
@@ -140,27 +151,27 @@ export function PastorAvailability() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto px-6 w-full py-12 pb-32">
-      <div className="mb-12">
+    <div className="max-w-4xl mx-auto px-4 sm:px-6 w-full py-10 sm:py-12 pb-28 sm:pb-32">
+      <div className="mb-8 sm:mb-12">
         <PageTitle className="mb-4">Availability &amp; Scheduling</PageTitle>
-        <p className="font-sans text-lg text-primary-muted">Manage your weekly ministry hours and blocked dates.</p>
+        <p className="font-sans text-base sm:text-lg text-primary-muted">Manage your weekly ministry hours and blocked dates.</p>
       </div>
 
-      <div className="flex flex-col gap-8">
+      <div className="flex flex-col gap-6 sm:gap-8">
         
         {/* Weekly Schedule */}
-        <div className="bg-surface rounded-xl p-8 border border-primary/10">
+        <div className="bg-surface rounded-xl p-5 sm:p-8 border border-primary/10">
           <div className="flex items-center gap-3 mb-6 border-b border-primary/10 pb-4">
-            <Clock className="text-primary-muted" size={24} />
-            <h2 className="font-serif text-2xl text-primary">Weekly Schedule</h2>
+            <Clock className="text-primary-muted shrink-0" size={22} />
+            <h2 className="font-serif text-xl sm:text-2xl text-primary">Weekly Schedule</h2>
           </div>
           
-          <div className="space-y-6">
+          <div className="space-y-4 sm:space-y-6">
             {DAYS_OF_WEEK.map(day => {
               const config = schedule[day];
               return (
-                <div key={day} className="flex flex-col md:flex-row md:items-center gap-4 p-5 rounded-xl bg-white border border-[#e2dcce] shadow-sm">
-                  <label htmlFor={`toggle-${day}`} className="w-40 flex items-center gap-3 cursor-pointer select-none">
+                <div key={day} className="flex flex-col md:flex-row md:items-center gap-4 p-4 sm:p-5 rounded-xl bg-white border border-[#e2dcce] shadow-sm">
+                  <label htmlFor={`toggle-${day}`} className="w-full md:w-40 flex items-center gap-3 cursor-pointer select-none">
                     <input 
                       type="checkbox"
                       id={`toggle-${day}`}
@@ -180,8 +191,8 @@ export function PastorAvailability() {
                   </label>
                   
                   {config.enabled ? (
-                    <div className="flex items-center gap-3 flex-1">
-                      <div className="relative">
+                    <div className="flex flex-wrap items-center gap-3 flex-1">
+                      <div className="relative min-w-[8.5rem] flex-1">
                         <label htmlFor={`${day}-startTime`} className="sr-only">{day} Start Time</label>
                         <input 
                           id={`${day}-startTime`}
@@ -189,11 +200,11 @@ export function PastorAvailability() {
                           aria-label={`${day} Start Time`}
                           value={config.startTime}
                           onChange={(e) => handleTimeChange(day, 'startTime', e.target.value)}
-                          className="appearance-none bg-[#faf8f5] border border-[#e2dcce] rounded-md px-3 py-2 font-sans text-sm text-primary focus:outline-none focus:border-[#1e232a] focus:ring-1 focus:ring-[#1e232a] transition-colors"
+                          className="w-full appearance-none bg-[#faf8f5] border border-[#e2dcce] rounded-md px-3 py-2 font-sans text-sm text-primary focus:outline-none focus:border-[#1e232a] focus:ring-1 focus:ring-[#1e232a] transition-colors"
                         />
                       </div>
                       <span className="text-primary-muted text-sm font-medium">to</span>
-                      <div className="relative">
+                      <div className="relative min-w-[8.5rem] flex-1">
                         <label htmlFor={`${day}-endTime`} className="sr-only">{day} End Time</label>
                         <input 
                           id={`${day}-endTime`}
@@ -201,10 +212,10 @@ export function PastorAvailability() {
                           aria-label={`${day} End Time`}
                           value={config.endTime}
                           onChange={(e) => handleTimeChange(day, 'endTime', e.target.value)}
-                          className="appearance-none bg-[#faf8f5] border border-[#e2dcce] rounded-md px-3 py-2 font-sans text-sm text-primary focus:outline-none focus:border-[#1e232a] focus:ring-1 focus:ring-[#1e232a] transition-colors"
+                          className="w-full appearance-none bg-[#faf8f5] border border-[#e2dcce] rounded-md px-3 py-2 font-sans text-sm text-primary focus:outline-none focus:border-[#1e232a] focus:ring-1 focus:ring-[#1e232a] transition-colors"
                         />
                       </div>
-                      <span className="ml-4 font-sans text-xs font-bold text-primary-muted uppercase tracking-widest hidden md:inline-block">
+                      <span className="font-sans text-xs font-bold text-primary-muted uppercase tracking-widest hidden md:inline-block">
                         45m slots
                       </span>
                     </div>
@@ -220,17 +231,17 @@ export function PastorAvailability() {
         </div>
 
         {/* Blackout Dates */}
-        <div className="bg-surface rounded-xl p-8 border border-primary/10">
+        <div className="bg-surface rounded-xl p-5 sm:p-8 border border-primary/10">
           <div className="flex items-center gap-3 mb-6 border-b border-primary/10 pb-4">
-            <CalendarOff className="text-primary-muted" size={24} />
-            <h2 className="font-serif text-2xl text-primary">Blackout Dates</h2>
+            <CalendarOff className="text-primary-muted shrink-0" size={22} />
+            <h2 className="font-serif text-xl sm:text-2xl text-primary">Blackout Dates</h2>
           </div>
           
           <p className="font-sans text-sm text-primary-muted mb-4">
             Select specific dates when you will be unavailable for consultations (e.g., retreats, holidays).
           </p>
           
-          <div className="flex gap-4 mb-6">
+          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 mb-6">
             <label htmlFor="new-blackout-date" className="sr-only">New Blackout Date</label>
             <input 
               id="new-blackout-date"
@@ -238,12 +249,13 @@ export function PastorAvailability() {
               aria-label="New blackout date"
               value={newBlackoutDate}
               onChange={(e) => setNewBlackoutDate(e.target.value)}
-              className="bg-background border border-primary/20 rounded px-4 py-2 font-sans text-sm text-primary focus:outline-none focus:border-primary/60"
+              className="w-full sm:w-auto bg-background border border-primary/20 rounded px-4 py-2.5 font-sans text-sm text-primary focus:outline-none focus:border-primary/60"
             />
             <button 
+              type="button"
               onClick={addBlackoutDate}
               disabled={!newBlackoutDate}
-              className="bg-primary text-white px-5 py-2.5 rounded-md font-sans text-sm font-medium hover:bg-primary/90 transition-colors disabled:opacity-50 cursor-pointer"
+              className="w-full sm:w-auto min-h-[42px] bg-primary text-white px-5 py-2.5 rounded-md font-sans text-sm font-medium hover:bg-primary/90 transition-colors disabled:opacity-50 cursor-pointer whitespace-nowrap"
             >
               Add Date
             </button>
@@ -257,6 +269,7 @@ export function PastorAvailability() {
                 <div key={date} className="flex items-center gap-2 bg-background border border-primary/10 rounded-full px-4 py-1.5">
                   <span className="font-sans text-sm text-primary">{date}</span>
                   <button 
+                    type="button"
                     onClick={() => removeBlackoutDate(date)}
                     aria-label={`Remove blackout date ${date}`}
                     className="text-primary-muted hover:text-red-700 transition-colors cursor-pointer"
@@ -270,11 +283,12 @@ export function PastorAvailability() {
         </div>
 
         {/* Save Actions */}
-        <div className="flex justify-end pt-4">
+        <div className="flex justify-end pt-2 sm:pt-4">
           <button 
+            type="button"
             onClick={handleSave}
             disabled={saving}
-            className="bg-primary hover:bg-primary/90 text-white font-sans text-sm font-medium px-8 py-3 rounded-md active-sink flex items-center gap-2 shadow-sm transition-colors disabled:opacity-50 cursor-pointer"
+            className="w-full sm:w-auto min-h-[44px] bg-primary hover:bg-primary/90 text-white font-sans text-sm font-medium px-8 py-3 rounded-md active-sink flex items-center justify-center gap-2 shadow-sm transition-colors disabled:opacity-50 cursor-pointer"
           >
             {saving ? <Loader2 className="animate-spin" size={16} /> : <Save size={16} />}
             {saving ? 'Saving...' : 'Save Availability'}

@@ -6,27 +6,27 @@ export function Landing() {
   return (
     <div className="flex flex-col items-center w-full">
       {/* Hero Section */}
-      <section className="py-32 px-6 relative flex flex-col items-center text-center w-full max-w-4xl mx-auto">
-        <h1 className="font-serif text-5xl md:text-7xl text-primary mb-8 leading-tight tracking-tight">
+      <section className="py-12 sm:py-16 md:py-32 px-4 sm:px-6 relative flex flex-col items-center text-center w-full max-w-4xl mx-auto">
+        <h1 className="font-serif text-display text-primary mb-6 sm:mb-8 leading-tight tracking-tight">
           Faithful Guidance for Life’s Deepest Journeys.
         </h1>
-        <p className="font-sans text-lg md:text-xl text-primary-muted mb-12 max-w-2xl mx-auto leading-relaxed">
+        <p className="font-sans text-base sm:text-lg md:text-xl text-primary-muted mb-10 sm:mb-12 max-w-2xl mx-auto leading-relaxed">
           A digital sanctuary designed to provide confidential, compassionate pastoral care when you need it most. Connect securely with trusted spiritual leadership.
         </p>
         <Link 
           to="/auth/login" 
-          className="bg-primary text-white font-sans text-base font-medium px-8 py-4 rounded-lg hover:bg-primary/90 transition-colors active-sink shadow-sm"
+          className="bg-primary text-white font-sans text-base font-medium px-8 py-4 rounded-lg hover:bg-primary/90 transition-colors active-sink shadow-sm w-full sm:w-auto text-center"
         >
           Begin Consultation
         </Link>
       </section>
 
       {/* Trust Bar */}
-      <section className="w-full py-16 border-y border-primary/5 bg-surface">
-        <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row justify-center gap-12 md:gap-24 text-center">
+      <section className="w-full py-12 sm:py-16 border-y border-primary/5 bg-surface">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 flex flex-col md:flex-row justify-center gap-8 sm:gap-12 md:gap-24 text-center">
           <div>
             <span className="block font-sans text-xs font-semibold text-secondary tracking-[0.2em] uppercase mb-2">Experience</span>
-            <span className="font-sans text-lg text-primary">40+ Years of Ministry</span>
+            <span className="font-sans text-lg text-primary">20+ Years of Ministry</span>
           </div>
           <div>
             <span className="block font-sans text-xs font-semibold text-secondary tracking-[0.2em] uppercase mb-2">Ministry</span>
@@ -40,18 +40,18 @@ export function Landing() {
       </section>
 
       {/* Empathy Block */}
-      <section className="py-24 px-6 text-center w-full">
+      <section className="py-16 sm:py-24 px-4 sm:px-6 text-center w-full">
         <QuoteFeature quote="We understand that some seasons of life are too heavy to carry alone. This space is intentionally designed for pause, prayer, and professional pastoral connection." />
       </section>
 
       {/* Leadership Bento Grid */}
-      <section className="py-24 px-6 w-full bg-surface">
+      <section className="py-16 sm:py-24 px-4 sm:px-6 w-full bg-surface">
         <div className="max-w-5xl mx-auto">
-          <h2 className="font-serif text-4xl text-primary text-center mb-16">Connect With Leadership</h2>
+          <h2 className="font-serif text-3xl sm:text-4xl text-primary text-center mb-10 sm:mb-16">Connect With Leadership</h2>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8">
             {/* Card 1 */}
-            <div className="bg-background rounded-lg p-10 halo-border flex flex-col items-center text-center transition-transform hover:-translate-y-1 duration-300">
+            <div className="bg-background rounded-lg p-6 sm:p-10 halo-border flex flex-col items-center text-center transition-transform hover:-translate-y-1 duration-300">
               <div className="w-14 h-14 rounded-full bg-[#f4efe6] border border-[#e6dfd3] flex items-center justify-center shadow-sm mb-6">
                 <span className="font-serif text-lg text-[#2c2a29] font-medium tracking-wide">SJ</span>
               </div>
@@ -67,7 +67,7 @@ export function Landing() {
             </div>
             
             {/* Card 2 */}
-            <div className="bg-background rounded-lg p-10 halo-border flex flex-col items-center text-center transition-transform hover:-translate-y-1 duration-300">
+            <div className="bg-background rounded-lg p-6 sm:p-10 halo-border flex flex-col items-center text-center transition-transform hover:-translate-y-1 duration-300">
               <div className="w-14 h-14 rounded-full bg-[#f4efe6] border border-[#e6dfd3] flex items-center justify-center shadow-sm mb-6">
                 <span className="font-serif text-lg text-[#2c2a29] font-medium tracking-wide">DM</span>
               </div>

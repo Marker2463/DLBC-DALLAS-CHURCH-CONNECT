@@ -3,25 +3,25 @@ import counselingImg from '../assets/images/pastoral_counseling_editorial_178725
 
 export function Leadership() {
   return (
-    <div className="max-w-7xl mx-auto px-6 w-full py-16">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 w-full py-10 sm:py-16">
       
       {/* Asymmetrical Header */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-24 max-w-5xl mx-auto items-end">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8 mb-14 sm:mb-24 max-w-5xl mx-auto items-end">
         <div className="lg:col-span-5">
-          <h1 className="font-serif text-5xl md:text-6xl text-primary tracking-tight">Our Leadership</h1>
+          <h1 className="font-serif text-4xl sm:text-5xl md:text-6xl text-primary tracking-tight">Our Leadership</h1>
         </div>
         <div className="lg:col-span-6 lg:col-start-7">
-          <p className="font-sans text-lg text-primary-muted leading-relaxed border-l border-primary/10 pl-6">
+          <p className="font-sans text-base sm:text-lg text-primary-muted leading-relaxed border-l border-primary/10 pl-4 sm:pl-6">
             Dedicated to spiritual stewardship, our pastoral team guides with wisdom, compassion, and a commitment to nurturing faith in every stage of life.
           </p>
         </div>
       </div>
 
-      <section aria-labelledby="pastoral-leaders-heading" className="flex flex-col md:flex-row gap-8 mb-32 max-w-5xl mx-auto relative">
+      <section aria-labelledby="pastoral-leaders-heading" className="flex flex-col md:flex-row gap-6 sm:gap-8 mb-16 sm:mb-32 max-w-5xl mx-auto relative">
         <h2 id="pastoral-leaders-heading" className="sr-only">Pastoral Leaders</h2>
         
         {/* Sarah Jenkins */}
-        <div className="w-full md:w-1/2 bg-surface rounded-xl p-10 halo-border flex flex-col items-start text-left group hover:-translate-y-1 transition-transform duration-300">
+        <div className="w-full md:w-1/2 bg-surface rounded-xl p-6 sm:p-10 halo-border flex flex-col items-start text-left group hover:-translate-y-1 transition-transform duration-300">
           <div className="w-14 h-14 rounded-full bg-[#f4efe6] border border-[#e6dfd3] flex items-center justify-center shadow-sm mb-6 overflow-hidden">
             <span className="font-serif text-lg text-[#2c2a29] font-medium tracking-wide">SJ</span>
           </div>
@@ -36,7 +36,7 @@ export function Leadership() {
         </div>
 
         {/* David Miller */}
-        <div className="w-full md:w-1/2 bg-surface rounded-xl p-10 halo-border flex flex-col items-start text-left group hover:-translate-y-1 transition-transform duration-300 md:mt-20">
+        <div className="w-full md:w-1/2 bg-surface rounded-xl p-6 sm:p-10 halo-border flex flex-col items-start text-left group hover:-translate-y-1 transition-transform duration-300 md:mt-20">
           <div className="w-14 h-14 rounded-full bg-[#f4efe6] border border-[#e6dfd3] flex items-center justify-center shadow-sm mb-6 overflow-hidden">
             <span className="font-serif text-lg text-[#2c2a29] font-medium tracking-wide">DM</span>
           </div>
@@ -52,9 +52,9 @@ export function Leadership() {
       </section>
 
       {/* The Pastoral Vocation Block */}
-      <div className="max-w-5xl mx-auto flex flex-col md:flex-row items-center gap-12 md:gap-24">
+      <div className="max-w-5xl mx-auto flex flex-col md:flex-row items-center gap-10 sm:gap-12 md:gap-24">
         <div className="flex-1">
-          <h2 className="font-serif text-4xl text-primary mb-6">The Pastoral Vocation</h2>
+          <h2 className="font-serif text-3xl sm:text-4xl text-primary mb-6">The Pastoral Vocation</h2>
           <div className="space-y-6 font-sans text-base text-primary-muted leading-relaxed">
             <p>
               Leadership within the spiritual community is not merely an administrative role; it is a profound vocation. We view pastoral care as a sacred trust, demanding continual reflection, deep empathy, and an unwavering commitment to truth.

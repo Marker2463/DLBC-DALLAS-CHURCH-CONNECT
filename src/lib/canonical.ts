@@ -226,3 +226,14 @@ export function formatBannerScheduledTime(dateInput: string | number | Date | nu
   if (!dateInput) return 'Time Pending';
   return `Scheduled for ${formatDateTime(dateInput, 'long')}`;
 }
+
+/**
+ * Consultation code utility (deprecated - codes are no longer displayed).
+ */
+export function getConsultationCode(_id?: string | null): string {
+  return '';
+}
+
+export function generateShortCode(): string {
+  return Math.random().toString(36).substring(2, 8).toUpperCase();
+}

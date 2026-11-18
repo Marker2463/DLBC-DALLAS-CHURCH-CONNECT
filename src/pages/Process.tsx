@@ -4,35 +4,35 @@ import { QuoteFeature } from '../components/Quotes';
 
 export function Process() {
   return (
-    <div className="w-full bg-[#faf8f6] min-h-screen text-primary pt-24 pb-32">
-      <div className="max-w-4xl mx-auto px-6">
-        <div className="text-center mb-24">
-          <h1 className="font-serif text-5xl md:text-6xl mb-6 tracking-tight">The Journey of Care</h1>
-          <p className="font-sans text-lg text-primary-muted leading-relaxed max-w-2xl mx-auto">
+    <div className="w-full bg-[#faf8f6] min-h-dvh text-primary pt-14 sm:pt-24 pb-24 sm:pb-32">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6">
+        <div className="text-center mb-14 sm:mb-24">
+          <h1 className="font-serif text-4xl sm:text-5xl md:text-6xl mb-4 sm:mb-6 tracking-tight">The Journey of Care</h1>
+          <p className="font-sans text-base sm:text-lg text-primary-muted leading-relaxed max-w-2xl mx-auto">
             A deliberate, structured pathway designed to hold space for your needs while ensuring absolute privacy and pastoral fidelity. Every step is handled with reverence and secure precision.
           </p>
         </div>
 
-        <div className="relative border-l border-primary/10 pl-8 md:pl-16 space-y-24 ml-4 md:ml-8">
+        <div className="relative border-l border-primary/10 pl-8 sm:pl-14 md:pl-16 space-y-14 sm:space-y-24 ml-5 sm:ml-8">
           
           {/* Step 1 */}
           <div className="relative">
-            <div className="absolute -left-[57px] md:-left-[89px] top-0 w-20 h-20 rounded-full bg-primary text-white flex items-center justify-center font-serif text-4xl shadow-xl">
+            <div className="absolute -left-8 sm:-left-14 md:-left-16 -translate-x-1/2 top-0 w-10 h-10 sm:w-14 sm:h-14 md:w-16 md:h-16 rounded-full bg-primary text-white flex items-center justify-center font-serif text-lg sm:text-2xl md:text-3xl shadow-xl">
               1
             </div>
             <div>
-              <h2 className="font-serif text-3xl mb-6 text-primary">Confidential Request</h2>
-              <div className="bg-surface text-primary rounded-xl p-8 halo-border">
+              <h2 className="font-serif text-2xl sm:text-3xl mb-4 sm:mb-6 text-primary">Confidential Request</h2>
+              <div className="bg-surface text-primary rounded-xl p-5 sm:p-8 halo-border">
                 <p className="font-sans text-sm md:text-base leading-relaxed mb-6">
                   Your initial outreach is handled with pastoral care and confidentiality. Your request is logged securely for pastoral leadership review, allowing you to define the category and context of your need.
                 </p>
                 <div className="space-y-4">
-                  <div className="flex items-start gap-4">
-                    <Lock size={20} className="text-secondary mt-0.5" />
+                  <div className="flex items-start gap-3.5">
+                    <Lock size={20} className="text-secondary mt-0.5 shrink-0" />
                     <span className="font-sans text-sm text-primary">Role-restricted consultation access and review.</span>
                   </div>
-                  <div className="flex items-start gap-4">
-                    <CheckCircle2 size={20} className="text-secondary mt-0.5" />
+                  <div className="flex items-start gap-3.5">
+                    <CheckCircle2 size={20} className="text-secondary mt-0.5 shrink-0" />
                     <span className="font-sans text-sm text-primary">Private consultation request logged directly to church ministers.</span>
                   </div>
                 </div>
@@ -42,22 +42,22 @@ export function Process() {
 
           {/* Step 2 */}
           <div className="relative">
-            <div className="absolute -left-[57px] md:-left-[89px] top-0 w-20 h-20 rounded-full bg-primary text-white flex items-center justify-center font-serif text-4xl shadow-xl">
+            <div className="absolute -left-8 sm:-left-14 md:-left-16 -translate-x-1/2 top-0 w-10 h-10 sm:w-14 sm:h-14 md:w-16 md:h-16 rounded-full bg-primary text-white flex items-center justify-center font-serif text-lg sm:text-2xl md:text-3xl shadow-xl">
               2
             </div>
             <div>
-              <h2 className="font-serif text-3xl mb-6 text-primary">Pastoral Review</h2>
-              <div className="bg-surface text-primary rounded-xl p-8 halo-border">
+              <h2 className="font-serif text-2xl sm:text-3xl mb-4 sm:mb-6 text-primary">Pastoral Review</h2>
+              <div className="bg-surface text-primary rounded-xl p-5 sm:p-8 halo-border">
                 <p className="font-sans text-sm md:text-base leading-relaxed mb-6">
                   A designated leader or pastor reviews the request. This is a prayerful consideration of who within the leadership team is best equipped to offer counsel, prayer, and support for your specific journey.
                 </p>
                 <div className="space-y-4">
-                  <div className="flex items-start gap-4">
-                    <Users size={20} className="text-secondary mt-0.5" />
+                  <div className="flex items-start gap-3.5">
+                    <Users size={20} className="text-secondary mt-0.5 shrink-0" />
                     <span className="font-sans text-sm text-primary">Intentional matching with experienced pastoral leaders.</span>
                   </div>
-                  <div className="flex items-start gap-4">
-                    <Clock size={20} className="text-secondary mt-0.5" />
+                  <div className="flex items-start gap-3.5">
+                    <Clock size={20} className="text-secondary mt-0.5 shrink-0" />
                     <span className="font-sans text-sm text-primary">Pastoral team reviews and responds as volunteer availability permits.</span>
                   </div>
                 </div>
@@ -67,22 +67,22 @@ export function Process() {
 
           {/* Step 3 */}
           <div className="relative">
-            <div className="absolute -left-[57px] md:-left-[89px] top-0 w-20 h-20 rounded-full bg-primary text-white flex items-center justify-center font-serif text-4xl shadow-xl">
+            <div className="absolute -left-8 sm:-left-14 md:-left-16 -translate-x-1/2 top-0 w-10 h-10 sm:w-14 sm:h-14 md:w-16 md:h-16 rounded-full bg-primary text-white flex items-center justify-center font-serif text-lg sm:text-2xl md:text-3xl shadow-xl">
               3
             </div>
             <div>
-              <h2 className="font-serif text-3xl mb-6 text-primary">Sacred Connection</h2>
-              <div className="bg-surface text-primary rounded-xl p-8 halo-border">
+              <h2 className="font-serif text-2xl sm:text-3xl mb-4 sm:mb-6 text-primary">Sacred Connection</h2>
+              <div className="bg-surface text-primary rounded-xl p-5 sm:p-8 halo-border">
                 <p className="font-sans text-sm md:text-base leading-relaxed mb-6">
                   A secure, private Google Meet link or on-campus appointment is scheduled for your session. The space is dedicated to listening, scriptural guidance, and spiritual accompaniment.
                 </p>
                 <div className="space-y-4">
-                  <div className="flex items-start gap-4">
-                    <Video size={20} className="text-secondary mt-0.5" />
+                  <div className="flex items-start gap-3.5">
+                    <Video size={20} className="text-secondary mt-0.5 shrink-0" />
                     <span className="font-sans text-sm text-primary">Secure video consultation rooms hosted via Google Meet.</span>
                   </div>
-                  <div className="flex items-start gap-4">
-                    <Heart size={20} className="text-secondary mt-0.5" />
+                  <div className="flex items-start gap-3.5">
+                    <Heart size={20} className="text-secondary mt-0.5 shrink-0" />
                     <span className="font-sans text-sm text-primary">Compassionate pastoral follow-up and prayer support as availability permits.</span>
                   </div>
                 </div>
@@ -91,7 +91,7 @@ export function Process() {
           </div>
         </div>
 
-        <div className="mt-32 text-center">
+        <div className="mt-20 sm:mt-32 text-center">
           <div className="flex justify-center mb-6">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-secondary">
               <path d="M12 22C12 22 17 17 17 12C17 7 12 2 12 2C12 2 7 7 7 12C7 17 12 22 12 22Z" fill="currentColor" />
@@ -102,7 +102,7 @@ export function Process() {
             quote="In the spaces between our speaking and our listening, grace resides. Take a breath here. You are seen, and your request is held with care."
             className="py-2 mb-8 max-w-lg"
           />
-          <Link to="/auth/login" className="inline-flex items-center justify-center border border-control text-primary font-sans text-sm font-medium px-6 py-3 rounded-md hover:bg-surface-dim transition-colors active-sink">
+          <Link to="/auth/login" className="inline-flex min-h-[44px] items-center justify-center border border-control text-primary font-sans text-sm font-medium px-6 py-3 rounded-md hover:bg-surface-dim transition-colors active-sink">
             Begin the Journey
           </Link>
         </div>

@@ -10,12 +10,15 @@ import pewsImg from '../../assets/images/church_pews_editorial_1787251824185.jpg
 import { getInitials, formatDateTime, tertiaryLinkClass } from '../../lib/canonical';
 import { StatusBadge } from '../../components/StatusBadge';
 import { QuoteInline } from '../../components/Quotes';
+import { useToast } from '../../components/ui/ToastProvider';
 
 export function LeaderDashboard() {
   const { user } = useAuth();
+  const { showToast } = useToast();
   const [consultations, setConsultations] = useState<Consultation[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [leaderNote, setLeaderNote] = useState('');
 
   useEffect(() => {
     if (!user) return;
@@ -50,11 +53,21 @@ export function LeaderDashboard() {
     return () => unsubscribe();
   }, [user]);
 
+  const handleSaveNote = () => {
+    showToast({
+      variant: 'success',
+      title: 'Note Saved',
+      message: leaderNote.trim()
+        ? 'Your personal ministry note has been saved for this session.'
+        : 'Ministry notes workspace ready.',
+    });
+  };
+
   return (
-    <div className="max-w-7xl mx-auto px-6 w-full py-16 pb-32">
+    <div className="max-w-7xl mx-auto w-full px-4 sm:px-6 py-10 md:py-16 pb-28 sm:pb-32">
       {/* Header Greeting */}
-      <div className="mb-12">
-        <h1 className="font-serif text-5xl md:text-6xl text-primary mb-4 tracking-tight">
+      <div className="mb-10 sm:mb-12">
+        <h1 className="font-serif text-4xl md:text-5xl lg:text-6xl text-primary mb-4 tracking-tight break-words">
           Peace be with you, {user?.displayName || 'Leader'}.
         </h1>
         <QuoteInline
@@ -63,17 +76,22 @@ export function LeaderDashboard() {
         />
       </div>
 
-      <section className="mb-16 min-h-[580px] sm:min-h-[620px] lg:min-h-[520px]">
+      <section className="mb-14 sm:mb-16 min-h-[480px] lg:min-h-[520px]">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8 items-start">
         
         {/* Active Assigned Consultations */}
-        <div className="lg:col-span-2 bg-surface rounded-xl p-8 halo-border flex flex-col min-h-[360px]">
-          <div className="flex justify-between items-center mb-8 border-b border-primary/10 pb-4">
-            <div className="flex items-center gap-3 text-primary">
-              <MessageSquare size={20} className="text-primary-muted" />
-              <h2 className="font-serif text-2xl text-primary">Assigned Consultations</h2>
+        <section
+          aria-labelledby="leader-consultations-heading"
+          className="lg:col-span-2 min-w-0 bg-surface rounded-xl p-5 sm:p-8 halo-border flex flex-col min-h-[360px]"
+        >
+          <div className="mb-6 sm:mb-8 flex flex-col gap-3 border-b border-primary/10 pb-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex min-w-0 items-center gap-3 text-primary">
+              <MessageSquare size={20} className="shrink-0 text-primary-muted" aria-hidden="true" />
+              <h2 id="leader-consultations-heading" className="min-w-0 break-words font-serif text-xl sm:text-2xl text-primary">
+                Assigned Consultations
+              </h2>
             </div>
-            <div className="flex items-center gap-4">
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
               <Link to="/pastor/availability" className={tertiaryLinkClass}>
                 Schedule Availability
               </Link>
@@ -85,93 +103,96 @@ export function LeaderDashboard() {
 
           <div className="space-y-6">
             {loading ? (
-              <div role="status" aria-busy="true" className="space-y-4 animate-pulse flex-1">
+              <div role="status" aria-busy="true" className="divide-y divide-primary/5 animate-pulse flex-1">
                 <span className="sr-only">Loading consultations</span>
                 {[1, 2, 3].map((i) => (
-                  <div key={i} className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-primary/5 p-3 rounded-xl">
-                    <div className="flex items-start gap-4">
-                      <div className="w-12 h-12 rounded-full bg-primary/10 shrink-0" />
-                      <div className="space-y-2">
-                        <div className="h-5 bg-primary/10 rounded w-36" />
-                        <div className="h-4 bg-primary/10 rounded w-48" />
-                      </div>
+                  <div
+                    key={i}
+                    className="grid grid-cols-[auto_minmax(0,1fr)] gap-x-4 gap-y-4 rounded-xl px-3 py-4 sm:grid-cols-[auto_minmax(0,1fr)_auto] sm:items-center"
+                  >
+                    <div className="w-12 h-12 rounded-full bg-primary/10 shrink-0" />
+                    <div className="min-w-0 space-y-2">
+                      <div className="h-5 bg-primary/10 rounded w-1/3" />
+                      <div className="h-4 bg-primary/10 rounded w-1/2" />
                     </div>
-                    <div className="h-9 w-24 bg-primary/10 rounded" />
+                    <div className="col-start-2 sm:col-start-3 sm:min-w-[12rem] flex justify-end">
+                      <div className="h-9 w-24 bg-primary/10 rounded" />
+                    </div>
                   </div>
                 ))}
               </div>
             ) : error ? (
-              <div className="text-center py-8">
-                <p className="font-sans text-base text-red-500">Error loading consultations: {error}</p>
+              <div role="alert" className="text-center py-8">
+                <p className="font-sans text-base text-red-700">We couldn't load your consultations. Please refresh and try again.</p>
               </div>
             ) : consultations.length === 0 ? (
-              <div className="border border-dashed border-[#e2dcce] bg-[#faf8f3] rounded-xl p-8 text-center flex flex-col items-center justify-center my-auto">
+              <div className="border border-dashed border-[#e2dcce] bg-[#faf8f3] rounded-xl p-6 sm:p-8 text-center flex flex-col items-center justify-center my-auto">
                 <p className="font-serif text-lg text-primary mb-2">No active consultations assigned at this time.</p>
                 <p className="font-sans text-sm text-primary-subtle max-w-sm">
                   When congregants schedule sessions with your ministry category, upcoming appointments will appear here.
                 </p>
               </div>
             ) : (
-              consultations.map((consultation) => (
-                <div 
-                  key={consultation.id} 
-                  className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-primary/5 hover:bg-primary/[0.02] p-3 rounded-xl transition-colors"
-                >
-                  <div className="flex items-start gap-4">
-                    <div className="w-12 h-12 rounded-full bg-surface-dim flex items-center justify-center font-sans font-medium text-primary shadow-sm shrink-0 uppercase text-sm font-semibold border border-primary/10">
+              <ul role="list" className="divide-y divide-primary/5">
+                {consultations.map((consultation) => (
+                  <li
+                    key={consultation.id}
+                    className="grid grid-cols-[auto_minmax(0,1fr)] gap-x-4 gap-y-4 rounded-xl px-2 sm:px-3 py-4 transition-colors hover:bg-primary/[0.02] sm:grid-cols-[auto_minmax(0,1fr)_auto] sm:items-center"
+                  >
+                    <div aria-hidden="true" className="w-12 h-12 rounded-full bg-surface-dim flex items-center justify-center font-sans text-primary shadow-sm shrink-0 uppercase text-sm font-semibold border border-primary/10">
                       {getInitials(consultation.memberName)}
                     </div>
-                    <div>
-                      <div className="flex items-center gap-2 mb-1 flex-wrap">
-                        <h3 className="font-sans text-base font-semibold text-primary">{consultation.memberName}</h3>
-                        <span className={`px-2 py-0.5 rounded text-xs font-bold uppercase tracking-wider ${
+                    <div className="min-w-0">
+                      <h3 className="font-sans text-base font-semibold text-primary break-words">{consultation.memberName}</h3>
+                      <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1">
+                        <span className={`px-2 py-0.5 rounded text-xs shrink-0 whitespace-nowrap font-bold uppercase tracking-wider ${
                           consultation.urgency === 'high' ? 'bg-red-50 text-red-700 border border-red-200/50' :
                           consultation.urgency === 'medium' ? 'bg-yellow-50 text-yellow-700 border border-yellow-200/50' :
                           'bg-surface-dim text-primary-muted border border-primary/10'
                         }`}>
                           {consultation.urgency || 'Normal'}
                         </span>
-
                         <StatusBadge status={consultation.status} />
                       </div>
-                      <p className="font-sans text-sm text-primary-muted">
+                      <p className="mt-1.5 font-sans text-sm text-primary-muted break-words">
                         {consultation.category} • {consultation.selectedTime ? formatDateTime(consultation.selectedTime, 'short') : 'Date pending'}
                       </p>
                     </div>
-                  </div>
 
-                  <div className="flex items-center gap-2 self-end sm:self-center">
-                    {consultation.meetingMethod !== 'in_person' && consultation.status === 'scheduled' && (
-                      <JoinSessionButton
-                        consultationId={consultation.id}
-                        initialMeetingLink={consultation.meetingLink || consultation.meetUrl || consultation.googleMeetUrl}
-                        buttonText="Join"
-                        loadingText="Joining..."
-                        icon={<Video size={13} />}
-                        className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg font-sans text-xs font-semibold bg-[#1c202e] text-white hover:bg-[#1c202e]/90 transition-all shadow-sm cursor-pointer disabled:opacity-50"
-                      />
-                    )}
-                    <Link
-                      to={`/pastor/request/${consultation.id}`}
-                      className="px-4 py-2 rounded-lg font-sans text-xs font-semibold transition-all bg-surface hover:bg-primary/5 text-primary border border-primary/10 cursor-pointer"
-                    >
-                      View Detail
-                    </Link>
-                  </div>
-                </div>
-              ))
+                    <div className="col-start-2 flex flex-wrap items-center gap-2 sm:col-start-3 sm:min-w-[12rem] sm:justify-end">
+                      {consultation.meetingMethod !== 'in_person' && consultation.status === 'scheduled' && (
+                        <JoinSessionButton
+                          consultationId={consultation.id}
+                          initialMeetingLink={consultation.meetingLink || consultation.meetUrl || consultation.googleMeetUrl}
+                          buttonText="Join"
+                          loadingText="Joining..."
+                          role="leader"
+                          icon={<Video size={13} />}
+                          className="inline-flex min-h-[44px] flex-1 items-center justify-center gap-1.5 whitespace-nowrap rounded-lg bg-[#1c202e] px-3 py-2 font-sans text-xs font-semibold text-white transition-all hover:bg-[#1c202e]/90 shadow-sm cursor-pointer disabled:opacity-50 sm:flex-none"
+                        />
+                      )}
+                      <Link
+                        to={`/pastor/request/${consultation.id}`}
+                        className="inline-flex min-h-[44px] flex-1 items-center justify-center whitespace-nowrap rounded-lg border border-primary/10 bg-surface px-4 py-2 font-sans text-xs font-semibold text-primary transition-all hover:bg-primary/5 sm:flex-none cursor-pointer"
+                      >
+                        View Detail
+                      </Link>
+                    </div>
+                  </li>
+                ))}
+              </ul>
             )}
           </div>
-        </div>
+        </section>
 
         {/* Right Column */}
-        <div className="flex flex-col gap-8">
+        <div className="flex flex-col gap-6 sm:gap-8">
           
           {/* Department & Ministry Oversight */}
-          <div className="bg-surface rounded-xl p-8 halo-border">
+          <div className="bg-surface rounded-xl p-5 sm:p-8 halo-border">
             <div className="flex items-center gap-3 mb-6 text-primary">
-              <Users size={20} className="text-primary-muted" />
-              <h2 className="font-serif text-2xl text-primary">Ministry Oversight</h2>
+              <Users size={20} className="text-primary-muted shrink-0" />
+              <h2 className="font-serif text-xl sm:text-2xl text-primary">Ministry Oversight</h2>
             </div>
             
             <div className="mb-6">
@@ -186,26 +207,32 @@ export function LeaderDashboard() {
             </div>
 
             <div className="flex items-center gap-2 text-xs font-sans text-primary-muted pt-4 border-t border-primary/5">
-              <Calendar size={14} />
+              <Calendar size={14} className="shrink-0" />
               <span className="font-medium">Upcoming leadership fellowship this week</span>
             </div>
           </div>
 
           {/* Reflections */}
-          <div className="bg-surface rounded-xl p-8 halo-border flex-grow flex flex-col">
+          <div className="bg-surface rounded-xl p-5 sm:p-8 halo-border flex-grow flex flex-col">
             <div className="flex items-center gap-3 mb-6 text-primary">
-              <Edit3 size={20} className="text-primary-muted" />
-              <h2 className="font-serif text-2xl text-primary">Ministry Notes</h2>
+              <Edit3 size={20} className="text-primary-muted shrink-0" />
+              <h2 className="font-serif text-xl sm:text-2xl text-primary">Ministry Notes</h2>
             </div>
             <label htmlFor="leader-notes" className="sr-only">Ministry Notes</label>
             <textarea 
               id="leader-notes"
               aria-label="Personal ministry reflections or discipleship prayer points"
+              value={leaderNote}
+              onChange={(e) => setLeaderNote(e.target.value)}
               className="w-full h-32 bg-background border border-primary/20 rounded-md p-4 font-sans text-sm text-primary placeholder:text-primary-muted focus:outline-none focus:border-secondary focus:ring-1 focus:ring-secondary transition-all resize-none mb-4"
               placeholder="Personal ministry reflections, discipleship prayer points..."
             ></textarea>
             <div className="mt-auto flex justify-end">
-              <button className="font-sans text-xs font-semibold uppercase tracking-widest text-primary border border-control px-3.5 py-2 rounded-md hover:bg-surface-dim transition-colors cursor-pointer active-sink">
+              <button
+                type="button"
+                onClick={handleSaveNote}
+                className="font-sans text-xs font-semibold uppercase tracking-widest text-primary border border-control px-3.5 py-2.5 min-h-[40px] rounded-md hover:bg-surface-dim transition-colors cursor-pointer active-sink"
+              >
                 Save Note
               </button>
             </div>

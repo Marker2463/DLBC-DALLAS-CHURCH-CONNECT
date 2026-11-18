@@ -40,17 +40,17 @@
       ]
     },
     {
-      "name": "consultation_notes",
+      "name": "consultations/{consultationId}/notes",
       "fields": [
-        { "name": "consultationId", "type": "string" },
-        { "name": "authorId", "type": "string" },
-        { "name": "authorRole", "type": "string" },
         { "name": "content", "type": "string" },
+        { "name": "authorId", "type": "string" },
+        { "name": "authorName", "type": "string" },
+        { "name": "authorRole", "type": "string" },
         { "name": "createdAt", "type": "timestamp" }
       ],
       "rules": [
-        { "allow": "read", "condition": "request.auth != null" },
-        { "allow": "create", "condition": "request.auth != null" }
+        { "allow": "read", "condition": "request.auth != null && (get(/databases/$(database)/documents/consultations/$(consultationId)).data.memberId == request.auth.uid || get(/databases/$(database)/documents/consultations/$(consultationId)).data.leaderId == request.auth.uid || get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin')" },
+        { "allow": "create", "condition": "request.auth != null && (get(/databases/$(database)/documents/consultations/$(consultationId)).data.memberId == request.auth.uid || get(/databases/$(database)/documents/consultations/$(consultationId)).data.leaderId == request.auth.uid || get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin')" }
       ]
     },
     {

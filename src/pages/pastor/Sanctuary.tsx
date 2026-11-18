@@ -64,13 +64,13 @@ export function PastorSanctuary() {
   const filteredSessions = sessions.filter(s => matchesRosterFilter(s.status, filter));
 
   return (
-    <div className="min-h-screen bg-[#faf8f5] pb-40">
-      <div className="max-w-7xl mx-auto px-6 w-full pt-16">
+    <div className="min-h-screen bg-[#faf8f5] pb-28 sm:pb-40">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 w-full pt-10 sm:pt-16">
         
         {/* Breadcrumbs */}
-        <div className="mb-6 font-sans text-xs font-bold uppercase tracking-widest text-primary-muted flex items-center justify-between">
+        <div className="mb-6 font-sans text-xs font-bold uppercase tracking-widest text-primary-muted flex flex-col sm:flex-row sm:items-center justify-between gap-2">
           <span>PASTORAL WORKSPACE &gt; CONSULTATIONS</span>
-          <div className="flex items-center gap-4">
+          <div className="flex flex-wrap items-center gap-3 sm:gap-4">
             <Link 
               to="/pastor/availability" 
               className={tertiaryLinkClass}
@@ -78,7 +78,7 @@ export function PastorSanctuary() {
               <Calendar size={13} />
               Manage Availability
             </Link>
-            <span className="text-primary-subtle">•</span>
+            <span className="hidden sm:inline text-primary-subtle">•</span>
             <Link 
               to="/pastor/archives" 
               className={tertiaryLinkClass}
@@ -90,7 +90,7 @@ export function PastorSanctuary() {
         </div>
 
         {/* Header */}
-        <div className="mb-10">
+        <div className="mb-8 sm:mb-10">
           <PageTitle className="mb-3">
             Consultations
           </PageTitle>
@@ -116,7 +116,79 @@ export function PastorSanctuary() {
           </div>
 
           <div className="bg-white rounded-xl border border-primary/10 overflow-hidden shadow-sm">
-            <div className="overflow-x-auto">
+            {/* Mobile Card Layout */}
+            <div className="md:hidden divide-y divide-primary/10">
+              {loading ? (
+                <div className="px-4 py-12 text-center text-primary-muted text-sm">
+                  <Loader2 className="animate-spin mx-auto mb-2 text-primary-muted" size={24} />
+                  Loading assigned consultations...
+                </div>
+              ) : filteredSessions.length === 0 ? (
+                <div className="px-4 py-12 text-center text-primary-muted text-sm">
+                  No {FILTER_EMPTY_NAMES[filter]} consultations.
+                </div>
+              ) : (
+                filteredSessions.map((session) => {
+                  const isInPerson = session.meetingMethod === 'in_person';
+                  return (
+                    <div key={session.id} className="p-4 space-y-3">
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="flex items-center gap-2.5 min-w-0">
+                          <div className="w-9 h-9 rounded-full bg-[#1c202e]/10 text-primary font-serif flex items-center justify-center text-sm shrink-0">
+                            {session.memberName ? session.memberName.charAt(0).toUpperCase() : <User size={14} />}
+                          </div>
+                          <div className="min-w-0">
+                            <p className="font-sans text-sm font-semibold text-primary truncate">
+                              {session.memberName || 'Congregation Member'}
+                            </p>
+                            <div className="flex items-center gap-1.5 flex-wrap">
+                              <span className="font-sans text-xs text-primary-muted truncate">{session.category}</span>
+                              {session.urgency === 'high' && (
+                                <span className="px-1.5 py-0.5 rounded bg-red-100 text-red-800 text-[10px] font-bold uppercase tracking-wider">
+                                  Urgent
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                        <StatusBadge status={session.status} />
+                      </div>
+
+                      <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-primary-muted">
+                        <span className="font-medium text-primary">
+                          {session.selectedTime ? `${formatDateTime(session.selectedTime, 'date')} • ${formatDateTime(session.selectedTime, 'time')}` : 'Pending Date'}
+                        </span>
+                        <FormatChip method={session.meetingMethod} />
+                      </div>
+
+                      <div className="flex items-center gap-2 pt-1">
+                        {!isInPerson && session.status === 'scheduled' && (
+                          <JoinSessionButton
+                            consultationId={session.id}
+                            initialMeetingLink={session.meetingLink}
+                            buttonText="Join"
+                            loadingText="Joining..."
+                            icon={<Video size={13} />}
+                            showTestButton={false}
+                            className="inline-flex min-h-[40px] flex-1 items-center justify-center gap-1.5 px-3 py-2 bg-[#1c202e] text-white text-xs font-semibold rounded-lg hover:bg-[#1c202e]/90 transition-colors shadow-sm cursor-pointer disabled:opacity-75 whitespace-nowrap"
+                          />
+                        )}
+                        <Link
+                          to={`/pastor/request/${session.id}`}
+                          className="inline-flex min-h-[40px] flex-1 items-center justify-center gap-1 px-3 py-2 bg-[#faf8f5] hover:bg-primary/5 text-primary text-xs font-semibold rounded-lg border border-primary/15 transition-colors whitespace-nowrap"
+                        >
+                          Details
+                          <ArrowRight size={12} />
+                        </Link>
+                      </div>
+                    </div>
+                  );
+                })
+              )}
+            </div>
+
+            {/* Desktop Table Layout */}
+            <div className="hidden md:block overflow-x-auto">
               <table className="w-full text-left font-sans text-sm">
                 <thead>
                   <tr className="border-b border-primary/10 bg-[#faf8f5]">
@@ -171,12 +243,14 @@ export function PastorSanctuary() {
                           </td>
 
                           <td className="px-6 py-4 text-primary whitespace-nowrap">
-                            <span className="font-medium">{session.category}</span>
-                            {session.urgency === 'high' && (
-                              <span className="ml-2 px-1.5 py-0.5 rounded bg-red-100 text-red-800 text-xs font-bold uppercase tracking-wider">
-                                Urgent
-                              </span>
-                            )}
+                            <div className="flex items-center">
+                              <span className="font-medium">{session.category}</span>
+                              {session.urgency === 'high' && (
+                                <span className="ml-2 px-1.5 py-0.5 rounded bg-red-100 text-red-800 text-xs font-bold uppercase tracking-wider">
+                                  Urgent
+                                </span>
+                              )}
+                            </div>
                           </td>
 
                           <td className="px-6 py-4 whitespace-nowrap text-xs font-medium">
@@ -224,7 +298,7 @@ export function PastorSanctuary() {
         <section aria-labelledby="pastoral-support-heading">
           <h2 id="pastoral-support-heading" className="sr-only">Pastoral Support &amp; Covenant Pillars</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="bg-white rounded-xl p-8 border border-primary/10 shadow-sm flex flex-col justify-between">
+            <div className="bg-white rounded-xl p-6 sm:p-8 border border-primary/10 shadow-sm flex flex-col justify-between">
               <div>
                 <Lock className="text-[#b93c3c] mb-3" size={22} />
                 <h3 className="font-serif text-xl text-primary mb-1">Encrypted Confidentiality</h3>
@@ -237,7 +311,7 @@ export function PastorSanctuary() {
               </Link>
             </div>
 
-            <div className="bg-white rounded-xl p-8 border border-primary/10 shadow-sm flex flex-col justify-between">
+            <div className="bg-white rounded-xl p-6 sm:p-8 border border-primary/10 shadow-sm flex flex-col justify-between">
               <div>
                 <Calendar className="text-[#b93c3c] mb-3" size={22} />
                 <h3 className="font-serif text-xl text-primary mb-1">Calendar Integration</h3>
@@ -250,7 +324,7 @@ export function PastorSanctuary() {
               </Link>
             </div>
 
-            <div className="bg-white rounded-xl p-8 border border-primary/10 shadow-sm flex flex-col justify-between">
+            <div className="bg-white rounded-xl p-6 sm:p-8 border border-primary/10 shadow-sm flex flex-col justify-between">
               <div>
                 <FileText className="text-[#b93c3c] mb-3" size={22} />
                 <h3 className="font-serif text-xl text-primary mb-1">Pastoral Case Notes</h3>

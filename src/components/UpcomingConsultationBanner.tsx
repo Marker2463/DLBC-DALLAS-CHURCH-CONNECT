@@ -53,13 +53,13 @@ export function UpcomingConsultationBanner({
   const scheduledTimeStr = activeSession.scheduledStart || activeSession.selectedTime;
 
   return (
-    <div className="bg-[#1c202e] rounded-xl p-6 md:p-8 mb-10 shadow-xl relative overflow-hidden text-white border border-white/10">
+    <div className="bg-[#1c202e] rounded-xl p-5 sm:p-6 md:p-8 mb-8 sm:mb-10 shadow-xl relative overflow-hidden text-white border border-white/10">
       {/* Ambient background highlight */}
       <div className="absolute top-0 right-0 w-96 h-96 bg-white/5 rounded-full blur-3xl pointer-events-none -mr-20 -mt-20" />
 
-      <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
-        <div className="flex items-start gap-5">
-          <div className="w-14 h-14 shrink-0 rounded-xl bg-white/10 flex items-center justify-center text-white border border-white/20 shadow-inner">
+      <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-5 sm:gap-6">
+        <div className="flex items-start gap-3.5 sm:gap-5 min-w-0">
+          <div className="w-11 h-11 sm:w-14 sm:h-14 shrink-0 rounded-xl bg-white/10 flex items-center justify-center text-white border border-white/20 shadow-inner">
             {activeSession.meetingMethod === 'in_person' ? (
               <MapPin size={26} className="text-white/90" />
             ) : (
@@ -97,21 +97,22 @@ export function UpcomingConsultationBanner({
         </div>
 
         {/* Action Suite with Join Room & Open Case Record */}
-        <div className="flex flex-wrap items-center gap-3 shrink-0">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 shrink-0 w-full lg:w-auto">
           {activeSession.meetingMethod !== 'in_person' && (
             <JoinSessionButton
               consultationId={activeSession.id}
               initialMeetingLink={activeSession.meetingLink || activeSession.meetUrl || activeSession.googleMeetUrl}
-              buttonText="Enter Session Room"
+              buttonText={role === 'member' ? "Join Pastoral Session" : "Start & Host Meeting"}
               loadingText="Connecting..."
+              role={role === 'member' ? "member" : "pastor"}
               icon={<Video size={16} />}
-              className="inline-flex items-center gap-2 bg-white text-[#1c202e] hover:bg-white/90 font-sans text-xs font-bold uppercase tracking-wider px-5 py-3 rounded-lg transition-all shadow-md active:scale-[0.98] cursor-pointer disabled:opacity-75"
+              className="inline-flex items-center justify-center gap-2 bg-white text-[#1c202e] hover:bg-white/90 font-sans text-xs font-bold uppercase tracking-wider px-5 py-3 rounded-lg transition-all shadow-md active:scale-[0.98] cursor-pointer disabled:opacity-75 w-full sm:w-auto"
             />
           )}
 
           <Link
             to={caseRecordLink}
-            className="inline-flex items-center gap-2 bg-white/10 hover:bg-white/20 text-white font-sans text-xs font-semibold uppercase tracking-wider px-4 py-3 rounded-lg transition-colors border border-white/20 cursor-pointer"
+            className="inline-flex items-center justify-center gap-2 bg-white/10 hover:bg-white/20 text-white font-sans text-xs font-semibold uppercase tracking-wider px-4 py-3 rounded-lg transition-colors border border-white/20 cursor-pointer w-full sm:w-auto"
           >
             <FileText size={15} />
             Open Case Record

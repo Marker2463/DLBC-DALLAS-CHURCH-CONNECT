@@ -1,26 +1,27 @@
+import { Link } from 'react-router-dom';
 import { Clock, PieChart, Lock, Scale, Hand, Download, AlignLeft, XSquare, Mail } from 'lucide-react';
 
 export function PrivacyPolicy() {
   return (
-    <div className="max-w-5xl mx-auto px-6 w-full py-16 pb-32">
+    <div className="max-w-5xl mx-auto px-4 sm:px-6 w-full py-10 sm:py-16 pb-28 sm:pb-32">
       {/* Header */}
-      <div className="flex flex-col items-center mb-16 text-center">
-        <h1 className="font-serif text-5xl md:text-6xl text-primary mb-6 tracking-tight">Privacy Policy</h1>
-        <p className="font-sans text-lg text-primary-muted">
+      <div className="flex flex-col items-center mb-12 sm:mb-16 text-center">
+        <h1 className="font-serif text-4xl sm:text-5xl md:text-6xl text-primary mb-4 sm:mb-6 tracking-tight">Privacy Policy</h1>
+        <p className="font-sans text-base sm:text-lg text-primary-muted">
           Dedicated to digital stewardship and pastoral care. Your trust is our highest calling.
         </p>
         
-        <div className="flex items-center gap-2 mt-8 text-secondary font-sans text-xs tracking-widest font-bold uppercase">
+        <div className="flex items-center gap-2 mt-6 sm:mt-8 text-secondary font-sans text-xs tracking-widest font-bold uppercase">
           <Clock size={14} />
           <span>Last Updated: March 2026</span>
         </div>
       </div>
 
       {/* Section 1 */}
-      <div className="bg-surface border border-primary/10 rounded-xl p-8 mb-8 halo-border">
-        <div className="flex items-center gap-3 mb-6">
-          <Lock size={24} className="text-secondary" />
-          <h2 className="font-serif text-3xl text-primary">Our Commitment to Spiritual Confidentiality</h2>
+      <div className="bg-surface border border-primary/10 rounded-xl p-5 sm:p-8 mb-6 sm:mb-8 halo-border">
+        <div className="flex items-center gap-3 mb-4 sm:mb-6">
+          <Lock size={24} className="text-secondary shrink-0" />
+          <h2 className="font-serif text-2xl sm:text-3xl text-primary">Our Commitment to Spiritual Confidentiality</h2>
         </div>
         <p className="font-sans text-primary-muted leading-relaxed mb-6 max-w-4xl">
           At DLBC Church Connect, we understand that the conversations and data shared within our platform often carry the weight of spiritual and personal confession. We approach data protection not merely as a legal requirement, but as a sacred duty of stewardship.
@@ -134,15 +135,18 @@ export function PrivacyPolicy() {
       </div>
 
       {/* Footer Block */}
-      <div className="bg-surface-dim/40 rounded-xl p-12 flex flex-col items-center text-center mt-12 border border-primary/5">
-        <h2 className="font-serif text-2xl text-primary mb-4">Questions about our stewardship of your data?</h2>
-        <p className="font-sans text-sm text-primary-muted max-w-xl mb-8 leading-relaxed">
+      <div className="bg-surface-dim/40 rounded-xl p-6 sm:p-12 flex flex-col items-center text-center mt-10 sm:mt-12 border border-primary/5">
+        <h2 className="font-serif text-xl sm:text-2xl text-primary mb-4">Questions about our stewardship of your data?</h2>
+        <p className="font-sans text-sm text-primary-muted max-w-xl mb-6 sm:mb-8 leading-relaxed">
           Our Data Protection Officer is available to discuss any concerns regarding how DLBC Church Connect handles your sensitive information.
         </p>
-        <button className="bg-primary hover:bg-primary/90 text-white font-sans text-sm font-medium px-6 py-3 rounded active-sink flex items-center gap-2 transition-colors">
+        <Link
+          to="/support"
+          className="min-h-[44px] w-full sm:w-auto bg-primary hover:bg-primary/90 text-white font-sans text-sm font-medium px-6 py-3 rounded active-sink flex items-center justify-center gap-2 transition-colors"
+        >
           <Mail size={18} />
           Contact Privacy Team
-        </button>
+        </Link>
       </div>
     </div>
   );

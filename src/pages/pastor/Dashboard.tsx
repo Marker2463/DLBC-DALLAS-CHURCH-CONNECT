@@ -10,12 +10,15 @@ import pewsImg from '../../assets/images/church_pews_editorial_1787251824185.jpg
 import { getInitials, formatDateTime, tertiaryLinkClass } from '../../lib/canonical';
 import { StatusBadge } from '../../components/StatusBadge';
 import { QuoteInline } from '../../components/Quotes';
+import { useToast } from '../../components/ui/ToastProvider';
 
 export function PastorDashboard() {
   const { user } = useAuth();
+  const { showToast } = useToast();
   const [consultations, setConsultations] = useState<Consultation[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [pastorNote, setPastorNote] = useState('');
 
   useEffect(() => {
     if (!user) return;
@@ -122,7 +125,9 @@ export function PastorDashboard() {
 
                   {/* Column 2: content (flexible, wraps) */}
                   <div className="min-w-0">
-                    <h3 className="break-words font-sans text-base font-semibold text-primary">{c.memberName}</h3>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <h3 className="break-words font-sans text-base font-semibold text-primary">{c.memberName}</h3>
+                    </div>
                     <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1">
                       <span className={`px-2 py-0.5 rounded text-xs shrink-0 whitespace-nowrap font-bold uppercase tracking-wider ${
                         c.urgency === 'high' ? 'bg-red-50 text-red-700 border border-red-200/50' :
@@ -165,13 +170,13 @@ export function PastorDashboard() {
         </section>
 
         {/* Right Column */}
-        <div className="flex flex-col gap-8">
+        <div className="flex flex-col gap-6 sm:gap-8">
           
           {/* Ministry Oversight */}
-          <div className="bg-surface rounded-xl p-8 halo-border">
+          <div className="bg-surface rounded-xl p-5 sm:p-8 halo-border">
             <div className="flex items-center gap-3 mb-6 text-primary">
-              <Users size={20} className="text-primary-muted" />
-              <h2 className="font-serif text-2xl text-primary">Ministry Oversight</h2>
+              <Users size={20} className="text-primary-muted shrink-0" />
+              <h2 className="font-serif text-xl sm:text-2xl text-primary">Ministry Oversight</h2>
             </div>
             
             <div className="mb-6">
@@ -186,26 +191,40 @@ export function PastorDashboard() {
             </div>
 
             <div className="flex items-center gap-2 text-xs font-sans text-primary-muted pt-4 border-t border-primary/5">
-              <Calendar size={14} />
+              <Calendar size={14} className="shrink-0" />
               <span className="font-semibold">2 upcoming milestones this week</span>
             </div>
           </div>
 
           {/* Reflections */}
-          <div className="bg-surface rounded-xl p-8 halo-border flex-grow flex flex-col">
+          <div className="bg-surface rounded-xl p-5 sm:p-8 halo-border flex-grow flex flex-col">
             <div className="flex items-center gap-3 mb-6 text-primary">
-              <Edit3 size={20} className="text-primary-muted" />
-              <h2 className="font-serif text-2xl text-primary">Reflections</h2>
+              <Edit3 size={20} className="text-primary-muted shrink-0" />
+              <h2 className="font-serif text-xl sm:text-2xl text-primary">Reflections</h2>
             </div>
             <label htmlFor="pastor-reflections" className="sr-only">Personal pastoral reflections</label>
             <textarea 
               id="pastor-reflections"
               aria-label="Personal pastoral reflections or prayer points"
+              value={pastorNote}
+              onChange={(e) => setPastorNote(e.target.value)}
               className="w-full h-32 bg-background border border-primary/20 rounded-md p-4 font-sans text-sm text-primary placeholder:text-primary-muted focus:outline-none focus:border-secondary focus:ring-1 focus:ring-secondary transition-all resize-none mb-4"
               placeholder="Personal pastoral reflections or prayer points..."
             ></textarea>
             <div className="mt-auto flex justify-end">
-              <button className="font-sans text-xs font-semibold uppercase tracking-widest text-primary border border-control px-3.5 py-2 rounded-md hover:bg-surface-dim transition-colors cursor-pointer active-sink">
+              <button
+                type="button"
+                onClick={() =>
+                  showToast({
+                    variant: 'success',
+                    title: 'Reflection Noted',
+                    message: pastorNote.trim()
+                      ? 'Your pastoral reflection has been noted.'
+                      : 'Reflection workspace ready.',
+                  })
+                }
+                className="font-sans text-xs font-semibold uppercase tracking-widest text-primary border border-control px-3.5 py-2.5 min-h-[40px] rounded-md hover:bg-surface-dim transition-colors cursor-pointer active-sink"
+              >
                 Save Note
               </button>
             </div>

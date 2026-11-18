@@ -25,7 +25,7 @@ export const STATUS_CONFIG: Record<ConsultationStatus, { label: string; classNam
   },
   cancelled: {
     label: 'Cancelled',
-    className: 'bg-stone-100 text-stone-700 border-stone-300',
+    className: 'bg-red-50 text-red-800 border-red-200',
   },
 };
 
@@ -52,3 +52,5 @@ export function StatusBadge({ status, className }: StatusBadgeProps) {
     </span>
   );
 }
+
+export const StatusPill = StatusBadge;

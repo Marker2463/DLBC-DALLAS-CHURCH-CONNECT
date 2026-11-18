@@ -25,6 +25,10 @@ export function GoogleSignInButton({
       const { profile } = await signInWithGoogle(desiredRole);
       onSuccess(profile.role);
     } catch (err: any) {
+      if (err?.code === 'auth/popup-closed-by-user' || err?.code === 'auth/cancelled-popup-request') {
+        // User closed or cancelled popup window intentionally
+        return;
+      }
       console.error('Google Sign-In Error:', err);
       onError(err.message || 'Google Sign-In failed. Please try again.');
     } finally {

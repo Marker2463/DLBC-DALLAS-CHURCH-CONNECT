@@ -26,6 +26,7 @@ const leaderNav: NavItem[] = [
   { name: 'Availability', path: '/pastor/availability' },
   { name: 'Consultations', path: '/pastor/sanctuary' },
   { name: 'Records', path: '/pastor/archives' },
+  { name: 'Settings', path: '/settings' },
 ];
 
 const pastorNav: NavItem[] = [
@@ -33,6 +34,7 @@ const pastorNav: NavItem[] = [
   { name: 'Availability', path: '/pastor/availability' },
   { name: 'Consultations', path: '/pastor/sanctuary' },
   { name: 'Records', path: '/pastor/archives' },
+  { name: 'Settings', path: '/settings' },
 ];
 
 const adminNav: NavItem[] = [
@@ -72,7 +74,7 @@ export function TopNav() {
     navigate('/');
   };
 
-  const isAdmin = user?.email === 'markeroladipo@gmail.com' || role === 'admin';
+  const isAdmin = role === 'admin';
   const isPastor = role === 'pastor';
   const isLeader = role === 'leader';
 
@@ -85,7 +87,7 @@ export function TopNav() {
 
   return (
     <>
-      <header className="fixed inset-x-0 top-0 z-50 flex h-16 lg:h-20 items-center justify-between gap-2 sm:gap-4 lg:gap-8 border-b border-[#ebdcd0] bg-background px-3 sm:px-6 lg:px-8">
+      <header className="fixed inset-x-0 top-0 z-50 flex h-16 lg:h-20 items-center justify-between gap-2 sm:gap-4 lg:gap-6 border-b border-[#ebdcd0] bg-background px-3 sm:px-6 lg:px-8">
         {/* Brand Identification Logo */}
         <Link 
           to={isAuthenticated ? (isAdmin ? "/admin/roles" : (isPastor ? "/pastor/dashboard" : (isLeader ? "/leader/dashboard" : "/member/dashboard"))) : "/"} 
@@ -95,9 +97,9 @@ export function TopNav() {
         </Link>
 
         {/* Structured Linear Workflows - Primary Desktop Nav */}
-        <nav aria-label="Primary" className="hidden lg:flex h-full items-center gap-6 lg:gap-8 shrink-0 min-w-[28rem] justify-center">
+        <nav aria-label="Primary" className="hidden xl:flex h-full items-center gap-4 lg:gap-6 shrink justify-center">
           {authLoading ? (
-            <div className="flex items-center gap-6 lg:gap-8 h-full">
+            <div className="flex items-center gap-4 lg:gap-6 h-full">
               <div className="h-4 w-20 bg-primary/10 rounded animate-pulse" />
               <div className="h-4 w-24 bg-primary/10 rounded animate-pulse" />
               <div className="h-4 w-20 bg-primary/10 rounded animate-pulse" />
@@ -115,7 +117,7 @@ export function TopNav() {
                   const isCustomInactive = item.path === '/member/request' && isMemberDetail;
                   const active = (isActive || isCustomActive) && !isCustomInactive;
 
-                  return `inline-flex h-full items-center whitespace-nowrap border-b-2 px-1 text-sm font-medium tracking-widest uppercase transition-colors ${
+                  return `inline-flex h-full items-center whitespace-nowrap border-b-2 px-1 text-sm font-medium tracking-wider uppercase transition-colors ${
                     active
                       ? "border-primary text-primary"
                       : "border-transparent text-primary-muted hover:text-primary"
@@ -135,7 +137,7 @@ export function TopNav() {
           ) : !isAuthenticated ? (
             <Link 
               to="/auth/login" 
-              className="bg-primary text-white text-xs sm:text-sm font-medium px-2.5 sm:px-5 py-2 sm:py-2.5 rounded-md shadow-sm hover:bg-primary/90 active:scale-[0.98] transition-all font-sans whitespace-nowrap flex items-center justify-center shrink-0 min-h-[36px] sm:min-h-[42px]"
+              className="bg-primary text-white text-xs sm:text-sm font-medium px-2.5 sm:px-5 py-2 sm:py-2.5 rounded-md shadow-sm hover:bg-primary/90 active:scale-[0.98] transition-all font-sans whitespace-nowrap flex items-center justify-center shrink-0 min-h-[44px]"
             >
               <span className="hidden min-[440px]:inline">Begin Consultation</span>
               <span className="min-[440px]:hidden">Consult</span>
@@ -143,17 +145,17 @@ export function TopNav() {
           ) : (
             <button 
               onClick={handleSignOut} 
-              className="text-xs sm:text-sm font-medium text-primary-muted hover:text-primary transition-colors font-sans cursor-pointer whitespace-nowrap px-2.5 py-1.5 rounded-md hover:bg-surface-dim min-h-[36px] sm:min-h-[42px] flex items-center justify-center"
+              className="text-xs sm:text-sm font-medium text-primary-muted hover:text-primary transition-colors font-sans cursor-pointer whitespace-nowrap px-2.5 py-1.5 rounded-md hover:bg-surface-dim min-h-[44px] flex items-center justify-center"
             >
               Log Out
             </button>
           )}
 
-          {/* Mobile Hamburger Toggle for < lg */}
+          {/* Mobile Hamburger Toggle for < xl */}
           <button
             type="button"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="lg:hidden flex items-center justify-center min-w-[44px] min-h-[44px] p-2 text-primary hover:bg-surface-dim active:bg-surface-dim/80 rounded-lg transition-colors cursor-pointer"
+            className="xl:hidden flex items-center justify-center min-w-[44px] min-h-[44px] p-2 text-primary hover:bg-surface-dim active:bg-surface-dim/80 rounded-lg transition-colors cursor-pointer"
             aria-label={mobileMenuOpen ? "Close navigation menu" : "Open navigation menu"}
             aria-expanded={mobileMenuOpen}
             aria-controls="mobile-nav-menu"
@@ -167,12 +169,12 @@ export function TopNav() {
         </div>
       </header>
 
-      {/* Mobile Nav Overlay & Drawer for screens < lg */}
+      {/* Mobile Nav Overlay & Drawer for screens < xl */}
       {mobileMenuOpen && (
         <>
           {/* Backdrop Scrim */}
           <div
-            className="fixed inset-0 top-16 z-40 bg-black/25 backdrop-blur-xs lg:hidden transition-opacity"
+            className="fixed inset-0 top-16 z-40 bg-black/25 backdrop-blur-xs xl:hidden transition-opacity"
             onClick={() => setMobileMenuOpen(false)}
             aria-hidden="true"
           />
@@ -180,7 +182,7 @@ export function TopNav() {
           {/* Drawer Menu */}
           <div
             id="mobile-nav-menu"
-            className="fixed inset-x-0 top-16 z-50 bg-background border-b border-[#ebdcd0] p-4 sm:p-6 shadow-xl lg:hidden max-h-[calc(100dvh-4rem)] overflow-y-auto animate-in fade-in slide-in-from-top-2 duration-200"
+            className="fixed inset-x-0 top-16 z-50 bg-background border-b border-[#ebdcd0] p-4 sm:p-6 shadow-xl xl:hidden max-h-[calc(100dvh-4rem)] overflow-y-auto animate-in fade-in slide-in-from-top-2 duration-200"
           >
             <nav aria-label="Mobile Navigation" className="flex flex-col gap-1.5">
               {activeMenu.map((item) => (

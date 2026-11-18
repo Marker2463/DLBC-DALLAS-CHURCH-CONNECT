@@ -29,7 +29,7 @@ export async function createZoomMeeting({
   topic,
   startTimeIso,
   durationMinutes,
-}: CreateZoomMeetingArgs): Promise<{ joinUrl: string; meetingId: string }> {
+}: CreateZoomMeetingArgs): Promise<{ joinUrl: string; startUrl: string; meetingId: string }> {
   const accessToken = await getZoomAccessToken();
 
   const res = await fetch('https://api.zoom.us/v2/users/me/meetings', {
@@ -45,9 +45,11 @@ export async function createZoomMeeting({
       duration: durationMinutes,
       timezone: 'America/Chicago',
       settings: {
-        join_before_host: true,
-        waiting_room: false,
+        join_before_host: false, // Critical: Leader/pastor controls meeting, member does not
+        waiting_room: true, // Member held in waiting room until leader/pastor admits them
         approval_type: 2,
+        host_video: true,
+        participant_video: true,
       },
     }),
   });
@@ -58,9 +60,10 @@ export async function createZoomMeeting({
   }
 
   const data = await res.json();
-  // Member and leader both receive the exact same join_url. Never return or store start_url.
+  // Leader receives start_url (host control credentials); member receives join_url (attendee)
   return {
     joinUrl: data.join_url,
+    startUrl: data.start_url || data.join_url,
     meetingId: String(data.id),
   };
 }

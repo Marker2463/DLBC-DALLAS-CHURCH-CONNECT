@@ -5,16 +5,18 @@ import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
 import { doc, setDoc } from 'firebase/firestore';
 import { Loader2, ArrowRight } from 'lucide-react';
 import { GoogleSignInButton } from '../../components/GoogleSignInButton';
+import { useToast } from '../../components/ui/ToastProvider';
+import { Popover } from '../../components/ui/Popover';
 
 export function Register() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  const { showToast } = useToast();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [requestedRole, setRequestedRole] = useState<'member' | 'leader' | 'pastor'>('member');
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
   
   const isSubmittingRef = useRef(false);
 
@@ -31,7 +33,6 @@ export function Register() {
 
     if (isSubmittingRef.current || loading) return;
     isSubmittingRef.current = true;
-    setError('');
     setLoading(true);
 
     const cleanEmail = email.trim().toLowerCase();
@@ -43,16 +44,36 @@ export function Register() {
       console.error('Registration Error:', err.code, err.message);
       switch (err.code) {
         case 'auth/email-already-in-use':
-          setError('An account already exists for this email. Please sign in instead.');
+          showToast({
+            variant: 'warning',
+            title: 'Account Already Exists',
+            message: 'An account is already registered with this email.',
+            action: {
+              label: 'Sign In',
+              onClick: () => navigate(`/auth/login?email=${encodeURIComponent(cleanEmail)}`),
+            },
+          });
           break;
         case 'auth/weak-password':
-          setError('Password should be at least 6 characters long.');
+          showToast({
+            variant: 'error',
+            title: 'Weak Password',
+            message: 'Password should be at least 6 characters long.',
+          });
           break;
         case 'auth/invalid-email':
-          setError('Please provide a valid email address.');
+          showToast({
+            variant: 'error',
+            title: 'Invalid Email',
+            message: 'Please provide a valid email address.',
+          });
           break;
         default:
-          setError(err.message || 'Failed to create account. Please try again.');
+          showToast({
+            variant: 'error',
+            title: 'Registration Failed',
+            message: err.message || 'Failed to create account. Please try again.',
+          });
       }
       setLoading(false);
       isSubmittingRef.current = false;
@@ -64,9 +85,8 @@ export function Register() {
         displayName: name.trim()
       });
 
-      const isAdmin = cleanEmail === 'markeroladipo@gmail.com';
-      const actualRole = isAdmin ? 'admin' : (requestedRole === 'member' ? 'member' : 'member');
-      const needsApproval = !isAdmin && (requestedRole === 'leader' || requestedRole === 'pastor');
+      const needsApproval = requestedRole === 'leader' || requestedRole === 'pastor';
+      const actualRole: 'member' | 'leader' | 'pastor' = 'member';
 
       const userDocPayload: any = {
         uid: userCredential.user.uid,
@@ -93,7 +113,11 @@ export function Register() {
         console.error('Failed to delete orphaned user', deleteErr);
       }
       
-      setError('Failed to setup your profile. Please try again.');
+      showToast({
+        variant: 'error',
+        title: 'Profile Setup Failed',
+        message: 'Failed to set up your profile. Please try again.',
+      });
       setLoading(false);
       isSubmittingRef.current = false;
       return;
@@ -102,17 +126,12 @@ export function Register() {
     setLoading(false);
     isSubmittingRef.current = false;
     
-    const isAdmin = cleanEmail === 'markeroladipo@gmail.com';
-    if (isAdmin) {
-      navigate('/admin/roles');
-    } else {
-      navigate('/member/dashboard');
-    }
+    navigate('/member/dashboard');
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-[75vh] px-6 w-full max-w-7xl mx-auto py-16">
-      <div className="w-full max-w-md bg-surface rounded-2xl p-8 md:p-10 halo-border flex flex-col items-center text-center shadow-sm">
+    <div className="flex flex-col items-center justify-center min-h-[75vh] px-4 sm:px-6 w-full max-w-7xl mx-auto py-10 sm:py-16">
+      <div className="w-full max-w-md bg-surface rounded-2xl p-5 sm:p-8 md:p-10 halo-border flex flex-col items-center text-center shadow-sm">
         
         <h1 className="font-serif text-3xl text-primary mb-6">Create Account</h1>
 
@@ -132,29 +151,17 @@ export function Register() {
                 navigate('/member/dashboard');
               }
             }}
-            onError={(msg) => setError(msg)}
+            onError={(msg) => showToast({ variant: 'error', title: 'Google Sign-Up Failed', message: msg })}
           />
         </div>
 
         <div className="w-full flex items-center gap-3 mb-6">
           <div className="flex-1 h-[1px] bg-primary/10"></div>
-          <span className="font-sans text-xs text-primary-muted uppercase tracking-wider">Or register with email</span>
+          <span className="font-sans text-xs text-primary-muted uppercase tracking-wider text-center">Or register with email</span>
           <div className="flex-1 h-[1px] bg-primary/10"></div>
         </div>
 
         <form onSubmit={handleSubmit} className="w-full space-y-4 text-left">
-          {error && (
-            <div className="bg-[#b93c3c]/10 text-[#b93c3c] border border-[#b93c3c]/20 p-3.5 rounded-xl text-xs leading-relaxed">
-              {error}
-              {error.includes('already exists') && (
-                <div className="mt-2 pt-2 border-t border-[#b93c3c]/20">
-                  <Link to={`/auth/login?email=${encodeURIComponent(email)}`} className="font-bold underline">
-                    Sign in with this email &rarr;
-                  </Link>
-                </div>
-              )}
-            </div>
-          )}
           
           <div className="space-y-1.5">
             <label className="block font-sans text-xs font-bold uppercase tracking-wider text-primary" htmlFor="name">
@@ -206,7 +213,7 @@ export function Register() {
             <label className="block font-sans text-xs font-bold uppercase tracking-wider text-primary">
               Account Purpose / Role
             </label>
-            <div className="grid grid-cols-3 gap-2">
+            <div className="grid grid-cols-1 min-[420px]:grid-cols-3 gap-2">
               <button
                 type="button"
                 onClick={() => setRequestedRole('member')}
@@ -242,9 +249,14 @@ export function Register() {
               </button>
             </div>
             {requestedRole !== 'member' && (
-              <p className="text-xs text-primary-muted italic pt-1 leading-snug">
-                Note: Leader &amp; Pastor accounts activate as member accounts and receive pastoral dashboard privileges upon verification by the administrator.
-              </p>
+              <div className="flex items-center justify-between gap-2 pt-1.5">
+                <span className="text-xs text-primary-muted">Requires administrator approval</span>
+                <Popover title="Leadership Verification" triggerLabel="Details" align="right">
+                  <p>
+                    Leader &amp; Pastor accounts activate immediately with standard member access and receive pastoral dashboard privileges once verified by an administrator.
+                  </p>
+                </Popover>
+              </div>
             )}
           </div>
           

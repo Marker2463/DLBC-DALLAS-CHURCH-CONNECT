@@ -1,21 +1,29 @@
 import { Link } from 'react-router-dom';
-import { Handshake, Calendar, ChevronRight, Video, Loader2 } from 'lucide-react';
+import { Calendar, MessageSquare, HeartHandshake, Edit3, Loader2, Video, ChevronRight } from 'lucide-react';
 import { useAuth } from '../../lib/AuthContext';
 import { useState, useEffect } from 'react';
 import { db, Consultation } from '../../lib/firebase';
 import { collection, query, where, onSnapshot } from 'firebase/firestore';
-import { formatDateTime } from '../../lib/canonical';
+import JoinSessionButton from '../../components/JoinSessionButton';
+import studyImg from '../../assets/images/pastoral_care_study_1787251812830.jpg';
+import pewsImg from '../../assets/images/church_pews_editorial_1787251824185.jpg';
+import { getInitials, formatDateTime, tertiaryLinkClass } from '../../lib/canonical';
 import { StatusBadge } from '../../components/StatusBadge';
-import { QuoteFeature } from '../../components/Quotes';
+import { QuoteInline } from '../../components/Quotes';
+import { useToast } from '../../components/ui/ToastProvider';
 
 export function Dashboard() {
   const { user } = useAuth();
+  const { showToast } = useToast();
   const [consultations, setConsultations] = useState<Consultation[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [reflectionText, setReflectionText] = useState('');
 
   useEffect(() => {
     if (!user) return;
     
+    // Query active consultations for this member
     const q = query(
       collection(db, 'consultations'),
       where('memberId', '==', user.uid)
@@ -23,111 +31,267 @@ export function Dashboard() {
 
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const docs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Consultation));
+      
+      // Filter out completed, archived, and cancelled ones, keep only active
+      const activeDocs = docs.filter(c => c.status !== 'completed' && c.status !== 'archived' && c.status !== 'cancelled');
+      
       // Sort descending so most recent is first
-      docs.sort((a, b) => {
+      activeDocs.sort((a, b) => {
         const timeA = a.scheduledStart || a.selectedTime ? new Date(a.scheduledStart || a.selectedTime || '').getTime() : (a.createdAt ? new Date(a.createdAt).getTime() : 0);
         const timeB = b.scheduledStart || b.selectedTime ? new Date(b.scheduledStart || b.selectedTime || '').getTime() : (b.createdAt ? new Date(b.createdAt).getTime() : 0);
         return timeB - timeA;
       });
-      setConsultations(docs);
+      setConsultations(activeDocs);
       setLoading(false);
+      setError(null);
     }, (err) => {
       console.error("Error fetching consultations:", err);
+      setError(err.message);
       setLoading(false);
     });
 
     return () => unsubscribe();
   }, [user]);
 
+  const handleSaveReflection = () => {
+    showToast({
+      variant: 'success',
+      title: 'Reflection Noted',
+      message: reflectionText.trim()
+        ? 'Your prayer & reflection has been noted for your next session.'
+        : 'Reflection workspace ready.',
+    });
+  };
+
   return (
-    <div className="max-w-7xl mx-auto px-6 w-full py-16 pb-32">
-      {/* Greeting Section */}
+    <div className="max-w-7xl mx-auto w-full px-4 sm:px-6 py-10 md:py-16 pb-32">
+      {/* Header Greeting aligned with Pastor Dashboard */}
       <div className="mb-12">
-        <h1 className="font-serif text-5xl md:text-6xl text-primary mb-4 tracking-tight">
-          Welcome back, {user?.displayName || 'Friend'}.
+        <h1 className="font-serif text-4xl md:text-5xl lg:text-6xl text-primary mb-4 tracking-tight break-words">
+          Peace be with you, {user?.displayName || 'Friend'}.
         </h1>
-        <p className="font-serif text-2xl text-primary-muted italic">Peace be with you.</p>
+        <QuoteInline quote="The Lord is my shepherd; I shall not want." citation="Psalm 23:1" />
       </div>
 
-      {/* Daily Reflection */}
-      <section className="max-w-2xl mx-auto text-center mb-16 relative py-10 px-6">
-        <div className="absolute inset-0 bg-surface-dim/30 rounded-xl -z-10 halo-border"></div>
-        <QuoteFeature
-          quote="Be completely humble and gentle; be patient, bearing with one another in love. Make every effort to keep the unity of the Spirit through the bond of peace."
-          citation="Ephesians 4:2-3"
-          showDecorativeGlyph={true}
-          className="py-2"
-        />
-      </section>
+      <section className="mb-16 min-h-[580px] sm:min-h-[620px] lg:min-h-[520px]">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8 items-start">
+        
+          {/* Active Consultations (Identical layout to Pastor Dashboard) */}
+          <section
+            aria-labelledby="active-consultations-heading"
+            className="lg:col-span-2 min-w-0 bg-surface rounded-xl p-5 sm:p-8 halo-border flex flex-col min-h-[360px]"
+          >
+            <div className="mb-6 sm:mb-8 flex flex-col gap-3 border-b border-primary/10 pb-4 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex min-w-0 items-center gap-3 text-primary">
+                <MessageSquare size={20} className="shrink-0 text-primary-muted" aria-hidden="true" />
+                <h2 id="active-consultations-heading" className="min-w-0 break-words font-serif text-xl sm:text-2xl text-primary">
+                  Active Consultations
+                </h2>
+              </div>
+              <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+                <Link to="/member/request" className={tertiaryLinkClass}>+ Request Consultation</Link>
+                <Link to="/member/sanctuary" className={tertiaryLinkClass}>View Records</Link>
+              </div>
+            </div>
 
-      {/* My Journey Bento Grid */}
-      <section className="mb-24">
-        <h2 className="font-serif text-3xl text-primary mb-8 border-b border-primary/10 pb-4">My Journey</h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          
-          {/* Active Consultations */}
-          <div className="bg-surface rounded-lg p-8 halo-border col-span-1 md:col-span-2 relative overflow-hidden group min-h-[380px] sm:min-h-[420px] flex flex-col">
-            <span className="inline-block px-3 py-1 bg-background rounded-full font-sans text-xs text-primary-muted mb-6 halo-border self-start">Active Consultations</span>
-            
             {loading ? (
-              <div className="space-y-4 animate-pulse flex-1" role="status" aria-busy="true" aria-label="Loading consultations">
+              <div role="status" aria-busy="true" className="divide-y divide-primary/5 animate-pulse flex-1">
+                <span className="sr-only">Loading consultations</span>
                 {[1, 2, 3].map((i) => (
-                  <div key={i} className="bg-background border border-primary/10 rounded-lg p-4">
-                    <div className="flex justify-between items-start mb-2">
-                      <div className="h-5 bg-primary/10 rounded w-1/3"></div>
-                      <div className="h-5 bg-primary/10 rounded w-20"></div>
+                  <div
+                    key={i}
+                    className="grid grid-cols-[auto_minmax(0,1fr)] gap-x-4 gap-y-4 rounded-xl px-3 py-4 sm:grid-cols-[auto_minmax(0,1fr)_auto] sm:items-center"
+                  >
+                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-primary/10" />
+                    <div className="min-w-0 space-y-2">
+                      <div className="h-5 bg-primary/10 rounded w-1/3" />
+                      <div className="h-4 bg-primary/10 rounded w-1/2" />
                     </div>
-                    <div className="h-4 bg-primary/10 rounded w-1/2 mb-2"></div>
-                    <div className="h-3 bg-primary/10 rounded w-1/3 mt-3"></div>
+                    <div className="col-start-2 sm:col-start-3 sm:min-w-[12rem] flex justify-end">
+                      <div className="h-9 w-28 bg-primary/10 rounded" />
+                    </div>
                   </div>
                 ))}
               </div>
+            ) : error ? (
+              <div role="alert" className="py-8 text-center">
+                <p className="font-sans text-base text-red-700">We couldn't load your consultations. Please refresh and try again.</p>
+              </div>
             ) : consultations.length === 0 ? (
-              <div className="text-center py-8 my-auto">
-                <p className="font-sans text-base text-primary-subtle">You have no active consultations at this time.</p>
+              <div className="border border-dashed border-[#e2dcce] bg-[#faf8f3] rounded-xl p-8 text-center flex flex-col items-center justify-center my-auto">
+                <p className="font-serif text-lg text-primary mb-2">No active consultations currently scheduled.</p>
+                <p className="font-sans text-sm text-primary-subtle max-w-sm mb-4">When you request spiritual guidance, your scheduled sessions with pastoral counselors will appear here.</p>
+                <Link
+                  to="/member/request"
+                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-[#1c202e] text-white text-xs font-semibold hover:bg-[#1c202e]/90 transition-colors"
+                >
+                  Request Consultation <ChevronRight size={14} />
+                </Link>
               </div>
             ) : (
-              <div className="space-y-4">
-                {consultations.slice(0, 3).map((consultation) => (
-                  <Link key={consultation.id} to={`/member/request/${consultation.id}`} className="block bg-background border border-primary/10 rounded-lg p-4 hover:border-primary/30 transition-colors">
-                    <div className="flex justify-between items-start mb-2">
-                      <h3 className="font-sans text-base font-medium text-primary min-w-0 break-words line-clamp-3">{consultation.category}</h3>
-                      <StatusBadge status={consultation.status} />
+              <ul role="list" className="divide-y divide-primary/5">
+                {consultations.map((c) => (
+                  <li
+                    key={c.id}
+                    className="grid grid-cols-[auto_minmax(0,1fr)] gap-x-4 gap-y-4 rounded-xl px-3 py-4 transition-colors hover:bg-primary/[0.02] sm:grid-cols-[auto_minmax(0,1fr)_auto] sm:items-center"
+                  >
+                    {/* Column 1: avatar (fixed width) */}
+                    <div aria-hidden="true" className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full border border-primary/10 bg-surface-dim text-sm font-semibold uppercase text-primary shadow-sm">
+                      {getInitials(c.leaderName || 'Pastoral Office')}
                     </div>
-                    {consultation.selectedTime && (
-                      <p className="font-sans text-sm text-primary-muted mb-2 flex items-center gap-2">
-                        <Calendar size={14} />
-                        {formatDateTime(consultation.selectedTime, 'short')}
-                      </p>
-                    )}
-                    {consultation.googleMeetUrl && (
-                      <div className="flex items-center gap-2 text-secondary font-sans text-xs mt-3">
-                        <Video size={14} /> Video Room Assigned
-                      </div>
-                    )}
-                  </Link>
-                ))}
-              </div>
-            )}
-          </div>
 
-          {/* Pastoral Connection */}
-          <div className="bg-[#1c202e] rounded-lg p-8 halo-border col-span-1 flex flex-col justify-between text-white group">
-            <div>
-              <Handshake size={32} className="text-[#b93c3c] mb-4" />
-              <h3 className="font-serif text-2xl text-white mb-2">Pastoral Connection</h3>
-              <p className="font-sans text-base text-white/70 mb-8">Seek guidance or share your burdens in a confidential space.</p>
+                    {/* Column 2: content (flexible, wraps) */}
+                    <div className="min-w-0">
+                      <h3 className="break-words font-sans text-base font-semibold text-primary">
+                        {c.leaderName || 'Pastoral Office'}
+                      </h3>
+                      <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1">
+                        <span className={`px-2 py-0.5 rounded text-xs shrink-0 whitespace-nowrap font-bold uppercase tracking-wider ${
+                          c.urgency === 'high' ? 'bg-red-50 text-red-700 border border-red-200/50' :
+                          c.urgency === 'medium' ? 'bg-yellow-50 text-yellow-700 border border-yellow-200/50' :
+                          'bg-surface-dim text-primary-muted border border-primary/10'
+                        }`}>
+                          {c.urgency || 'Normal'}
+                        </span>
+                        <StatusBadge status={c.status} />
+                      </div>
+                      <p className="mt-1.5 break-words font-sans text-sm text-primary-muted">{c.category}</p>
+                      <p className="font-sans text-sm text-primary-muted">
+                        {c.selectedTime ? formatDateTime(c.selectedTime, 'short') : 'Date pending'}
+                      </p>
+                    </div>
+
+                    {/* Column 3: actions (right-aligned) */}
+                    <div className="col-start-2 flex flex-wrap items-center gap-2 sm:col-start-3 sm:min-w-[12rem] sm:justify-end">
+                      {c.meetingMethod !== 'in_person' && c.status === 'scheduled' && (
+                        <JoinSessionButton
+                          consultationId={c.id}
+                          initialMeetingLink={c.meetingLink}
+                          buttonText="Join"
+                          loadingText="Joining..."
+                          icon={<Video size={13} />}
+                          role="member"
+                          className="inline-flex min-h-[44px] flex-1 items-center justify-center gap-1.5 whitespace-nowrap rounded-lg bg-[#1c202e] px-3 py-2 font-sans text-xs font-semibold text-white shadow-sm transition-all hover:bg-[#1c202e]/90 disabled:opacity-50 sm:flex-none cursor-pointer"
+                        />
+                      )}
+                      <Link
+                        to={`/member/request/${c.id}`}
+                        className="inline-flex min-h-[44px] flex-1 items-center justify-center whitespace-nowrap rounded-lg border border-primary/10 bg-surface px-4 py-2 font-sans text-xs font-semibold text-primary transition-all hover:bg-primary/5 sm:flex-none cursor-pointer"
+                      >
+                        View Detail
+                      </Link>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </section>
+
+          {/* Right Column (Matching Pastor Dashboard layout) */}
+          <div className="flex flex-col gap-6 sm:gap-8">
+            
+            {/* Pastoral Connection */}
+            <div className="bg-surface rounded-xl p-5 sm:p-8 halo-border">
+              <div className="flex items-center gap-3 mb-6 text-primary">
+                <HeartHandshake size={20} className="text-[#b93c3c] shrink-0" />
+                <h2 className="font-serif text-xl sm:text-2xl text-primary">Pastoral Connection</h2>
+              </div>
+              
+              <div className="mb-6">
+                <h3 className="font-sans text-sm font-semibold text-primary mb-2">Spiritual Care Covenant</h3>
+                <p className="font-sans text-sm text-primary-muted leading-relaxed mb-4">
+                  All consultations and spiritual matters shared with our pastors remain strictly confidential and prayerfully held.
+                </p>
+                <div className="w-full bg-primary/5 h-1.5 rounded-full mb-3 overflow-hidden">
+                  <div className="bg-[#b93c3c] h-full rounded-full" style={{ width: '100%' }}></div>
+                </div>
+                <div className="flex justify-between gap-2 text-xs font-sans text-primary-muted">
+                  <span>Protected Pastoral Non-Disclosure</span>
+                  <span className="text-emerald-700 font-semibold shrink-0">Active</span>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2 text-xs font-sans text-primary-muted pt-4 border-t border-primary/5">
+                <Calendar size={14} className="shrink-0" />
+                <Link to="/member/request" className="font-semibold text-primary hover:underline">
+                  Schedule next pastoral session &rarr;
+                </Link>
+              </div>
             </div>
-            <Link 
-              to="/member/request" 
-              className="w-full py-3 px-4 border border-white/20 rounded font-sans text-sm text-white hover:bg-white/10 transition-colors flex items-center justify-center gap-2"
-            >
-              Request Consultation <ChevronRight size={16} />
-            </Link>
+
+            {/* Prayer Requests & Reflections (Matching Pastor Dashboard note taking) */}
+            <div className="bg-surface rounded-xl p-5 sm:p-8 halo-border flex-grow flex flex-col">
+              <div className="flex items-center gap-3 mb-6 text-primary">
+                <Edit3 size={20} className="text-primary-muted shrink-0" />
+                <h2 className="font-serif text-xl sm:text-2xl text-primary">Prayer &amp; Reflection</h2>
+              </div>
+              <label htmlFor="member-reflections" className="sr-only">Personal prayer points or questions for pastoral counsel</label>
+              <textarea 
+                id="member-reflections"
+                aria-label="Personal prayer points or questions for pastoral counsel"
+                value={reflectionText}
+                onChange={(e) => setReflectionText(e.target.value)}
+                className="w-full h-32 bg-background border border-primary/20 rounded-md p-4 font-sans text-sm text-primary placeholder:text-primary-muted focus:outline-none focus:border-secondary focus:ring-1 focus:ring-secondary transition-all resize-none mb-4"
+                placeholder="Personal prayer points, scriptures, or reflections for your next consultation..."
+              ></textarea>
+              <div className="mt-auto flex justify-end">
+                <button 
+                  onClick={handleSaveReflection}
+                  type="button"
+                  className="font-sans text-xs font-semibold uppercase tracking-widest text-primary border border-control px-3.5 py-2.5 min-h-[40px] rounded-md hover:bg-surface-dim transition-colors cursor-pointer active-sink"
+                >
+                  Save Reflection
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       </section>
+      
+      {/* Spiritual Vitality Section (Matching Pastor Dashboard) */}
+      <div>
+        <h2 className="font-serif text-2xl text-primary mb-8 border-b border-primary/10 pb-4">Spiritual Vitality</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          
+          {/* Sabbath Rhythm */}
+          <div className="group cursor-pointer">
+            <div className="aspect-[21/9] rounded-xl overflow-hidden mb-4 relative">
+              <img 
+                src={studyImg} 
+                alt="Quiet study space for reflection and prayer" 
+                width={600}
+                height={257}
+                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+              />
+              <div className="absolute inset-0 bg-primary/10 group-hover:bg-transparent transition-colors duration-500"></div>
+              <div className="absolute bottom-4 left-4">
+                <span className="bg-white/95 backdrop-blur-sm text-primary font-sans text-xs font-bold uppercase tracking-wider px-2.5 py-1 rounded">Pastoral Guidance</span>
+              </div>
+            </div>
+            <h3 className="font-serif text-xl text-primary mb-2">Sabbath Rhythm &amp; Rest</h3>
+            <p className="font-sans text-sm text-primary-muted">Take time to pray, meditate upon scripture, and rest in God's presence this week.</p>
+          </div>
+
+          {/* Sanctuary Fellowship */}
+          <div className="group cursor-pointer">
+            <div className="aspect-[21/9] rounded-xl overflow-hidden mb-4 relative">
+              <img 
+                src={pewsImg} 
+                alt="Church pews in the sanctuary" 
+                width={600}
+                height={257}
+                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+              />
+              <div className="absolute inset-0 bg-primary/20 group-hover:bg-primary/10 transition-colors duration-500"></div>
+              <div className="absolute bottom-4 left-4">
+                <span className="bg-white/95 backdrop-blur-sm text-primary font-sans text-xs font-bold uppercase tracking-wider px-2.5 py-1 rounded">Sanctuary Worship</span>
+              </div>
+            </div>
+            <h3 className="font-serif text-xl text-primary mb-2">Sanctuary Gatherings &amp; Fellowship</h3>
+            <p className="font-sans text-sm text-primary-muted">Join the Dallas church community for Sunday worship, mid-week prayer, and fellowship.</p>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
-

@@ -3,11 +3,15 @@ import { auth, db, UserProfile, UserRole } from './firebase';
 import { onAuthStateChanged, signOut as firebaseSignOut } from 'firebase/auth';
 import { doc, getDoc } from 'firebase/firestore';
 
+import { User as FirebaseUser } from 'firebase/auth';
+
 type AuthContextType = {
   isAuthenticated: boolean;
   user: UserProfile | null;
+  firebaseUser: FirebaseUser | null;
   role: UserRole | null;
   logout: () => Promise<void>;
+  getIdToken: (forceRefresh?: boolean) => Promise<string | null>;
   loading: boolean;
 };
 
@@ -16,11 +20,13 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [user, setUser] = useState<UserProfile | null>(null);
+  const [rawFirebaseUser, setRawFirebaseUser] = useState<FirebaseUser | null>(null);
   const [role, setRole] = useState<UserRole | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      setRawFirebaseUser(firebaseUser);
       if (firebaseUser) {
         // Fetch user profile from Firestore
         const docRef = doc(db, 'users', firebaseUser.uid);
@@ -28,24 +34,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         
         if (docSnap.exists()) {
           const profile = docSnap.data() as UserProfile;
-          let currentRole = profile.role;
-          if (firebaseUser.email === 'markeroladipo@gmail.com' && currentRole !== 'admin') {
-            const { updateDoc } = await import('firebase/firestore');
-            await updateDoc(docRef, { role: 'admin' });
-            currentRole = 'admin';
-          }
+          const currentRole = profile.role || 'member';
           setUser({ ...profile, role: currentRole });
           setRole(currentRole);
           setIsAuthenticated(true);
         } else {
-          // Self-heal: Create missing profile document if it somehow failed during registration
+          // Self-heal: Create missing profile document if it somehow failed during registration (member role only)
           const { setDoc } = await import('firebase/firestore');
-          const isAdmin = firebaseUser.email === 'markeroladipo@gmail.com';
           const newProfile = {
             uid: firebaseUser.uid,
             displayName: firebaseUser.displayName || 'User',
             email: firebaseUser.email?.toLowerCase().trim() || '',
-            role: isAdmin ? 'admin' : 'member',
+            role: 'member' as UserRole,
             createdAt: new Date().toISOString()
           };
           
@@ -56,7 +56,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           }
 
           setUser(newProfile as UserProfile);
-          setRole(newProfile.role as UserRole);
+          setRole('member');
           setIsAuthenticated(true);
         }
       } else {
@@ -74,8 +74,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await firebaseSignOut(auth);
   };
 
+  const getIdToken = async (forceRefresh = false): Promise<string | null> => {
+    const current = rawFirebaseUser || auth.currentUser;
+    if (!current) return null;
+    return current.getIdToken(forceRefresh);
+  };
+
   return (
-    <AuthContext.Provider value={{ isAuthenticated, user, role, logout, loading }}>
+    <AuthContext.Provider
+      value={{
+        isAuthenticated,
+        user,
+        firebaseUser: rawFirebaseUser,
+        role,
+        logout,
+        getIdToken,
+        loading,
+      }}
+    >
       {!loading && children}
     </AuthContext.Provider>
   );

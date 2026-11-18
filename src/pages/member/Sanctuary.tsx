@@ -71,11 +71,11 @@ export function MemberSanctuary() {
   const filteredSessions = sessions.filter(s => matchesRosterFilter(s.status, filter));
 
   return (
-    <div className="min-h-screen bg-[#faf8f5] pb-40">
-      <div className="max-w-7xl mx-auto px-6 w-full pt-16">
+    <div className="min-h-screen bg-[#faf8f5] pb-28 sm:pb-40">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 w-full pt-10 sm:pt-16">
         
         {/* Breadcrumbs */}
-        <div className="mb-6 font-sans text-xs font-bold uppercase tracking-widest text-primary-muted flex items-center justify-between">
+        <div className="mb-6 font-sans text-xs font-bold uppercase tracking-widest text-primary-muted flex flex-col sm:flex-row sm:items-center justify-between gap-2">
           <span>MEMBER PORTAL &gt; CONSULTATIONS</span>
           <Link 
             to="/member/request" 
@@ -86,7 +86,7 @@ export function MemberSanctuary() {
         </div>
 
         {/* Header */}
-        <div className="mb-10">
+        <div className="mb-8 sm:mb-10">
           <PageTitle className="mb-3">
             Consultations
           </PageTitle>
@@ -112,7 +112,74 @@ export function MemberSanctuary() {
           </div>
 
           <div className="bg-white rounded-xl border border-primary/10 overflow-hidden shadow-sm">
-            <div className="overflow-x-auto">
+            {/* Mobile Card Layout */}
+            <div className="md:hidden divide-y divide-primary/10">
+              {loading ? (
+                <div className="px-4 py-12 text-center text-primary-muted text-sm">
+                  <Loader2 className="animate-spin mx-auto mb-2 text-primary-muted" size={24} />
+                  Loading appointments...
+                </div>
+              ) : filteredSessions.length === 0 ? (
+                <div className="px-4 py-12 text-center text-primary-muted text-sm">
+                  No {FILTER_EMPTY_NAMES[filter]} consultations.
+                </div>
+              ) : (
+                filteredSessions.map((session) => {
+                  const isInPerson = session.meetingMethod === 'in_person';
+                  return (
+                    <div key={session.id} className="p-4 space-y-3">
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="flex items-center gap-2.5 min-w-0">
+                          <div className="w-9 h-9 rounded-full bg-[#1c202e]/10 text-primary font-sans flex items-center justify-center text-xs font-semibold shrink-0">
+                            {getInitials(session.leaderName)}
+                          </div>
+                          <div className="min-w-0">
+                            <p className="font-sans text-sm font-semibold text-primary truncate">
+                              {session.leaderName || 'Pastoral Office'}
+                            </p>
+                            <p className="font-sans text-xs text-primary-muted truncate">
+                              {session.category}
+                            </p>
+                          </div>
+                        </div>
+                        <StatusBadge status={session.status} />
+                      </div>
+
+                      <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-primary-muted">
+                        <span className="font-medium text-primary">
+                          {session.selectedTime ? `${formatDateTime(session.selectedTime, 'date')} • ${formatDateTime(session.selectedTime, 'time')}` : 'Date Pending'}
+                        </span>
+                        <FormatChip method={session.meetingMethod} />
+                      </div>
+
+                      <div className="flex items-center gap-2 pt-1">
+                        {!isInPerson && session.status === 'scheduled' && (
+                          <JoinSessionButton
+                            consultationId={session.id}
+                            initialMeetingLink={session.meetingLink}
+                            buttonText="Join"
+                            loadingText="Joining..."
+                            icon={<Video size={13} />}
+                            showTestButton={false}
+                            className="inline-flex min-h-[40px] flex-1 items-center justify-center gap-1.5 px-3 py-2 bg-[#1c202e] text-white text-xs font-semibold rounded-lg hover:bg-[#1c202e]/90 transition-colors shadow-sm cursor-pointer disabled:opacity-75 whitespace-nowrap"
+                          />
+                        )}
+                        <Link
+                          to={`/member/request/${session.id}`}
+                          className="inline-flex min-h-[40px] flex-1 items-center justify-center gap-1 px-3 py-2 bg-[#faf8f5] hover:bg-primary/5 text-primary text-xs font-semibold rounded-lg border border-primary/15 transition-colors whitespace-nowrap"
+                        >
+                          Details
+                          <ArrowRight size={12} />
+                        </Link>
+                      </div>
+                    </div>
+                  );
+                })
+              )}
+            </div>
+
+            {/* Desktop Table Layout */}
+            <div className="hidden md:block overflow-x-auto">
               <table className="w-full text-left font-sans text-sm">
                 <thead>
                   <tr className="border-b border-primary/10 bg-[#faf8f5]">
@@ -166,8 +233,8 @@ export function MemberSanctuary() {
                             </div>
                           </td>
 
-                          <td className="px-6 py-4 text-primary whitespace-nowrap font-medium">
-                            {session.category}
+                          <td className="px-6 py-4 text-primary whitespace-nowrap">
+                            <div className="font-medium">{session.category}</div>
                           </td>
 
                           <td className="px-6 py-4 whitespace-nowrap text-xs font-medium">
@@ -211,12 +278,12 @@ export function MemberSanctuary() {
         </div>
 
         {/* Pre-Consultation Preparation Guide */}
-        <section aria-labelledby="prep-guide-heading" className="mb-16">
+        <section aria-labelledby="prep-guide-heading" className="mb-12 sm:mb-16">
           <h2 id="prep-guide-heading" className="font-sans text-sm font-bold uppercase tracking-widest text-primary mb-6">
             Consultation Preparation Checklist
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="bg-white rounded-xl p-8 border border-primary/10 shadow-sm flex flex-col gap-3">
+            <div className="bg-white rounded-xl p-6 sm:p-8 border border-primary/10 shadow-sm flex flex-col gap-3">
               <MapPin className="text-[#b93c3c] mb-1" size={20} />
               <h3 className="font-serif text-xl text-primary">Private Location</h3>
               <p className="font-sans text-sm text-primary-muted leading-relaxed">
@@ -224,7 +291,7 @@ export function MemberSanctuary() {
               </p>
             </div>
 
-            <div className="bg-white rounded-xl p-8 border border-primary/10 shadow-sm flex flex-col gap-3">
+            <div className="bg-white rounded-xl p-6 sm:p-8 border border-primary/10 shadow-sm flex flex-col gap-3">
               <BookOpen className="text-[#b93c3c] mb-1" size={20} />
               <h3 className="font-serif text-xl text-primary">Bible &amp; Notebook</h3>
               <p className="font-sans text-sm text-primary-muted leading-relaxed">
@@ -232,7 +299,7 @@ export function MemberSanctuary() {
               </p>
             </div>
 
-            <div className="bg-white rounded-xl p-8 border border-primary/10 shadow-sm flex flex-col gap-3">
+            <div className="bg-white rounded-xl p-6 sm:p-8 border border-primary/10 shadow-sm flex flex-col gap-3">
               <Heart className="text-[#b93c3c] mb-1" size={20} />
               <h3 className="font-serif text-xl text-primary">Prayer &amp; Peace</h3>
               <p className="font-sans text-sm text-primary-muted leading-relaxed">
@@ -246,7 +313,7 @@ export function MemberSanctuary() {
         <section aria-labelledby="trust-pillars-heading">
           <h2 id="trust-pillars-heading" className="sr-only">Trust &amp; Privacy Pillars</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="bg-white rounded-xl p-8 border border-primary/10 flex flex-col gap-3 shadow-sm">
+            <div className="bg-white rounded-xl p-6 sm:p-8 border border-primary/10 flex flex-col gap-3 shadow-sm">
               <Lock className="text-[#b93c3c] mb-1" size={20} />
               <h3 className="font-serif text-xl text-primary">Confidential Counsel</h3>
               <p className="font-sans text-sm text-primary-muted leading-relaxed">
@@ -254,7 +321,7 @@ export function MemberSanctuary() {
               </p>
             </div>
             
-            <div className="bg-white rounded-xl p-8 border border-primary/10 flex flex-col gap-3 shadow-sm">
+            <div className="bg-white rounded-xl p-6 sm:p-8 border border-primary/10 flex flex-col gap-3 shadow-sm">
               <ShieldCheck className="text-[#b93c3c] mb-1" size={20} />
               <h3 className="font-serif text-xl text-primary">Immutable Privacy</h3>
               <p className="font-sans text-sm text-primary-muted leading-relaxed">
@@ -262,7 +329,7 @@ export function MemberSanctuary() {
               </p>
             </div>
             
-            <div className="bg-white rounded-xl p-8 border border-primary/10 flex flex-col gap-3 shadow-sm">
+            <div className="bg-white rounded-xl p-6 sm:p-8 border border-primary/10 flex flex-col gap-3 shadow-sm">
               <ScrollText className="text-[#b93c3c] mb-1" size={20} />
               <h3 className="font-serif text-xl text-primary">Pastoral Covenant</h3>
               <p className="font-sans text-sm text-primary-muted leading-relaxed">

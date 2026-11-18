@@ -5,7 +5,8 @@ import { useAuth } from '../../lib/AuthContext';
 import { db, Consultation } from '../../lib/firebase';
 import { collection, addDoc, doc, setDoc } from 'firebase/firestore';
 import { PageTitle } from '../../components/PageTitle';
-import { buttonSizes, buttonTokens } from '../../lib/canonical';
+import { buttonSizes, buttonTokens, generateShortCode } from '../../lib/canonical';
+import { useToast } from '../../components/ui/ToastProvider';
 
 import { StepSchedule } from '../../components/member/StepSchedule';
 
@@ -41,6 +42,7 @@ const urgencies = [
 export function Request() {
   const navigate = useNavigate();
   const { isAuthenticated, user } = useAuth();
+  const { showToast } = useToast();
   const [step, setStep] = useState(1);
   const [category, setCategory] = useState(categories[0]);
   const [urgency, setUrgency] = useState(urgencies[0].id);
@@ -84,7 +86,11 @@ export function Request() {
     }
     
     if (!selectedDate || !selectedTimeSlot || !selectedLeaderId) {
-      alert('Please select a leader, date, and time slot.');
+      showToast({
+        variant: 'warning',
+        title: 'Schedule Selection Required',
+        message: 'Please select a spiritual leader, date, and time slot before continuing.',
+      });
       return;
     }
     
@@ -106,38 +112,77 @@ export function Request() {
 
       const scheduledStart = finalDate.toISOString();
       const scheduledEnd = new Date(finalDate.getTime() + 45 * 60000).toISOString();
+      const chosenMethod = meetingMethod || 'google_meet';
 
-      const consultationData: Omit<Consultation, 'id'> = {
-        memberId: user.uid,
-        memberName: maskIdentity ? 'Anonymous' : user.displayName,
-        leaderId: selectedLeaderId,
-        leaderName: selectedLeaderName,
-        category,
-        urgency,
-        reason,
-        attachments: [],
-        selectedTime: scheduledStart,
-        scheduledStart: scheduledStart,
-        scheduledEnd: scheduledEnd,
-        status: 'under_review',
-        isLocked: false,
-        meetingMethod: meetingMethod || 'google_meet',
-        meetingLocation: meetingMethod === 'in_person' ? meetingLocation : null,
-        meetingLinkStatus: 'pending',
-        meetingLink: null,
-        googleMeetUrl: null,
-        googleEventId: null,
-        journeyTimeline: [
-          { status: 'Request Submitted', timestamp: new Date().toISOString(), description: 'Your request has been securely submitted.' }
-        ]
-      };
+      // Canonical Backend Consultation Creation Flow
+      // Provisions the single Google Meet instance with pastor host controls and stores it in Firebase
+      const res = await fetch('/api/consultations/create', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          memberId: user.uid,
+          memberEmail: user.email || null,
+          memberName: maskIdentity ? 'Anonymous' : (user.displayName || 'Member'),
+          leaderId: selectedLeaderId,
+          leaderName: selectedLeaderName,
+          leaderEmail: selectedLeaderEmail,
+          category,
+          urgency,
+          reason,
+          selectedTime: scheduledStart,
+          scheduledStart,
+          scheduledEnd,
+          meetingMethod: chosenMethod,
+          meetingLocation: chosenMethod === 'in_person' ? meetingLocation : null,
+          maskIdentity,
+        }),
+      });
 
-      const docRef = await addDoc(collection(db, 'consultations'), consultationData);
+      let consultationId = '';
+      if (res.ok) {
+        const data = await res.json();
+        consultationId = data.consultationId;
+      } else {
+        // Safe fallback: direct Firestore write if backend endpoint encounters unexpected network error
+        const docRef = doc(collection(db, 'consultations'));
+        consultationId = docRef.id;
+        const fallbackData: any = {
+          memberId: user.uid,
+          memberEmail: user.email || null,
+          memberName: maskIdentity ? 'Anonymous' : (user.displayName || 'Member'),
+          leaderId: selectedLeaderId || null,
+          leaderName: selectedLeaderName || 'Assigned Pastoral Leader',
+          leaderEmail: selectedLeaderEmail || null,
+          category,
+          urgency,
+          reason,
+          attachments: [],
+          selectedTime: scheduledStart,
+          scheduledStart,
+          scheduledEnd,
+          status: 'submitted',
+          isLocked: false,
+          shortCode: generateShortCode(),
+          meetingMethod: chosenMethod,
+          meetingLocation: chosenMethod === 'in_person' ? meetingLocation : null,
+          journeyTimeline: [
+            { status: 'Request Submitted', timestamp: new Date().toISOString(), description: 'Your request has been securely submitted.' }
+          ],
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        };
+        await setDoc(docRef, fallbackData);
+      }
       
       // Navigate to the Details page
-      navigate(`/member/request/${docRef.id}`);
+      navigate(`/member/request/${consultationId}`);
     } catch (error) {
-      console.error("Error adding document: ", error);
+      console.error("Error creating consultation: ", error);
+      showToast({
+        variant: 'error',
+        title: 'Submission Failed',
+        message: 'Unable to submit your consultation request. Please try again.',
+      });
     } finally {
       setIsSubmitting(false);
     }
@@ -145,32 +190,39 @@ export function Request() {
 
   return (
     <div className="flex flex-col items-center min-h-[70vh] pb-32">
-      <div className="w-full px-6 flex flex-col items-center flex-grow">
+      <div className="w-full px-4 sm:px-6 flex flex-col items-center flex-grow">
         <div className={`w-full flex flex-col flex-grow transition-all duration-500 ${step === 5 ? 'max-w-4xl' : 'max-w-[600px]'}`}>
           
-          <div className="text-center mb-16 pt-12">
+          <div className="text-center mb-10 sm:mb-16 pt-8 sm:pt-12">
             <PageTitle className="mb-4">Request Consultation</PageTitle>
-            <p className="font-sans text-lg text-primary-muted">Step forward in faith. We are here to listen.</p>
+            <p className="font-sans text-base sm:text-lg text-primary-muted">Step forward in faith. We are here to listen.</p>
           </div>
 
         {/* Stepper */}
-        <div className="flex justify-between items-center mb-16 relative">
-          <div className="absolute top-1/2 left-0 w-full h-[1px] bg-primary/10 -z-10"></div>
-          
-          {[
-            { stepNum: 1, label: "Category" },
-            { stepNum: 2, label: "Urgency" },
-            { stepNum: 3, label: "Reason" },
-            { stepNum: 4, label: "Method" },
-            { stepNum: 5, label: "Schedule" }
-          ].map((s) => (
-            <div key={s.stepNum} className="flex flex-col items-center gap-2">
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center font-sans text-sm ${step >= s.stepNum ? 'bg-primary text-white' : 'bg-surface text-primary-muted halo-border'}`}>
-                {step > s.stepNum ? <Check size={16} /> : s.stepNum}
+        <div className="flex flex-col mb-12 sm:mb-16">
+          <div className="flex justify-between items-center relative">
+            <div className="absolute top-1/2 left-0 w-full h-[1px] bg-primary/10 -z-10"></div>
+            
+            {[
+              { stepNum: 1, label: "Category" },
+              { stepNum: 2, label: "Urgency" },
+              { stepNum: 3, label: "Reason" },
+              { stepNum: 4, label: "Method" },
+              { stepNum: 5, label: "Schedule" }
+            ].map((s) => (
+              <div key={s.stepNum} className="flex flex-col items-center gap-2">
+                <div className={`w-8 h-8 rounded-full flex items-center justify-center font-sans text-sm ${step >= s.stepNum ? 'bg-primary text-white' : 'bg-surface text-primary-muted halo-border'}`}>
+                  {step > s.stepNum ? <Check size={16} /> : s.stepNum}
+                </div>
+                <span className={`hidden sm:inline font-sans text-xs uppercase tracking-wider ${step >= s.stepNum ? 'text-primary font-semibold' : 'text-primary-muted font-medium'}`}>{s.label}</span>
               </div>
-              <span className={`font-sans text-xs uppercase tracking-widest ${step >= s.stepNum ? 'text-primary font-semibold' : 'text-primary-muted font-medium'}`}>{s.label}</span>
-            </div>
-          ))}
+            ))}
+          </div>
+          <div className="sm:hidden text-center mt-3">
+            <span className="font-sans text-xs font-semibold uppercase tracking-widest text-primary">
+              Step {step} of 5: {step === 1 ? 'Category' : step === 2 ? 'Urgency' : step === 3 ? 'Reason' : step === 4 ? 'Method' : 'Schedule'}
+            </span>
+          </div>
         </div>
 
         {/* Step 1 Content: Category */}
@@ -360,13 +412,13 @@ export function Request() {
       </div>
 
       {/* Sanctuary Bar (Bottom Action Bar) */}
-      <div className="fixed bottom-0 left-0 w-full bg-background/90 backdrop-blur-md border-t border-primary/5 py-4 px-6 z-40 flex justify-center">
-        <div className={`w-full flex justify-between items-center transition-all duration-500 ${step === 5 ? 'max-w-4xl' : 'max-w-[600px]'}`}>
+      <div className="fixed bottom-0 left-0 w-full bg-background/90 backdrop-blur-md border-t border-primary/5 py-3 sm:py-4 px-4 sm:px-6 z-40 flex justify-center pb-[max(1rem,env(safe-area-inset-bottom))]">
+        <div className={`w-full flex justify-between items-center gap-3 transition-all duration-500 ${step === 5 ? 'max-w-4xl' : 'max-w-[600px]'}`}>
           {step > 1 ? (
             <button
               onClick={handleBack}
               disabled={isSubmitting}
-              className={`${buttonSizes.md} ${buttonTokens.ghost}`}
+              className={`${buttonSizes.md} ${buttonTokens.ghost} shrink-0`}
             >
               <ArrowLeft size={16} />
               Back
@@ -374,7 +426,7 @@ export function Request() {
           ) : (
             <Link
               to="/member/dashboard"
-              className={`${buttonSizes.md} ${buttonTokens.ghost}`}
+              className={`${buttonSizes.md} ${buttonTokens.ghost} shrink-0`}
             >
               Cancel
             </Link>
@@ -383,9 +435,18 @@ export function Request() {
           <button 
             onClick={handleNext} 
             disabled={isSubmitting}
-            className={`${buttonSizes.md} ${buttonTokens.primary}`}
+            className={`${buttonSizes.md} ${buttonTokens.primary} shrink-0`}
           >
-            {isSubmitting ? "Submitting..." : step === 5 ? "Continue to Summary" : `Continue to ${step === 1 ? 'Urgency' : step === 2 ? 'Reason' : step === 3 ? 'Method' : 'Schedule'}`}
+            {isSubmitting ? "Submitting..." : (
+              <>
+                <span className="hidden sm:inline">
+                  {step === 5 ? "Continue to Summary" : `Continue to ${step === 1 ? 'Urgency' : step === 2 ? 'Reason' : step === 3 ? 'Method' : 'Schedule'}`}
+                </span>
+                <span className="sm:hidden">
+                  {step === 5 ? "Review" : "Next"}
+                </span>
+              </>
+            )}
             {!isSubmitting && step < 5 && <ArrowRight size={16} />}
           </button>
         </div>

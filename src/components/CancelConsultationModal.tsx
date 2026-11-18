@@ -44,7 +44,7 @@ export function CancelConsultationModal({
       aria-labelledby="cancel-dialog-title"
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-xs"
     >
-      <div className="relative w-full max-w-md rounded-xl bg-surface p-6 shadow-xl border border-primary/10 text-primary">
+      <div className="relative w-full max-w-md max-h-[90dvh] overflow-y-auto rounded-xl bg-surface p-6 shadow-xl border border-primary/10 text-primary">
         <button
           type="button"
           onClick={onClose}

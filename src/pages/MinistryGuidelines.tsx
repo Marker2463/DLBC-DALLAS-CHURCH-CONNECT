@@ -3,23 +3,23 @@ import { QuoteInline } from '../components/Quotes';
 
 export function MinistryGuidelines() {
   return (
-    <div className="max-w-5xl mx-auto px-6 w-full py-16 pb-32">
+    <div className="max-w-5xl mx-auto px-4 sm:px-6 w-full py-10 sm:py-16 pb-20 sm:pb-32">
       {/* Header */}
-      <div className="mb-20">
+      <div className="mb-12 sm:mb-20">
         <span className="font-sans text-xs text-secondary font-bold uppercase tracking-widest mb-4 block">
           OFFICIAL DOCUMENT
         </span>
-        <h1 className="font-serif text-5xl md:text-6xl text-primary mb-6 tracking-tight">
+        <h1 className="font-serif text-4xl sm:text-5xl md:text-6xl text-primary mb-6 tracking-tight">
           Ministry Guidelines
         </h1>
-        <p className="font-sans text-lg text-primary-muted leading-relaxed max-w-3xl">
+        <p className="font-sans text-base sm:text-lg text-primary-muted leading-relaxed max-w-3xl">
           Defining the ethical and spiritual standards for pastoral care within the DLBC Church Connect ecosystem. This document serves as a living covenant for digital stewardship.
         </p>
       </div>
 
       {/* 1. Introduction */}
-      <div className="mb-16 pt-8 border-t border-primary/10">
-        <h2 className="font-serif text-3xl text-primary mb-6">1. Introduction to Stewardship</h2>
+      <div className="mb-12 sm:mb-16 pt-8 border-t border-primary/10">
+        <h2 className="font-serif text-2xl sm:text-3xl text-primary mb-5 sm:mb-6">1. Introduction to Stewardship</h2>
         <p className="font-sans text-primary-muted leading-relaxed mb-4">
           Stewardship in the digital age requires a profound commitment to the sanctity of interaction. When individuals reach out for pastoral care, they are entrusting us not merely with their problems, but with their spiritual vulnerability.
         </p>
@@ -29,13 +29,13 @@ export function MinistryGuidelines() {
       </div>
 
       {/* 2. Ethical Conduct */}
-      <div className="mb-16 pt-8 border-t border-primary/10">
-        <h2 className="font-serif text-3xl text-primary mb-6">2. Ethical Conduct in Counseling</h2>
+      <div className="mb-12 sm:mb-16 pt-8 border-t border-primary/10">
+        <h2 className="font-serif text-2xl sm:text-3xl text-primary mb-5 sm:mb-6">2. Ethical Conduct in Counseling</h2>
         <p className="font-sans text-primary-muted leading-relaxed mb-8">
           The pastoral counselor must maintain a posture of absolute integrity. Our ethical mandate demands that counselors recognize the power dynamics inherent in the relationship and guard rigorously against any exploitation of the counselee.
         </p>
         
-        <div className="bg-white border border-primary/10 rounded-xl p-8 shadow-sm w-full">
+        <div className="bg-white border border-primary/10 rounded-xl p-5 sm:p-8 shadow-sm w-full">
           <div className="flex items-center gap-3 mb-6">
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-primary-muted">
               <path d="m14.5 12.5-8 8a2.119 2.119 0 1 1-3-3l8-8" />
@@ -61,8 +61,8 @@ export function MinistryGuidelines() {
       </div>
 
       {/* 3. Confidentiality Protocols */}
-      <div className="mb-16 pt-8 border-t border-primary/10">
-        <h2 className="font-serif text-3xl text-primary mb-6">3. Confidentiality Protocols</h2>
+      <div className="mb-12 sm:mb-16 pt-8 border-t border-primary/10">
+        <h2 className="font-serif text-2xl sm:text-3xl text-primary mb-5 sm:mb-6">3. Confidentiality Protocols</h2>
         <p className="font-sans text-primary-muted leading-relaxed mb-4">
           Confidentiality is the cornerstone of trust in pastoral care. Within DLBC Church Connect, all communications are treated with the highest degree of technical and spiritual security.
         </p>
@@ -73,7 +73,7 @@ export function MinistryGuidelines() {
 
       {/* 4. Spiritual Fidelity */}
       <div className="pt-8 border-t border-primary/10">
-        <h2 className="font-serif text-3xl text-primary mb-6">4. Spiritual Fidelity</h2>
+        <h2 className="font-serif text-2xl sm:text-3xl text-primary mb-5 sm:mb-6">4. Spiritual Fidelity</h2>
         <p className="font-sans text-primary-muted leading-relaxed mb-8">
           Ultimately, the goal of all pastoral intervention is to align the individual with spiritual truth and wholeness. Counselors using DLBC Church Connect must remain grounded in their theological convictions while extending grace to those in varying stages of their journey.
         </p>

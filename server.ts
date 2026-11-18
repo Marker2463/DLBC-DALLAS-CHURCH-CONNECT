@@ -8,7 +8,8 @@ import { initializeApp, getApps, cert } from 'firebase-admin/app';
 import { getFirestore } from 'firebase-admin/firestore';
 import { getAuth } from 'firebase-admin/auth';
 import { createZoomMeeting, updateZoomMeeting, deleteZoomMeeting } from "./src/lib/zoom";
-import { createGoogleMeetEvent, generateGoogleMeetLink, updateGoogleCalendarEvent, deleteGoogleCalendarEvent } from "./src/lib/googleMeet";
+import googleMeetRoutes, { createOrRetrieveCalendarMeeting, extractMeetUrl } from "./server/googleMeetRoutes";
+import { createHostedMeeting } from "./src/server/meet";
 import { isSyntheticMeetUrl } from "./src/lib/appointmentService";
 
 dotenv.config();
@@ -20,6 +21,11 @@ const consultationJoinRateLimit = rateLimit({
   limit: 20,
   standardHeaders: true,
   legacyHeaders: false,
+  validate: {
+    trustProxy: false,
+    xForwardedForHeader: false,
+    forwardedHeader: false,
+  },
   message: { success: false, error: 'Too many consultation join requests. Please try again later.' },
 });
 
@@ -56,6 +62,9 @@ async function startServer() {
   const app = express();
   const PORT = 3000;
 
+  // Trust Cloud Run / GCP reverse proxy for client IP resolution and rate limiters
+  app.set('trust proxy', 1);
+
   // Security Headers Middleware (Configured safely for AI Studio preview & iframe embedding)
   app.use((req, res, next) => {
     res.setHeader('X-Content-Type-Options', 'nosniff');
@@ -65,10 +74,172 @@ async function startServer() {
 
   app.use(express.json());
 
+  // Mount Canonical Google Meet & Pastor OAuth Routes
+  app.use("/api", googleMeetRoutes);
+
   // Health check endpoint
   app.get("/api/health", (req, res) => {
     res.json({ status: "ok" });
   });
+
+  // Canonical Backend Consultation Creation Flow
+  // Creates the consultation record in Firestore.
+  // Google Meet video meetings are provisioned via the assigned pastor's OAuth authorization
+  // through the canonical /api/consultations/:id/meeting path with zero attendee bypass.
+  app.post("/api/consultations/create", async (req, res) => {
+    try {
+      const {
+        memberId,
+        memberName,
+        memberEmail,
+        leaderId,
+        leaderName,
+        leaderEmail,
+        pastorId,
+        pastorName,
+        pastorEmail,
+        category,
+        urgency,
+        reason,
+        selectedTime,
+        scheduledStart,
+        scheduledEnd,
+        meetingMethod,
+        meetingLocation,
+        maskIdentity,
+      } = req.body;
+
+      if (!memberId) {
+        return res.status(400).json({ success: false, error: "Missing memberId." });
+      }
+
+      const firestore = getAdminFirestore();
+      const consultationsCol = firestore.collection('consultations');
+      const docRef = consultationsCol.doc();
+      const consultationId = docRef.id;
+
+      // 1. Resolve pastor/leader info
+      const effectivePastorId = pastorId || leaderId || null;
+      let resolvedPastorEmail = pastorEmail || leaderEmail ? (pastorEmail || leaderEmail).toLowerCase().trim() : null;
+      let resolvedPastorName = pastorName || leaderName || 'Assigned Pastor';
+
+      if (!resolvedPastorEmail && effectivePastorId) {
+        try {
+          const leaderUserSnap = await firestore.collection('users').doc(effectivePastorId).get();
+          if (leaderUserSnap.exists) {
+            const uData = leaderUserSnap.data();
+            resolvedPastorEmail = uData?.email ? uData.email.toLowerCase().trim() : null;
+            if (!resolvedPastorName && uData?.displayName) {
+              resolvedPastorName = uData.displayName;
+            }
+          }
+        } catch (uErr) {
+          console.warn("[/api/consultations/create] Error looking up leader user doc:", uErr);
+        }
+      }
+
+      if (!resolvedPastorEmail) {
+        resolvedPastorEmail = 'markeroladipo@gmail.com';
+      }
+
+      const cleanMemberEmail = memberEmail ? memberEmail.toLowerCase().trim() : null;
+      const cleanMemberName = maskIdentity ? 'Anonymous' : (memberName || 'Member');
+      const chosenMethod = meetingMethod || 'google_meet';
+      const finalStartTime = scheduledStart || selectedTime || new Date().toISOString();
+      const finalEndTime = scheduledEnd || new Date(new Date(finalStartTime).getTime() + 45 * 60000).toISOString();
+
+      let meetUrl: string | null = null;
+      let hostUrl: string | null = null;
+      let eventId: string | null = null;
+
+      // Zoom provider alternative
+      if (chosenMethod === 'zoom') {
+        const zoomRes = await createZoomMeeting({
+          topic: `${category || 'Pastoral Guidance'} - ${cleanMemberName}`,
+          startTimeIso: finalStartTime,
+          durationMinutes: 45,
+        });
+        meetUrl = zoomRes.joinUrl;
+        hostUrl = zoomRes.startUrl;
+        eventId = zoomRes.meetingId;
+      }
+
+      const shortCode = Math.random().toString(36).substring(2, 8).toUpperCase();
+      const nowIso = new Date().toISOString();
+
+      const consultationData: any = {
+        id: consultationId,
+        memberId,
+        memberEmail: cleanMemberEmail,
+        memberName: cleanMemberName,
+        leaderId: effectivePastorId,
+        leaderName: resolvedPastorName,
+        leaderEmail: resolvedPastorEmail,
+        pastorId: effectivePastorId,
+        pastorName: resolvedPastorName,
+        pastorEmail: resolvedPastorEmail,
+        category: category || 'Spiritual Guidance',
+        urgency: urgency || 'standard',
+        reason: reason || '',
+        attachments: [],
+        selectedTime: finalStartTime,
+        scheduledStart: finalStartTime,
+        scheduledEnd: finalEndTime,
+        durationMinutes: 45,
+        status: 'scheduled',
+        isLocked: false,
+        shortCode,
+        meetingMethod: chosenMethod,
+        meetingLocation: chosenMethod === 'in_person' ? (meetingLocation || 'DLBC Dallas Church Sanctuary / Pastoral Suite') : null,
+        meetingLink: meetUrl,
+        hostMeetingLink: hostUrl || meetUrl,
+        meetUrl: meetUrl,
+        googleMeetUrl: meetUrl,
+        calendarEventId: eventId,
+        googleEventId: eventId,
+        meetingHostId: effectivePastorId,
+        meetingHostEmail: resolvedPastorEmail,
+        meetingLinkStatus: meetUrl ? 'active' : 'pending',
+        meeting: meetUrl ? {
+          provider: chosenMethod,
+          url: meetUrl,
+          hostUrl: hostUrl || meetUrl,
+          externalId: eventId || '',
+          createdAt: nowIso,
+          createdBy: memberId,
+          status: 'active',
+        } : null,
+        journeyTimeline: [
+          {
+            status: 'Request Submitted & Scheduled',
+            timestamp: nowIso,
+            description: chosenMethod === 'in_person'
+              ? `In-person consultation confirmed at ${meetingLocation || 'DLBC Dallas Sanctuary'}.`
+              : `Consultation confirmed. Video meeting will be hosted through the assigned pastor's Google account.`
+          }
+        ],
+        createdAt: nowIso,
+        updatedAt: nowIso,
+      };
+
+      await docRef.set(consultationData);
+
+      return res.json({
+        success: true,
+        consultationId,
+        meetingLink: meetUrl,
+        consultation: consultationData,
+      });
+    } catch (err: any) {
+      console.error("[/api/consultations/create] Error creating consultation:", err);
+      return res.status(500).json({
+        success: false,
+        error: err?.message || "Failed to create consultation.",
+      });
+    }
+  });
+
+
 
   app.post("/api/calendar/schedule", async (req, res) => {
     try {
@@ -87,14 +258,14 @@ async function startServer() {
           const snap = await docRef.get();
           if (snap.exists) {
             docData = snap.data();
-            const existingMeet = docData.meetUrl || docData.googleMeetUrl || docData.meetingLink;
-            if (existingMeet && docData.calendarEventId) {
+            const existingMeet = docData.meetUrl || docData.googleMeetUrl || docData.meetingLink || docData.meeting?.url;
+            if (existingMeet && typeof existingMeet === 'string' && existingMeet.trim().length > 0) {
               return res.json({
                 success: true,
-                eventId: docData.calendarEventId || docData.googleEventId,
-                googleMeetUrl: existingMeet,
-                meetUrl: existingMeet,
-                calendarEventId: docData.calendarEventId || docData.googleEventId,
+                eventId: docData.calendarEventId || docData.googleEventId || '',
+                googleMeetUrl: existingMeet.trim(),
+                meetUrl: existingMeet.trim(),
+                calendarEventId: docData.calendarEventId || docData.googleEventId || '',
               });
             }
           }
@@ -108,10 +279,13 @@ async function startServer() {
       
       const eventPayload: any = {
         summary: title || 'DLBC Pastoral Consultation',
-        description: `Consultation ID: ${consultationId}\nConfidential pastoral care session.`,
+        description: `Consultation ID: ${consultationId}\nConfidential pastoral care session.\nLeader / Pastor Host: ${leaderEmail || 'DLBC Pastoral Office'}`,
         start: { dateTime: startTime.toISOString(), timeZone: "UTC" },
         end: { dateTime: endTime.toISOString(), timeZone: "UTC" },
         attendees: [{ email: memberEmail }],
+        guestsCanModify: false,
+        guestsCanInviteOthers: false,
+        guestsCanSeeOtherGuests: false,
         reminders: {
           useDefault: false,
           overrides: [
@@ -122,7 +296,7 @@ async function startServer() {
       };
       
       if (leaderEmail) {
-        eventPayload.attendees.push({ email: leaderEmail });
+        eventPayload.attendees.push({ email: leaderEmail, organizer: true });
       }
 
       if (method === 'google_meet') {
@@ -137,8 +311,9 @@ async function startServer() {
       let response: any = null;
       const FALLBACK_DLBC_CALENDAR_ID = "2244c6b918aa8cd82951682ad0db4d18dfb011a0979e0951a4d43a519bae6e9f@group.calendar.google.com";
 
-      // 1. Try with explicit Google OAuth Access Token if caller provided one (has direct writer access to primary calendar)
-      if (explicitGoogleToken) {
+      // 1. Try with explicit Google OAuth Access Token ONLY if caller is a pastor/leader (never member, so member cannot hijack host control)
+      const isCallerMember = req.body.isMember || (req.body.memberEmail && req.body.memberEmail === req.body.callerEmail);
+      if (explicitGoogleToken && !isCallerMember) {
         try {
           const userAuth = new google.auth.OAuth2();
           userAuth.setCredentials({ access_token: explicitGoogleToken as string });
@@ -359,17 +534,19 @@ async function startServer() {
         const data = docSnap.data() || {};
 
         // Authorization: caller must be member, assigned leader/pastor, or authorized leader/admin
+        let isMember = false;
+        let isLeader = false;
+        let isPrivileged = false;
         if (callerUid && !isTestAccess) {
-          const isMember = data.memberId === callerUid || (callerEmail && data.memberEmail?.toLowerCase().trim() === callerEmail);
-          const isLeader = data.leaderId === callerUid ||
-                           data.pastorId === callerUid ||
-                           data.assignedPastorId === callerUid ||
-                           (callerEmail && (
-                             data.leaderEmail?.toLowerCase().trim() === callerEmail ||
-                             data.pastorEmail?.toLowerCase().trim() === callerEmail
-                           ));
+          isMember = data.memberId === callerUid || (callerEmail && data.memberEmail?.toLowerCase().trim() === callerEmail);
+          isLeader = data.leaderId === callerUid ||
+                     data.pastorId === callerUid ||
+                     data.assignedPastorId === callerUid ||
+                     (callerEmail && (
+                       data.leaderEmail?.toLowerCase().trim() === callerEmail ||
+                       data.pastorEmail?.toLowerCase().trim() === callerEmail
+                     ));
 
-          let isPrivileged = false;
           if (callerEmail === 'markeroladipo@gmail.com') {
             isPrivileged = true;
           } else {
@@ -394,10 +571,13 @@ async function startServer() {
               leaderEmail: callerEmail || data.leaderEmail || null,
               updatedAt: new Date().toISOString()
             });
+            isLeader = true;
           } else if (!isMember && !isLeader && !isPrivileged) {
             console.warn(`[server.ts] Authenticated user ${callerUid} (${callerEmail || 'unknown'}) joining consultation ${consultationId}`);
           }
         }
+
+        const isHostCaller = Boolean(isLeader || isPrivileged);
 
         // Gating: status check (allow joining for active consultations, promote submitted to scheduled)
         const status = (data.status || '').toLowerCase().trim();
@@ -434,6 +614,7 @@ async function startServer() {
         }
 
         // 1. Check if meeting URL is already stored in the database or client record
+        const storedHostUrl = data.hostMeetingLink || data.meeting?.hostUrl || null;
         const storedUrl =
           data.meeting?.url ||
           data.meetingLink ||
@@ -459,6 +640,7 @@ async function startServer() {
               meeting: {
                 provider: data.meetingMethod === 'zoom' ? 'zoom' : 'google_meet',
                 url: cleanUrl,
+                hostUrl: storedHostUrl || cleanUrl,
                 externalId: data.calendarEventId || data.googleEventId || data.meeting?.externalId || '',
                 createdAt: data.meeting?.createdAt || data.createdAt || new Date().toISOString(),
                 createdBy: callerUid || data.memberId || 'system',
@@ -466,6 +648,10 @@ async function startServer() {
               },
               updatedAt: new Date().toISOString(),
             });
+          }
+          // Leaders/pastors join with host controls; members join with attendee link
+          if (isHostCaller && storedHostUrl) {
+            return storedHostUrl;
           }
           return cleanUrl;
         }
@@ -526,6 +712,7 @@ async function startServer() {
 
         // Caller holds lease: call external provider OUTSIDE transaction
         let meetingUrl: string | null = null;
+        let hostUrl: string | null = null;
         let externalId: string | null = null;
         const method = data.meetingMethod === 'zoom' ? 'zoom' : 'google_meet';
 
@@ -536,75 +723,59 @@ async function startServer() {
             durationMinutes: data.durationMinutes || 45,
           });
           meetingUrl = zoomRes.joinUrl;
+          hostUrl = zoomRes.startUrl;
           externalId = zoomRes.meetingId;
         } else {
-          // Google Meet generation:
-          // 1. First attempt with explicit Google OAuth Access Token if caller provided one (writer access on user's primary calendar)
-          if (explicitGoogleToken) {
-            try {
-              const userAuth = new google.auth.OAuth2();
-              userAuth.setCredentials({ access_token: explicitGoogleToken });
-              const userCal = google.calendar({ version: "v3", auth: userAuth });
-              const startTimeIso = scheduledField || new Date().toISOString();
-              const endTimeIso = new Date(new Date(startTimeIso).getTime() + (data.durationMinutes || 45) * 60000).toISOString();
-              
-              const userCalRes = await userCal.events.insert({
-                calendarId: "primary",
-                conferenceDataVersion: 1,
-                requestBody: {
-                  summary: `${data.category || 'Pastoral Guidance'} - ${data.memberName || 'Member'}`,
-                  description: `Confidential pastoral session between ${data.memberName || 'Member'} and ${data.leaderName || 'Pastor'}. Consultation ID: ${consultationId}`,
-                  start: { dateTime: startTimeIso },
-                  end: { dateTime: endTimeIso },
-                  attendees: [
-                    data.memberEmail ? { email: data.memberEmail } : null,
-                    data.leaderEmail ? { email: data.leaderEmail } : null,
-                  ].filter(Boolean) as any,
-                  conferenceData: {
-                    createRequest: {
-                      requestId: `meet-${consultationId}-${Date.now()}`,
-                      conferenceSolutionKey: { type: 'hangoutsMeet' }
-                    }
-                  }
-                }
-              });
+          // Google Meet generation using assigned pastor's OAuth token, with seamless fallback to central pastoral office credentials
+          const pastorId = data.pastorId || data.leaderId || '';
+          const pastorEmail = (data.pastorEmail || data.leaderEmail || '').toLowerCase().trim();
 
-              meetingUrl = userCalRes.data.hangoutLink || userCalRes.data.conferenceData?.entryPoints?.find((e: any) => e.entryPointType === 'video')?.uri || null;
-              externalId = userCalRes.data.id || null;
-            } catch (userCalErr: any) {
-              console.warn('User OAuth calendar generation failed in join:', userCalErr?.message);
-            }
+          const tokenSnapshot = pastorId
+            ? await firestore.collection('_privateGoogleOAuth').doc(pastorId).get()
+            : null;
+          const tokenData = tokenSnapshot?.exists ? tokenSnapshot.data() : null;
+
+          if (tokenData?.encryptedRefreshToken) {
+            const calMeeting = await createOrRetrieveCalendarMeeting({
+              consultationId,
+              pastorId,
+              pastorEmail: tokenData.email || pastorEmail,
+              memberName: data.memberName,
+              scheduledAt: scheduledField || new Date().toISOString(),
+              durationMinutes: data.durationMinutes || 45,
+              encryptedRefreshToken: tokenData.encryptedRefreshToken,
+            });
+
+            meetingUrl = calMeeting.meetUrl;
+            hostUrl = calMeeting.meetUrl;
+            externalId = calMeeting.eventId;
+          } else {
+            const startDate = new Date(scheduledField || new Date().toISOString());
+            const durationMins = data.durationMinutes || 45;
+            const endDate = new Date(startDate.getTime() + durationMins * 60_000);
+
+            const hosted = await createHostedMeeting({
+              consultationId,
+              leaderUid: pastorId,
+              startIso: startDate.toISOString(),
+              endIso: endDate.toISOString(),
+              memberEmail: data.memberEmail,
+              category: data.category || 'Spiritual Guidance',
+              leaderName: data.pastorName || data.leaderName || 'Pastoral Leader',
+              memberName: data.memberName || 'Member',
+            });
+
+            meetingUrl = hosted.meetUrl;
+            hostUrl = hosted.meetUrl;
+            externalId = hosted.eventId;
           }
-
-          // 2. Fallback to service account
-          if (!meetingUrl) {
-            try {
-              const meetRes = await generateGoogleMeetLink({
-                summary: `${data.category || 'Pastoral Guidance'} - ${data.memberName || 'Member'}`,
-                description: `Confidential pastoral session between ${data.memberName || 'Member'} and ${data.leaderName || 'Pastor'}. Consultation ID: ${consultationId}`,
-                startTime: scheduledField,
-                durationMinutes: data.durationMinutes || 45,
-                consultationId,
-                memberEmail: data.memberEmail || null,
-                leaderEmail: data.leaderEmail || null,
-              });
-              meetingUrl = meetRes.meetUrl;
-              externalId = meetRes.eventId || null;
-            } catch (saErr: any) {
-              console.warn('[server.ts] Service account meet generation completed with fallback:', saErr?.message);
-              meetingUrl = 'https://meet.google.com/new';
-            }
-          }
-        }
-
-        if (!meetingUrl) {
-          meetingUrl = 'https://meet.google.com/new';
         }
 
         // Persist canonical meeting and clear lease
         const canonicalMeeting = {
           provider: method,
           url: meetingUrl,
+          hostUrl: hostUrl || meetingUrl,
           externalId: externalId || '',
           createdAt: new Date().toISOString(),
           createdBy: callerUid || 'system',
@@ -614,6 +785,7 @@ async function startServer() {
         await docRef.update({
           meeting: canonicalMeeting,
           meetingLink: meetingUrl,
+          hostMeetingLink: hostUrl || meetingUrl,
           meetUrl: meetingUrl,
           googleMeetUrl: meetingUrl,
           calendarEventId: externalId || null,
@@ -623,7 +795,7 @@ async function startServer() {
           updatedAt: new Date().toISOString(),
         });
 
-        return meetingUrl;
+        return isHostCaller && hostUrl ? hostUrl : meetingUrl;
       };
 
       const joinPromise = joinLogic();
@@ -675,11 +847,7 @@ async function startServer() {
               durationMinutes: data.durationMinutes || 45,
             });
           } else {
-            await updateGoogleCalendarEvent({
-              eventId: externalId,
-              startTime: selectedTime,
-              durationMinutes: data.durationMinutes || 45,
-            });
+            // Google Meet URL remains constant on reschedule; timing is updated in Firestore
           }
         } catch (updateErr: any) {
           console.warn("[server.ts] Provider update on reschedule warning:", updateErr?.message);
@@ -726,7 +894,7 @@ async function startServer() {
           if (provider === 'zoom') {
             await deleteZoomMeeting({ meetingId: externalId });
           } else {
-            await deleteGoogleCalendarEvent({ eventId: externalId });
+            // Google Meet URL status is marked expired/inactive in Firestore
           }
         } catch (delErr: any) {
           console.warn("[server.ts] Provider deletion on cancel warning:", delErr?.message);
@@ -800,17 +968,10 @@ async function startServer() {
       }
 
       if (!meetUrl) {
-        const resLink = await generateGoogleMeetLink({
-          summary: `DLBC Google Meet Room Test (${userDisplayName || 'Leader/Member'})`,
-          description: "Temporary Google Meet room test to verify audio, video, and connection setup.",
-          startTime: new Date().toISOString(),
-          durationMinutes: 45
+        return res.status(400).json({
+          success: false,
+          error: 'Google Calendar authorization required. Please connect your Google account in Settings to generate meeting rooms.'
         });
-        meetUrl = resLink.meetUrl;
-      }
-
-      if (!meetUrl || isSyntheticMeetUrl(meetUrl, 'test')) {
-        return res.status(500).json({ success: false, error: 'Could not generate a valid Google Meet link.' });
       }
 
       return res.json({ success: true, meetUrl });
@@ -886,6 +1047,11 @@ async function startServer() {
       limit: 100,
       standardHeaders: true,
       legacyHeaders: false,
+      validate: {
+        trustProxy: false,
+        xForwardedForHeader: false,
+        forwardedHeader: false,
+      },
     });
     app.get("*", spaFallbackRateLimit, (req, res) => {
       res.sendFile(path.join(distPath, "index.html"));

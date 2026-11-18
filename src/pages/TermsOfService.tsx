@@ -5,10 +5,10 @@ export function TermsOfService() {
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen flex flex-col bg-background">
+    <div className="min-h-dvh flex flex-col bg-background">
       {/* Custom Header */}
-      <header className="w-full flex justify-between items-center px-6 py-6 border-b border-primary/5">
-        <Link to="/" className="font-serif text-xl font-bold text-[#1c202e] tracking-tight hover:opacity-80 transition-opacity">
+      <header className="w-full flex justify-between items-center px-4 sm:px-6 py-4 sm:py-6 border-b border-primary/5">
+        <Link to="/" className="font-serif text-lg sm:text-xl font-bold text-[#1c202e] tracking-tight hover:opacity-80 transition-opacity">
           DLBC Church Connect
         </Link>
         <button 
@@ -21,13 +21,13 @@ export function TermsOfService() {
       </header>
 
       {/* Main Content */}
-      <main className="flex-grow w-full max-w-5xl mx-auto px-6 py-16 pb-32 flex flex-col md:flex-row gap-16">
+      <main className="flex-grow w-full max-w-5xl mx-auto px-4 sm:px-6 py-10 sm:py-16 pb-24 sm:pb-32 flex flex-col lg:flex-row gap-8 sm:gap-12 lg:gap-16">
         
         {/* Left Sidebar Content Outline */}
-        <aside className="w-full md:w-64 shrink-0">
-          <div className="bg-white border border-primary/10 rounded-xl p-6 shadow-sm sticky top-8">
-            <p className="font-sans text-xs text-primary font-bold uppercase tracking-widest mb-6">Contents</p>
-            <nav className="flex flex-col gap-4">
+        <aside className="w-full lg:w-64 shrink-0">
+          <div className="bg-white border border-primary/10 rounded-xl p-5 sm:p-6 shadow-sm static lg:sticky lg:top-8">
+            <p className="font-sans text-xs text-primary font-bold uppercase tracking-widest mb-4 sm:mb-6">Contents</p>
+            <nav className="flex flex-col gap-3 sm:gap-4">
               <a href="#section-1" className="flex items-center gap-4 group">
                 <span className="font-serif text-sm text-primary-subtle group-hover:text-secondary transition-colors">01</span>
                 <span className="font-sans text-sm text-primary-muted group-hover:text-primary transition-colors">Acceptance of Terms</span>
@@ -49,11 +49,11 @@ export function TermsOfService() {
         </aside>
 
         {/* Right Content */}
-        <div className="flex-grow max-w-3xl">
+        <div className="flex-grow max-w-3xl min-w-0">
           {/* Header section in content */}
-          <div className="mb-16 text-center">
-            <h1 className="font-serif text-5xl md:text-6xl text-primary mb-6 tracking-tight">Terms of Service</h1>
-            <p className="font-sans text-lg text-primary-muted leading-relaxed mb-6">
+          <div className="mb-12 sm:mb-16 text-center">
+            <h1 className="font-serif text-4xl sm:text-5xl md:text-6xl text-primary mb-4 sm:mb-6 tracking-tight">Terms of Service</h1>
+            <p className="font-sans text-base sm:text-lg text-primary-muted leading-relaxed mb-6">
               Governing your use of PastoralConnect, ensuring a secure and respectful environment for digital stewardship.
             </p>
             <span className="font-sans text-xs text-primary-muted font-bold uppercase tracking-widest">
@@ -143,11 +143,11 @@ export function TermsOfService() {
       <footer className="w-full pt-16 pb-12 px-6 flex flex-col gap-4 max-w-7xl mx-auto bg-background mt-auto">
         <div className="flex flex-col md:flex-row justify-between items-center gap-8 mb-8">
           <div className="font-serif text-2xl text-primary">DLBC Church Connect</div>
-          <nav className="flex items-center gap-x-8 gap-y-2 whitespace-nowrap overflow-x-auto">
-            <Link to="/privacy" className="font-sans text-xs text-primary-muted hover:text-primary transition-colors whitespace-nowrap">Privacy Policy</Link>
-            <Link to="/terms" className="font-sans text-xs text-primary-muted hover:text-primary transition-colors whitespace-nowrap">Terms of Service</Link>
-            <Link to="/ministry-guidelines" className="font-sans text-xs text-primary-muted hover:text-primary transition-colors whitespace-nowrap">Ministry Guidelines</Link>
-            <Link to="/support" className="font-sans text-xs text-primary-muted hover:text-primary transition-colors whitespace-nowrap">Contact Support</Link>
+          <nav className="flex flex-wrap items-center justify-center gap-x-8 gap-y-3">
+            <Link to="/privacy" className="font-sans text-xs text-primary-muted hover:text-primary transition-colors">Privacy Policy</Link>
+            <Link to="/terms" className="font-sans text-xs text-primary-muted hover:text-primary transition-colors">Terms of Service</Link>
+            <Link to="/ministry-guidelines" className="font-sans text-xs text-primary-muted hover:text-primary transition-colors">Ministry Guidelines</Link>
+            <Link to="/support" className="font-sans text-xs text-primary-muted hover:text-primary transition-colors">Contact Support</Link>
           </nav>
         </div>
         
