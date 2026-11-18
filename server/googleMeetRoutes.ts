@@ -289,6 +289,7 @@ router.get(
 
 router.post(
   '/google/oauth/start',
+  oauthFlowRateLimit,
   requireFirebaseAuth,
   async (req: AuthenticatedRequest, res: Response) => {
     try {
@@ -351,6 +352,7 @@ router.post(
 
 router.get(
   '/google/oauth/callback',
+  oauthFlowRateLimit,
   async (req: Request, res: Response) => {
     const appUrl = getAppWebUrl();
 
