@@ -29,7 +29,6 @@ const meetingCreationRateLimit = rateLimit({
   },
 });
 
-const oauthAuthorizationRateLimit = rateLimit({
 const googleOAuthRateLimit = rateLimit({
   windowMs: 15 * 60 * 1000,
   limit: 20,
@@ -290,8 +289,7 @@ router.get(
 
 router.post(
   '/google/oauth/start',
-  oauthAuthorizationRateLimit,
-  oauthFlowRateLimit,
+  googleOAuthRateLimit,
   requireFirebaseAuth,
   async (req: AuthenticatedRequest, res: Response) => {
     try {
@@ -354,7 +352,7 @@ router.post(
 
 router.get(
   '/google/oauth/callback',
-  oauthFlowRateLimit,
+  googleOAuthRateLimit,
   async (req: Request, res: Response) => {
     const appUrl = getAppWebUrl();
 
