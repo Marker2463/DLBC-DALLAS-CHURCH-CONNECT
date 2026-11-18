@@ -2,11 +2,24 @@ import { initializeApp } from 'firebase/app';
 import { getFirestore, collection, doc, setDoc, getDoc, updateDoc, onSnapshot, query, where, orderBy } from 'firebase/firestore';
 import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut } from 'firebase/auth';
 
+const isLocalOrPreview =
+  typeof window === 'undefined' ||
+  window.location.hostname === 'localhost' ||
+  window.location.hostname === '127.0.0.1' ||
+  window.location.hostname.endsWith('.run.app');
+
+const configuredAuthDomain =
+  typeof import.meta !== 'undefined' && import.meta.env
+    ? import.meta.env.VITE_FIREBASE_AUTH_DOMAIN
+    : undefined;
+
 const firebaseConfig = {
   projectId: "dlbc-dallas-church-connect",
   appId: "1:571793135981:web:59ea0ffd2bc3915f5e6264",
   apiKey: "AIzaSyD_qDevRG_VtrBh1anEAWRVWgPLtlG9qhg",
-  authDomain: "dlbc-dallas-church-connect.firebaseapp.com",
+  authDomain:
+    configuredAuthDomain ||
+    (!isLocalOrPreview ? window.location.host : "dlbc-dallas-church-connect.firebaseapp.com"),
   storageBucket: "dlbc-dallas-church-connect.firebasestorage.app",
   messagingSenderId: "571793135981",
   measurementId: "",

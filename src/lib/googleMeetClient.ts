@@ -1,6 +1,7 @@
 import {
   GoogleAuthProvider,
   signInWithPopup,
+  signInWithRedirect,
   signOut as firebaseSignOut,
   User,
 } from 'firebase/auth';
@@ -167,57 +168,131 @@ export async function joinConsultationMeeting(
    Kept separate from Google Calendar authorization
 ------------------------------------------------------- */
 
-const googleProvider = new GoogleAuthProvider();
+export const PENDING_GOOGLE_ROLE_KEY = 'dlbc_pending_google_role';
+
+export const googleProvider = new GoogleAuthProvider();
 googleProvider.setCustomParameters({
   prompt: 'select_account',
 });
 
-export async function signInWithGoogle(
-  desiredRole: UserRole = 'member'
-): Promise<{
-  user: User;
-  profile: UserProfile;
-  accessToken: string;
-}> {
-  const result = await signInWithPopup(auth, googleProvider);
-  const firebaseUser = result.user;
+export function isMobileBrowser(): boolean {
+  if (typeof navigator === 'undefined') return false;
+  return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+    navigator.userAgent
+  );
+}
 
-  const cleanEmail =
-    firebaseUser.email?.toLowerCase().trim() || '';
+export function formatFirebaseAuthError(err: any): string {
+  const code = err?.code || '';
+  switch (code) {
+    case 'auth/popup-closed-by-user':
+      return 'Google sign-in was cancelled because the pop-up window was closed before finishing. Please try again.';
+    case 'auth/cancelled-popup-request':
+      return 'Sign-in was interrupted by another request. Please try signing in again.';
+    case 'auth/popup-blocked':
+      return 'Your browser blocked the sign-in pop-up. Redirecting you to Google Sign-In...';
+    case 'auth/unauthorized-domain':
+      return 'This domain is not yet authorized for Google Sign-In in Firebase Authentication settings.';
+    case 'auth/account-exists-with-different-credential':
+      return 'An account already exists with this email using a different sign-in method. Please sign in with email and password.';
+    case 'auth/network-request-failed':
+      return 'Network connection error while contacting Google. Please check your internet connection and try again.';
+    case 'auth/user-disabled':
+      return 'This account has been disabled. Please contact pastoral administration for assistance.';
+    default:
+      return 'Unable to complete Google Sign-In right now. Please try again or use email sign-in.';
+  }
+}
+
+export async function ensureGoogleUserProfile(
+  firebaseUser: User,
+  desiredRole: UserRole = 'member'
+): Promise<UserProfile> {
+  const cleanEmail = firebaseUser.email?.toLowerCase().trim() || '';
 
   if (!cleanEmail) {
     throw new Error('Your Google account has no email address.');
+  }
+
+  let effectiveDesiredRole = desiredRole;
+  if (typeof window !== 'undefined') {
+    const storedRole = sessionStorage.getItem(PENDING_GOOGLE_ROLE_KEY) as UserRole | null;
+    if (storedRole) {
+      effectiveDesiredRole = storedRole;
+      sessionStorage.removeItem(PENDING_GOOGLE_ROLE_KEY);
+    }
   }
 
   const uid = firebaseUser.uid;
   const userDocRef = doc(db, 'users', uid);
   const userDoc = await getDoc(userDocRef);
 
-  let profile: UserProfile;
-
   if (userDoc.exists()) {
-    profile = userDoc.data() as UserProfile;
-  } else {
-    const isSpecialRoleRequested = desiredRole === 'leader' || desiredRole === 'pastor';
-
-    profile = {
-      uid,
-      displayName:
-        firebaseUser.displayName ||
-        cleanEmail.split('@')[0] ||
-        'Member',
-      email: cleanEmail,
-      role: 'member',
-      ...(isSpecialRoleRequested ? { requestedRole: desiredRole, pendingRoleApproval: true } : {}),
-      photoURL: firebaseUser.photoURL || undefined,
-      memberSince: new Date().toISOString(),
-    };
-
-    await setDoc(userDocRef, profile);
+    return userDoc.data() as UserProfile;
   }
 
+  const isSpecialRoleRequested =
+    effectiveDesiredRole === 'leader' || effectiveDesiredRole === 'pastor';
+
+  const profile: UserProfile = {
+    uid,
+    displayName:
+      firebaseUser.displayName || cleanEmail.split('@')[0] || 'Member',
+    email: cleanEmail,
+    role: 'member',
+    ...(isSpecialRoleRequested
+      ? { requestedRole: effectiveDesiredRole, pendingRoleApproval: true }
+      : {}),
+    photoURL: firebaseUser.photoURL || undefined,
+    memberSince: new Date().toISOString(),
+  };
+
+  await setDoc(userDocRef, profile);
+  return profile;
+}
+
+export type GoogleSignInResult =
+  | { redirecting: true; user?: undefined; profile?: undefined; accessToken?: undefined }
+  | { redirecting?: false; user: User; profile: UserProfile; accessToken: string };
+
+export async function signInWithGoogle(
+  desiredRole: UserRole = 'member'
+): Promise<GoogleSignInResult> {
+  // Persist desired role synchronously before popup/redirect in case redirect reloads page
+  if (typeof window !== 'undefined') {
+    if (desiredRole === 'leader' || desiredRole === 'pastor') {
+      sessionStorage.setItem(PENDING_GOOGLE_ROLE_KEY, desiredRole);
+    } else {
+      sessionStorage.removeItem(PENDING_GOOGLE_ROLE_KEY);
+    }
+  }
+
+  // On mobile browsers, go straight to redirect without async calls beforehand
+  if (isMobileBrowser()) {
+    await signInWithRedirect(auth, googleProvider);
+    return { redirecting: true };
+  }
+
+  let result;
+  try {
+    // Invoke signInWithPopup immediately as the first async call in the click handler
+    result = await signInWithPopup(auth, googleProvider);
+  } catch (err: any) {
+    if (
+      err?.code === 'auth/popup-blocked' ||
+      err?.code === 'auth/operation-not-supported-in-this-environment'
+    ) {
+      await signInWithRedirect(auth, googleProvider);
+      return { redirecting: true };
+    }
+    throw err;
+  }
+
+  const profile = await ensureGoogleUserProfile(result.user, desiredRole);
+
   return {
-    user: firebaseUser,
+    redirecting: false,
+    user: result.user,
     profile,
     accessToken: '',
   };

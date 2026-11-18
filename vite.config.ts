@@ -9,12 +9,13 @@ export default defineConfig(() => {
     plugins: [react(), tailwindcss()],
     resolve: {
       alias: {
-        '@': path.resolve(__dirname, '.'),
+        '@': path.resolve(import.meta.dirname, '.'),
       },
     },
     server: {
-      // HMR is disabled in AI Studio environment
+      // HMR and WebSocket server are disabled in AI Studio environment
       hmr: false,
+      ws: false as const,
       watch: null,
     },
   };

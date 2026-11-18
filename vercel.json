@@ -2,7 +2,11 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "rewrites": [
     {
-      "source": "/((?!api(?:/|$)).*)",
+      "source": "/__/auth/:path*",
+      "destination": "https://dlbc-dallas-church-connect.firebaseapp.com/__/auth/:path*"
+    },
+    {
+      "source": "/((?!api(?:/|$)|__/auth(?:/|$)).*)",
       "destination": "/index.html"
     }
   ]

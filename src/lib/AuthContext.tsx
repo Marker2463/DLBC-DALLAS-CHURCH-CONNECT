@@ -1,9 +1,18 @@
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
 import { auth, db, UserProfile, UserRole } from './firebase';
-import { onAuthStateChanged, signOut as firebaseSignOut } from 'firebase/auth';
+import {
+  getRedirectResult,
+  onAuthStateChanged,
+  signOut as firebaseSignOut,
+  User as FirebaseUser,
+} from 'firebase/auth';
 import { doc, getDoc } from 'firebase/firestore';
-
-import { User as FirebaseUser } from 'firebase/auth';
+import {
+  ensureGoogleUserProfile,
+  formatFirebaseAuthError,
+  signInWithGoogle as clientSignInWithGoogle,
+  GoogleSignInResult,
+} from './googleMeetClient';
 
 type AuthContextType = {
   isAuthenticated: boolean;
@@ -12,6 +21,9 @@ type AuthContextType = {
   role: UserRole | null;
   logout: () => Promise<void>;
   getIdToken: (forceRefresh?: boolean) => Promise<string | null>;
+  signInWithGoogle: (desiredRole?: UserRole) => Promise<GoogleSignInResult>;
+  redirectError: string | null;
+  clearRedirectError: () => void;
   loading: boolean;
 };
 
@@ -22,16 +34,58 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<UserProfile | null>(null);
   const [rawFirebaseUser, setRawFirebaseUser] = useState<FirebaseUser | null>(null);
   const [role, setRole] = useState<UserRole | null>(null);
+  const [redirectError, setRedirectError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
+  const clearRedirectError = useCallback(() => {
+    setRedirectError(null);
+  }, []);
+
   useEffect(() => {
+    let mounted = true;
+    let authStateResolved = false;
+    let redirectResolved = false;
+
+    const finishLoadingIfReady = () => {
+      if (mounted && authStateResolved && redirectResolved) {
+        setLoading(false);
+      }
+    };
+
+    // Handle redirect-based Google Sign-In results on initial mount
+    const redirectPromise = getRedirectResult(auth)
+      .then(async (result) => {
+        if (!mounted || !result?.user) return;
+        await ensureGoogleUserProfile(result.user);
+      })
+      .catch((err: any) => {
+        if (!mounted) return;
+        if (
+          err?.code === 'auth/popup-closed-by-user' ||
+          err?.code === 'auth/cancelled-popup-request'
+        ) {
+          setRedirectError(formatFirebaseAuthError(err));
+          return;
+        }
+        console.error('Google redirect result error:', err);
+        setRedirectError(formatFirebaseAuthError(err));
+      })
+      .finally(() => {
+        redirectResolved = true;
+        finishLoadingIfReady();
+      });
+
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      if (!mounted) return;
       setRawFirebaseUser(firebaseUser);
       if (firebaseUser) {
-        // Fetch user profile from Firestore
+        // Ensure redirect profile creation (with any pending role) finishes before reading user doc
+        await redirectPromise;
+        if (!mounted) return;
+
         const docRef = doc(db, 'users', firebaseUser.uid);
         const docSnap = await getDoc(docRef);
-        
+
         if (docSnap.exists()) {
           const profile = docSnap.data() as UserProfile;
           const currentRole = profile.role || 'member';
@@ -39,24 +93,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           setRole(currentRole);
           setIsAuthenticated(true);
         } else {
-          // Self-heal: Create missing profile document if it somehow failed during registration (member role only)
-          const { setDoc } = await import('firebase/firestore');
-          const newProfile = {
-            uid: firebaseUser.uid,
-            displayName: firebaseUser.displayName || 'User',
-            email: firebaseUser.email?.toLowerCase().trim() || '',
-            role: 'member' as UserRole,
-            createdAt: new Date().toISOString()
-          };
-          
+          let fallbackProfile: UserProfile;
           try {
-            await setDoc(docRef, newProfile);
+            fallbackProfile = await ensureGoogleUserProfile(firebaseUser);
           } catch (e) {
             console.error('Failed to auto-heal missing user profile', e);
+            fallbackProfile = {
+              uid: firebaseUser.uid,
+              displayName: firebaseUser.displayName || 'User',
+              email: firebaseUser.email?.toLowerCase().trim() || '',
+              role: 'member',
+            };
           }
 
-          setUser(newProfile as UserProfile);
-          setRole('member');
+          setUser(fallbackProfile);
+          setRole(fallbackProfile.role || 'member');
           setIsAuthenticated(true);
         }
       } else {
@@ -64,10 +115,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setRole(null);
         setIsAuthenticated(false);
       }
-      setLoading(false);
+
+      authStateResolved = true;
+      finishLoadingIfReady();
     });
 
-    return () => unsubscribe();
+    return () => {
+      mounted = false;
+      unsubscribe();
+    };
   }, []);
 
   const logout = async () => {
@@ -89,6 +145,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         role,
         logout,
         getIdToken,
+        signInWithGoogle: clientSignInWithGoogle,
+        redirectError,
+        clearRedirectError,
         loading,
       }}
     >

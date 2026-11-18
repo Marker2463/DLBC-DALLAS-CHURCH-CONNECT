@@ -1,16 +1,15 @@
 import express from "express";
 import { rateLimit } from "express-rate-limit";
 import path from "path";
-import { createServer as createViteServer } from "vite";
 import { google } from "googleapis";
 import dotenv from "dotenv";
 import { initializeApp, getApps, cert } from 'firebase-admin/app';
 import { getFirestore } from 'firebase-admin/firestore';
 import { getAuth } from 'firebase-admin/auth';
 import { createZoomMeeting, updateZoomMeeting, deleteZoomMeeting } from "./src/lib/zoom";
-import googleMeetRoutes, { createOrRetrieveCalendarMeeting, extractMeetUrl } from "./server/googleMeetRoutes";
+import googleMeetRoutes from "./server/googleMeetRoutes";
 import { createHostedMeeting } from "./src/server/meet";
-import { isSyntheticMeetUrl } from "./src/lib/appointmentService";
+import { isSyntheticMeetUrl } from "./src/lib/meetUrlUtils";
 
 dotenv.config();
 
@@ -484,10 +483,222 @@ async function startServer() {
     }
   });
 
+  app.post("/api/consultations/confirm", async (req, res) => {
+    try {
+      const { consultationId, selectedTime, meetingMethod } = req.body;
+      if (!consultationId) {
+        return res.status(400).json({ success: false, error: 'Missing consultationId' });
+      }
+
+      const authHeader = req.headers.authorization;
+      const bearerToken = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : null;
+      const idToken = bearerToken || req.body.idToken;
+      if (!idToken) {
+        return res.status(401).json({ success: false, error: 'Authentication token is required.' });
+      }
+
+      let callerUid: string;
+      let callerEmail: string | null = null;
+      let callerName: string | null = null;
+      try {
+        const decoded = await getAdminAuth().verifyIdToken(idToken);
+        callerUid = decoded.uid;
+        callerEmail = decoded.email ? decoded.email.toLowerCase().trim() : null;
+        callerName = decoded.name || null;
+      } catch (authErr: any) {
+        console.warn('[server.ts] confirm verifyIdToken failed:', authErr?.message);
+        return res.status(401).json({ success: false, error: 'Invalid or expired authentication token.' });
+      }
+
+      const firestore = getAdminFirestore();
+      const docRef = firestore.collection('consultations').doc(consultationId);
+      const docSnap = await docRef.get();
+      if (!docSnap.exists) {
+        return res.status(404).json({ success: false, error: 'Consultation record not found.' });
+      }
+
+      const data = docSnap.data() || {};
+
+      // Verify caller is assigned leader/pastor, or has pastor/leader/admin role
+      const isAssignedLeader =
+        data.leaderId === callerUid ||
+        data.pastorId === callerUid ||
+        data.assignedPastorId === callerUid ||
+        (callerEmail && (
+          data.leaderEmail?.toLowerCase().trim() === callerEmail ||
+          data.pastorEmail?.toLowerCase().trim() === callerEmail
+        ));
+
+      let isPrivileged = callerEmail === 'markeroladipo@gmail.com';
+      if (!isPrivileged) {
+        try {
+          const uSnap = await firestore.collection('users').doc(callerUid).get();
+          if (uSnap.exists) {
+            const uData = uSnap.data();
+            callerName = callerName || uData?.displayName || null;
+            if (uData?.role === 'admin' || uData?.role === 'pastor' || uData?.role === 'leader') {
+              isPrivileged = true;
+            }
+          }
+        } catch (uErr) {
+          console.warn('[server.ts] confirm role lookup warning:', uErr);
+        }
+      }
+
+      if (!isAssignedLeader && !isPrivileged) {
+        return res.status(403).json({
+          success: false,
+          error: 'Only an authorized pastor or leader can confirm consultations.',
+        });
+      }
+
+      if (String(data.status || '').toLowerCase().trim() === 'cancelled') {
+        return res.status(400).json({
+          success: false,
+          error: 'Cancelled consultations cannot be confirmed.',
+        });
+      }
+
+      const resolvedTime = selectedTime || data.selectedTime || data.scheduledStart || data.scheduledAt || new Date().toISOString();
+      const startDate = new Date(resolvedTime);
+      if (Number.isNaN(startDate.getTime())) {
+        return res.status(400).json({ success: false, error: 'Invalid consultation start date/time.' });
+      }
+
+      const durationMinutes = Number(data.durationMinutes) > 0 ? Number(data.durationMinutes) : 45;
+      const endDate = new Date(startDate.getTime() + durationMinutes * 60_000);
+      const startIso = startDate.toISOString();
+      const endIso = endDate.toISOString();
+      const nowIso = new Date().toISOString();
+
+      const resolvedMethod = (meetingMethod || data.meetingMethod || 'google_meet') as 'google_meet' | 'zoom' | 'in_person';
+      const resolvedLeaderUid = data.leaderId || data.pastorId || callerUid;
+      const resolvedLeaderName = data.leaderName || data.pastorName || callerName || 'Pastoral Leader';
+      const resolvedLeaderEmail = data.leaderEmail || data.pastorEmail || callerEmail || null;
+
+      let meetUrl: string | null = null;
+      let hostUrl: string | null = null;
+      let eventId: string | null = data.calendarEventId || data.googleEventId || data.meeting?.externalId || null;
+      let hostEmail: string | null = data.meetingHostEmail || resolvedLeaderEmail || null;
+
+      const existingUrl = data.meeting?.url || data.meetingLink || data.meetUrl || data.googleMeetUrl;
+      const hasValidExistingUrl =
+        typeof existingUrl === 'string' &&
+        existingUrl.trim().length > 0 &&
+        !isSyntheticMeetUrl(existingUrl, consultationId);
+
+      if (resolvedMethod !== 'in_person') {
+        if (hasValidExistingUrl) {
+          meetUrl = existingUrl.trim();
+          hostUrl = (data.hostMeetingLink || data.meeting?.hostUrl || meetUrl).trim();
+        } else if (resolvedMethod === 'zoom') {
+          const zoomRes = await createZoomMeeting({
+            topic: `${data.category || 'Pastoral Guidance'} - ${data.memberName || 'Member'}`,
+            startTimeIso: startIso,
+            durationMinutes,
+          });
+          meetUrl = zoomRes.joinUrl;
+          hostUrl = zoomRes.startUrl;
+          eventId = zoomRes.meetingId;
+        } else {
+          const hosted = await createHostedMeeting({
+            consultationId,
+            leaderUid: resolvedLeaderUid,
+            startIso,
+            endIso,
+            memberEmail: data.memberEmail,
+            category: data.category || 'Spiritual Guidance',
+            leaderName: resolvedLeaderName,
+            memberName: data.memberName || 'Member',
+          });
+          meetUrl = hosted.meetUrl;
+          hostUrl = hosted.meetUrl;
+          eventId = hosted.eventId;
+          hostEmail = hosted.hostEmail;
+        }
+      }
+
+      const existingTimeline = Array.isArray(data.journeyTimeline) ? data.journeyTimeline : [];
+      const alreadyHasConfirmedStep = existingTimeline.some(
+        (step: any) => step?.status === 'Pastor Confirmed'
+      );
+      const updatedTimeline = alreadyHasConfirmedStep
+        ? existingTimeline
+        : [
+            ...existingTimeline,
+            {
+              status: 'Pastor Confirmed',
+              timestamp: nowIso,
+              description:
+                resolvedMethod === 'in_person'
+                  ? `In-person pastoral consultation confirmed at ${data.meetingLocation || 'Church Sanctuary'}.`
+                  : 'Consultation confirmed by the pastor/leader and video session link generated.',
+            },
+          ];
+
+      const updatePayload: Record<string, any> = {
+        status: 'scheduled',
+        isLocked: true,
+        meetingMethod: resolvedMethod,
+        scheduledStart: startIso,
+        scheduledEnd: endIso,
+        selectedTime: resolvedTime,
+        leaderId: data.leaderId || resolvedLeaderUid,
+        pastorId: data.pastorId || resolvedLeaderUid,
+        leaderName: data.leaderName || resolvedLeaderName,
+        leaderEmail: resolvedLeaderEmail,
+        confirmedAt: data.confirmedAt || nowIso,
+        confirmedBy: callerUid,
+        journeyTimeline: updatedTimeline,
+        updatedAt: nowIso,
+      };
+
+      if (resolvedMethod === 'in_person') {
+        updatePayload.meetingLocation = data.meetingLocation || 'Church Sanctuary';
+      } else if (meetUrl) {
+        updatePayload.meetUrl = meetUrl;
+        updatePayload.meetingLink = meetUrl;
+        updatePayload.googleMeetUrl = meetUrl;
+        updatePayload.hostMeetingLink = hostUrl || meetUrl;
+        updatePayload.calendarEventId = eventId || null;
+        updatePayload.googleEventId = eventId || null;
+        updatePayload.meetingHostId = resolvedLeaderUid;
+        updatePayload.meetingHostEmail = hostEmail;
+        updatePayload.meetingLinkStatus = 'active';
+        updatePayload.meetingCreatedAt = data.meetingCreatedAt || nowIso;
+        updatePayload.meeting = {
+          provider: resolvedMethod,
+          url: meetUrl,
+          hostUrl: hostUrl || meetUrl,
+          externalId: eventId || '',
+          createdAt: data.meeting?.createdAt || nowIso,
+          createdBy: callerUid,
+          status: 'active',
+        };
+      }
+
+      await docRef.update(updatePayload);
+
+      return res.json({
+        success: true,
+        consultationId,
+        meetUrl,
+        meetingLink: meetUrl,
+        eventId,
+        meetingHostEmail: hostEmail,
+      });
+    } catch (error: any) {
+      console.error('Server error in confirm route:', error);
+      return res.status(500).json({
+        success: false,
+        error: error?.message || 'Failed to confirm consultation.',
+      });
+    }
+  });
+
   app.post("/api/consultations/join", consultationJoinRateLimit, async (req, res) => {
     try {
-      const { consultationId, isTestAccess, googleAccessToken } = req.body;
-      const explicitGoogleToken = (googleAccessToken || req.headers['x-google-access-token']) as string | undefined;
+      const { consultationId, isTestAccess } = req.body;
       if (!consultationId) {
         return res.status(400).json({ success: false, error: 'Missing consultationId' });
       }
@@ -625,9 +836,9 @@ async function startServer() {
           ? req.body.storedMeetingLink.trim()
           : null;
 
-        const urlToUse = (storedUrl && typeof storedUrl === 'string' && storedUrl.trim().length > 0)
+        const urlToUse = (storedUrl && typeof storedUrl === 'string' && storedUrl.trim().length > 0 && !isSyntheticMeetUrl(storedUrl, consultationId))
           ? storedUrl.trim()
-          : clientStoredLink;
+          : (clientStoredLink && !isSyntheticMeetUrl(clientStoredLink, consultationId) ? clientStoredLink : null);
 
         if (urlToUse) {
           const cleanUrl = urlToUse;
@@ -726,49 +937,26 @@ async function startServer() {
           hostUrl = zoomRes.startUrl;
           externalId = zoomRes.meetingId;
         } else {
-          // Google Meet generation using assigned pastor's OAuth token, with seamless fallback to central pastoral office credentials
+          // Google Meet generation exclusively on the backend via src/server/meet.ts
           const pastorId = data.pastorId || data.leaderId || '';
-          const pastorEmail = (data.pastorEmail || data.leaderEmail || '').toLowerCase().trim();
+          const startDate = new Date(scheduledField || new Date().toISOString());
+          const durationMins = data.durationMinutes || 45;
+          const endDate = new Date(startDate.getTime() + durationMins * 60_000);
 
-          const tokenSnapshot = pastorId
-            ? await firestore.collection('_privateGoogleOAuth').doc(pastorId).get()
-            : null;
-          const tokenData = tokenSnapshot?.exists ? tokenSnapshot.data() : null;
+          const hosted = await createHostedMeeting({
+            consultationId,
+            leaderUid: pastorId,
+            startIso: startDate.toISOString(),
+            endIso: endDate.toISOString(),
+            memberEmail: data.memberEmail,
+            category: data.category || 'Spiritual Guidance',
+            leaderName: data.pastorName || data.leaderName || 'Pastoral Leader',
+            memberName: data.memberName || 'Member',
+          });
 
-          if (tokenData?.encryptedRefreshToken) {
-            const calMeeting = await createOrRetrieveCalendarMeeting({
-              consultationId,
-              pastorId,
-              pastorEmail: tokenData.email || pastorEmail,
-              memberName: data.memberName,
-              scheduledAt: scheduledField || new Date().toISOString(),
-              durationMinutes: data.durationMinutes || 45,
-              encryptedRefreshToken: tokenData.encryptedRefreshToken,
-            });
-
-            meetingUrl = calMeeting.meetUrl;
-            hostUrl = calMeeting.meetUrl;
-            externalId = calMeeting.eventId;
-          } else {
-            const startDate = new Date(scheduledField || new Date().toISOString());
-            const durationMins = data.durationMinutes || 45;
-            const endDate = new Date(startDate.getTime() + durationMins * 60_000);
-
-            const hosted = await createHostedMeeting({
-              consultationId,
-              leaderUid: pastorId,
-              startIso: startDate.toISOString(),
-              endIso: endDate.toISOString(),
-              memberEmail: data.memberEmail,
-              category: data.category || 'Spiritual Guidance',
-              leaderName: data.pastorName || data.leaderName || 'Pastoral Leader',
-              memberName: data.memberName || 'Member',
-            });
-
-            meetingUrl = hosted.meetUrl;
-            hostUrl = hosted.meetUrl;
-            externalId = hosted.eventId;
-          }
+          meetingUrl = hosted.meetUrl;
+          hostUrl = hosted.meetUrl;
+          externalId = hosted.eventId;
         }
 
         // Persist canonical meeting and clear lease
@@ -1034,8 +1222,9 @@ async function startServer() {
 
   // Vite middleware for development
   if (process.env.NODE_ENV !== "production") {
+    const { createServer: createViteServer } = await import("vite");
     const vite = await createViteServer({
-      server: { middlewareMode: true, hmr: false, watch: null },
+      server: { middlewareMode: true, hmr: false, ws: false, watch: null },
       appType: "spa",
     });
     app.use(vite.middlewares);

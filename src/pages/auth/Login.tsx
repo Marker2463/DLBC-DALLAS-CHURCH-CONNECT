@@ -6,6 +6,7 @@ import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { ArrowRight, Loader2 } from 'lucide-react';
 import { GoogleSignInButton } from '../../components/GoogleSignInButton';
 import { useToast } from '../../components/ui/ToastProvider';
+import { useAuth } from '../../lib/AuthContext';
 
 interface DemoAccount {
   label: string;
@@ -46,6 +47,7 @@ export function Login() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { showToast } = useToast();
+  const { isAuthenticated, role: authRole, loading: authLoading, redirectError, clearRedirectError } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -59,6 +61,31 @@ export function Login() {
       setEmail(prefilledEmail);
     }
   }, [searchParams]);
+
+  useEffect(() => {
+    if (!authLoading && isAuthenticated && authRole) {
+      if (authRole === 'admin') {
+        navigate('/admin/roles', { replace: true });
+      } else if (authRole === 'pastor') {
+        navigate('/pastor/dashboard', { replace: true });
+      } else if (authRole === 'leader') {
+        navigate('/leader/dashboard', { replace: true });
+      } else {
+        navigate('/member/dashboard', { replace: true });
+      }
+    }
+  }, [authLoading, isAuthenticated, authRole, navigate]);
+
+  useEffect(() => {
+    if (redirectError) {
+      showToast({
+        variant: 'info',
+        title: 'Google Sign-In',
+        message: redirectError,
+      });
+      clearRedirectError();
+    }
+  }, [redirectError, clearRedirectError, showToast]);
 
   // Helper to ensure initial weekly schedule exists for leaders
   const ensureLeaderAvailability = async (leaderId: string) => {
@@ -247,6 +274,7 @@ export function Login() {
                 navigate('/member/dashboard');
               }
             }}
+            onCancel={(msg) => showToast({ variant: 'info', title: 'Sign-In Cancelled', message: msg })}
             onError={(msg) => showToast({ variant: 'error', title: 'Google Sign-In Failed', message: msg })}
           />
         </div>

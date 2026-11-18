@@ -1,11 +1,12 @@
 import { useState } from 'react';
-import { signInWithGoogle } from '../lib/googleMeetClient';
+import { signInWithGoogle, formatFirebaseAuthError } from '../lib/googleMeetClient';
 import { UserRole } from '../lib/firebase';
 import { Loader2 } from 'lucide-react';
 
 interface GoogleSignInButtonProps {
   onSuccess: (role: string) => void;
   onError: (error: string) => void;
+  onCancel?: (message: string) => void;
   desiredRole?: UserRole;
   text?: string;
 }
@@ -13,6 +14,7 @@ interface GoogleSignInButtonProps {
 export function GoogleSignInButton({
   onSuccess,
   onError,
+  onCancel,
   desiredRole = 'member',
   text = 'Sign in with Google'
 }: GoogleSignInButtonProps) {
@@ -21,18 +23,30 @@ export function GoogleSignInButton({
   const handleGoogleSignIn = async () => {
     if (loading) return;
     setLoading(true);
+    let redirecting = false;
     try {
-      const { profile } = await signInWithGoogle(desiredRole);
-      onSuccess(profile.role);
+      const result = await signInWithGoogle(desiredRole);
+      if (result.redirecting) {
+        redirecting = true;
+        return;
+      }
+      onSuccess(result.profile.role);
     } catch (err: any) {
+      const friendlyMessage = formatFirebaseAuthError(err);
       if (err?.code === 'auth/popup-closed-by-user' || err?.code === 'auth/cancelled-popup-request') {
-        // User closed or cancelled popup window intentionally
+        if (onCancel) {
+          onCancel(friendlyMessage);
+        } else {
+          onError(friendlyMessage);
+        }
         return;
       }
       console.error('Google Sign-In Error:', err);
-      onError(err.message || 'Google Sign-In failed. Please try again.');
+      onError(friendlyMessage);
     } finally {
-      setLoading(false);
+      if (!redirecting) {
+        setLoading(false);
+      }
     }
   };
 

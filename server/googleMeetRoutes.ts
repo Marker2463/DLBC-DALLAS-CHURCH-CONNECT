@@ -778,54 +778,29 @@ router.post(
         });
       }
 
-      // Attempt assigned pastor's personal OAuth credentials first; fall back seamlessly to central pastoral office credentials.
-      const tokenSnapshot = await adminDb
-        .collection(PRIVATE_GOOGLE_COLLECTION)
-        .doc(pastorId)
-        .get();
-
-      const tokenData = tokenSnapshot.exists ? tokenSnapshot.data() : null;
-      const hasPersonalToken =
-        Boolean(tokenData?.encryptedRefreshToken) &&
-        normalizeEmail(tokenData?.email || '') === pastorEmail;
-
-      let meeting: { meetUrl: string; eventId: string };
-      let resolvedHostEmail = pastorEmail;
-
-      if (hasPersonalToken && tokenData?.encryptedRefreshToken) {
-        meeting = await createOrRetrieveCalendarMeeting({
-          consultationId,
-          pastorId,
-          pastorEmail,
-          memberName: appointment.memberName,
-          scheduledAt,
-          durationMinutes: appointment.durationMinutes || 45,
-          encryptedRefreshToken: tokenData.encryptedRefreshToken,
-        });
-      } else {
-        const startDate = new Date(scheduledAt);
-        if (Number.isNaN(startDate.getTime())) {
-          throw new Error('CONSULTATION_DATE_INVALID');
-        }
-        const durationMinutes = appointment.durationMinutes || 45;
-        if (!Number.isFinite(durationMinutes) || durationMinutes < 1 || durationMinutes > 1440) {
-          throw new Error('CONSULTATION_DURATION_INVALID');
-        }
-        const endDate = new Date(startDate.getTime() + durationMinutes * 60_000);
-
-        const hosted = await createHostedMeeting({
-          consultationId,
-          leaderUid: pastorId,
-          startIso: startDate.toISOString(),
-          endIso: endDate.toISOString(),
-          memberEmail: appointment.memberEmail,
-          leaderName: pastor.displayName || appointment.pastorName || appointment.leaderName || 'Pastoral Leader',
-          memberName: appointment.memberName || 'Church member',
-        });
-
-        meeting = { meetUrl: hosted.meetUrl, eventId: hosted.eventId };
-        resolvedHostEmail = hosted.hostEmail;
+      // Delegate Google Meet creation exclusively to createHostedMeeting in src/server/meet.ts
+      const startDate = new Date(scheduledAt);
+      if (Number.isNaN(startDate.getTime())) {
+        throw new Error('CONSULTATION_DATE_INVALID');
       }
+      const durationMinutes = appointment.durationMinutes || 45;
+      if (!Number.isFinite(durationMinutes) || durationMinutes < 1 || durationMinutes > 1440) {
+        throw new Error('CONSULTATION_DURATION_INVALID');
+      }
+      const endDate = new Date(startDate.getTime() + durationMinutes * 60_000);
+
+      const hosted = await createHostedMeeting({
+        consultationId,
+        leaderUid: pastorId,
+        startIso: startDate.toISOString(),
+        endIso: endDate.toISOString(),
+        memberEmail: appointment.memberEmail,
+        leaderName: pastor.displayName || appointment.pastorName || appointment.leaderName || 'Pastoral Leader',
+        memberName: appointment.memberName || 'Church member',
+      });
+
+      const meeting = { meetUrl: hosted.meetUrl, eventId: hosted.eventId };
+      const resolvedHostEmail = hosted.hostEmail;
 
       const now = new Date().toISOString();
 

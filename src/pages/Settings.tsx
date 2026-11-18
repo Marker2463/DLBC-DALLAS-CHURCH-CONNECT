@@ -2,10 +2,6 @@ import { useState, useEffect } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
 import { useAuth } from '../lib/AuthContext';
 import {
-  connectPastorGoogleCalendar,
-  getPastorGoogleCalendarStatus,
-} from '../lib/googleMeetClient';
-import {
   Calendar,
   CheckCircle2,
   ShieldCheck,
@@ -19,7 +15,7 @@ import { Popover } from '../components/ui/Popover';
 import { useToast } from '../components/ui/ToastProvider';
 
 export default function Settings() {
-  const { user, userProfile } = useAuth();
+  const { user, userProfile, getIdToken } = useAuth();
   const { showToast } = useToast();
   const [searchParams, setSearchParams] = useSearchParams();
   const googleCalendarQuery = searchParams.get('googleCalendar');
@@ -69,10 +65,30 @@ export default function Settings() {
   const fetchStatus = async () => {
     setCheckingStatus(true);
     try {
-      const res = await getPastorGoogleCalendarStatus();
-      setStatus(res);
+      const idToken = await getIdToken();
+      if (!idToken) {
+        setStatus({ connected: false });
+        return;
+      }
+      const response = await fetch('/api/google/oauth/status', {
+        method: 'GET',
+        headers: {
+          Authorization: `Bearer ${idToken}`,
+        },
+      });
+      if (!response.ok) {
+        setStatus({ connected: false });
+        return;
+      }
+      const res = await response.json();
+      setStatus({
+        connected: Boolean(res.connected),
+        email: res.email || null,
+        connectedAt: res.connectedAt || null,
+      });
     } catch (err: any) {
       console.warn('Failed to fetch Google Calendar status:', err);
+      setStatus({ connected: false });
     } finally {
       setCheckingStatus(false);
     }
@@ -89,7 +105,22 @@ export default function Settings() {
   const handleConnect = async () => {
     setConnecting(true);
     try {
-      await connectPastorGoogleCalendar();
+      const idToken = await getIdToken();
+      if (!idToken) {
+        throw new Error('Sign in before continuing.');
+      }
+      const response = await fetch('/api/google/oauth/start', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${idToken}`,
+          'Content-Type': 'application/json',
+        },
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok || !data.authorizationUrl) {
+        throw new Error(data.message || 'Unable to connect your Google Calendar.');
+      }
+      window.location.assign(data.authorizationUrl);
     } catch (err: any) {
       showToast({
         variant: 'error',

@@ -1,7 +1,8 @@
 'use client';
 
 import React, { useState } from 'react';
-import { createConsultationMeeting } from '../lib/googleMeetClient';
+import { auth } from '../lib/firebase';
+import { useAuth } from '../lib/AuthContext';
 import { useToast } from './ui/ToastProvider';
 import { Video } from 'lucide-react';
 
@@ -25,6 +26,7 @@ export default function JoinSessionButton({
   icon,
   onJoinSuccess,
 }: JoinSessionButtonProps) {
+  const { firebaseUser } = useAuth();
   const { showToast } = useToast();
   const [loading, setLoading] = useState(false);
 
@@ -32,10 +34,34 @@ export default function JoinSessionButton({
     setLoading(true);
 
     try {
-      const meeting = await createConsultationMeeting(consultationId);
+      const user = firebaseUser || auth.currentUser;
+      if (!user) {
+        throw new Error('Please sign in before joining this consultation.');
+      }
+
+      const idToken = await user.getIdToken();
+      const response = await fetch('/api/consultations/join', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${idToken}`,
+        },
+        body: JSON.stringify({ consultationId }),
+      });
+
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok || !data?.meetUrl) {
+        throw new Error(
+          data?.error ||
+            data?.message ||
+            'Unable to retrieve the consultation meeting link. Please try again.'
+        );
+      }
+
+      const meetUrl = String(data.meetUrl).trim();
 
       if (onJoinSuccess) {
-        onJoinSuccess(meeting.meetUrl);
+        onJoinSuccess(meetUrl);
       }
 
       showToast({
@@ -44,11 +70,11 @@ export default function JoinSessionButton({
         message: 'Your Google Meet consultation room is open in a new tab.',
         action: {
           label: 'Open Meeting',
-          onClick: () => window.open(meeting.meetUrl, '_blank', 'noopener,noreferrer'),
+          onClick: () => window.open(meetUrl, '_blank', 'noopener,noreferrer'),
         },
       });
 
-      window.open(meeting.meetUrl, '_blank', 'noopener,noreferrer');
+      window.open(meetUrl, '_blank', 'noopener,noreferrer');
     } catch (err: any) {
       console.warn('[JoinSessionButton] Error opening meeting:', err);
       showToast({

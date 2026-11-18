@@ -15,7 +15,6 @@ import { useAuth } from '../../lib/AuthContext';
 import { db, Consultation } from '../../lib/firebase';
 import { doc, onSnapshot, updateDoc } from 'firebase/firestore';
 import { generateGoogleCalendarUrl } from '../../lib/calendarHelper';
-import { getOrInitializeMeetUrl } from '../../lib/appointmentService';
 import JoinSessionButton from '../../components/JoinSessionButton';
 import { formatDateTime, getInitials, formatMeetingMethod } from '../../lib/canonical';
 import { CancelConsultationModal } from '../../components/CancelConsultationModal';
@@ -35,7 +34,7 @@ import {
 export function PastorRequestDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, firebaseUser } = useAuth();
   const { showToast } = useToast();
   
   const [consultation, setConsultation] = useState<Consultation | null>(null);
@@ -90,52 +89,44 @@ export function PastorRequestDetail() {
   );
 
   /**
-   * Finalize & Confirm Consultation with Exact Requested Details
+   * Finalize & Confirm Consultation on the server (generates Meet link via src/server/meet.ts)
    */
   const handleFinalizeMeeting = async () => {
     if (!consultation || !id) return;
     setIsSubmittingFinalize(true);
 
     try {
-      const selectedIso = consultation.selectedTime || consultation.scheduledStart || new Date().toISOString();
-      const startTime = new Date(selectedIso);
-      const endTime = new Date(startTime.getTime() + 45 * 60000);
-      const reqMethod = consultation.meetingMethod || 'google_meet';
+      const currentUser = firebaseUser;
+      if (!currentUser) {
+        throw new Error('Please sign in again before confirming.');
+      }
+      const idToken = await currentUser.getIdToken();
 
-      const formattedReadable = formatDateTime(selectedIso, 'long');
-
-      const updatedTimeline = [
-        ...(consultation.journeyTimeline || []),
-        {
-          status: 'Pastor Confirmed',
-          timestamp: new Date().toISOString(),
-          description: `Meeting confirmed for ${formattedReadable} (${reqMethod === 'in_person' ? 'In-Person' : formatMeetingMethod(reqMethod)}).`
-        }
-      ];
-
-      await updateDoc(doc(db, 'consultations', id), {
-        status: 'scheduled',
-        isLocked: true,
-        selectedTime: selectedIso,
-        scheduledStart: selectedIso,
-        scheduledEnd: endTime.toISOString(),
-        meetingMethod: reqMethod,
-        meetingLocation: reqMethod === 'in_person' ? (consultation.meetingLocation || 'DLBC Church Sanctuary / Pastoral Suite') : null,
-        journeyTimeline: updatedTimeline,
-        updatedAt: new Date().toISOString()
+      const res = await fetch('/api/consultations/confirm', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${idToken}`,
+        },
+        body: JSON.stringify({ consultationId: id }),
       });
+
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        throw new Error(data.error || data.message || 'Failed to confirm consultation.');
+      }
 
       showToast({
         variant: 'success',
         title: 'Appointment Confirmed',
-        message: 'The consultation has been finalized and added to the schedule.',
+        message: 'The consultation has been finalized and scheduled.',
       });
-    } catch (err) {
+    } catch (err: any) {
       console.error("Failed to finalize meeting:", err);
       showToast({
         variant: 'error',
         title: 'Confirmation Failed',
-        message: 'Failed to confirm appointment. Please try again.',
+        message: err?.message || 'Failed to confirm appointment. Please try again.',
       });
     } finally {
       setIsSubmittingFinalize(false);
